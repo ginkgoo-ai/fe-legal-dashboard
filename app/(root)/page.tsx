@@ -8,7 +8,7 @@ export default function RootPage() {
   const router = useRouter();
 
   useEffect(() => {
-    router.push('/upload-detail');
+    router.push('/upload-file');
   }, []);
 
   return (
