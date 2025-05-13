@@ -131,7 +131,7 @@ const createAxiosInstance = (): AxiosInstance => {
         // TODO: token expired
       }
 
-      return Promise.reject(error);
+      return false;
     }
   );
 
