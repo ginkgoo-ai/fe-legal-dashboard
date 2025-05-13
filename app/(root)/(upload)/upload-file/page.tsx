@@ -1,21 +1,33 @@
 'use client';
 
+import { BadgeStatus } from '@/components/badgeStatus';
 import { FileUpload } from '@/components/common/form/upload/fileUpload';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { useInterval } from '@/hooks/useInterval';
-import { uploadFile } from '@/service/api';
-import { FileText, X } from 'lucide-react';
+import { uploadFiles } from '@/service/api/file';
+import { FileType } from '@/types/file';
+import { produce } from 'immer';
+import { FileText, Loader2, RotateCcw, X } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { v4 as uuid } from 'uuid';
 import { mockUploadFile } from './mock';
 
+enum FileStatus {
+  UPLOADING = 'UPLOADING',
+  ANALYSIS = 'ANALYSIS',
+  DONE = 'DONE',
+  ERROR = 'ERROR',
+}
+
 interface IFileItemType {
   localId: string;
+  status: FileStatus;
   file: File;
   progress: number;
-  result?: Record<string, string>[];
+  resultAnalysis?: Record<string, string>[];
+  resultFile?: FileType;
 }
 
 export default function UploadFilePage() {
@@ -24,19 +36,22 @@ export default function UploadFilePage() {
   useInterval(
     () => {
       setFileList(prev =>
-        prev.map(file => {
-          if (file.progress >= 100) return file;
+        produce(prev, draft => {
+          draft.forEach(file => {
+            if (file.progress >= 100) return;
 
-          const shouldUpdate = Math.random() < 0.6;
-          if (!shouldUpdate) return file;
+            const shouldUpdate =
+              file.status === FileStatus.UPLOADING && Math.random() < 0.6;
+            if (!shouldUpdate) return;
 
-          const maxIncrement = 8;
-          const increment = Math.floor(Math.random() * maxIncrement) + 1;
+            const maxIncrement = 8;
+            const increment = Math.floor(Math.random() * maxIncrement) + 1;
 
-          return {
-            ...file,
-            progress: Math.min(95, file.progress + increment),
-          };
+            file.progress = Math.max(
+              file.progress,
+              Math.min(90 + Math.floor(Math.random() * 10), file.progress + increment)
+            );
+          });
         })
       );
     },
@@ -44,41 +59,109 @@ export default function UploadFilePage() {
     true
   );
 
-  const onUploadFile = async (file: IFileItemType) => {
-    const data = await uploadFile(file.file, {
-      onUploadeProgress: (percentCompleted: number) => {
-        // console.log(percentCompleted);
-      },
-    });
+  const actionAnalysisFile = async (cloudFiles: FileType[]) => {
+    await new Promise(resolve => setTimeout(resolve, 3000));
+
+    if (Math.random() < 0.5) {
+      setFileList(prev =>
+        produce(prev, draft => {
+          draft.forEach((file: IFileItemType) => {
+            if (
+              cloudFiles.some(cloudFile => {
+                return cloudFile.id === file.resultFile?.id;
+              })
+            ) {
+              file.status = FileStatus.DONE;
+              file.progress = 100;
+              file.resultAnalysis = mockUploadFile;
+            }
+          });
+        })
+      );
+    } else {
+      toast.error('Analysis file failed.');
+      setFileList(prev =>
+        produce(prev, draft => {
+          draft.forEach(file => {
+            if (
+              cloudFiles.some(cloudFile => {
+                return cloudFile.id === file.resultFile?.id;
+              })
+            ) {
+              file.status = FileStatus.ERROR;
+              file.progress = 0;
+            }
+          });
+        })
+      );
+    }
+  };
+
+  const actionUploadFile = async (newFiles: IFileItemType[]) => {
+    const data = await uploadFiles(
+      newFiles.map(file => file.file),
+      {
+        onUploadeProgress: (percentCompleted: number) => {
+          // console.log('percentCompleted', percentCompleted);
+        },
+      }
+    );
+    if (data?.cloudFiles) {
+      setFileList(prev =>
+        produce(prev, draft => {
+          draft.forEach(file => {
+            const indexNewFile = newFiles.findIndex(
+              newFile => newFile.localId === file.localId
+            );
+            if (indexNewFile >= 0) {
+              file.status = FileStatus.ANALYSIS;
+              file.progress = 100;
+              file.resultFile = data.cloudFiles[indexNewFile];
+            }
+          });
+        })
+      );
+      await actionAnalysisFile(data.cloudFiles);
+    } else {
+      toast.error('Upload file failed.');
+      setFileList(prev =>
+        produce(prev, draft => {
+          draft.forEach(file => {
+            if (newFiles.some(newFile => newFile.localId === file.localId)) {
+              file.status = FileStatus.ERROR;
+              file.progress = 0;
+            }
+          });
+        })
+      );
+    }
+  };
+
+  const handleFileChange = async (files: File[]) => {
+    const newFiles = files.map(file => ({
+      localId: uuid(),
+      status: FileStatus.UPLOADING,
+      file,
+      progress: 0,
+    }));
 
     setFileList(prev =>
-      prev.map(filePrev => {
-        if (filePrev.localId === file.localId) {
-          return {
-            ...filePrev,
-            progress: 100,
-            result: mockUploadFile,
-          };
-        }
-        return filePrev;
+      produce(prev, draft => {
+        draft.push(...newFiles);
       })
     );
 
-    return;
+    await actionUploadFile(newFiles);
   };
 
-  const handleFileChange = (files: File[]) => {
-    const newFiles = files.map(file => {
-      const newFile = {
-        file,
-        localId: uuid(),
-        progress: 0,
-      };
-      onUploadFile(newFile);
-      return newFile;
-    });
+  const handleFileRetry = async (indexFile: number) => {
+    setFileList(prev =>
+      produce(prev, draft => {
+        draft[indexFile].status = FileStatus.UPLOADING;
+      })
+    );
 
-    setFileList(prev => [...prev, ...newFiles]);
+    await actionUploadFile([fileList[indexFile]]);
   };
 
   const handleFileError = (error: string) => {
@@ -103,36 +186,65 @@ export default function UploadFilePage() {
           />
         </div>
         <div className="flex flex-col gap-2">
-          {fileList.map((file, index) => (
-            <div key={`${file.localId}`} className="flex flex-col gap-2">
+          {fileList.map((itemFile, indexFile) => (
+            <div key={`${itemFile.localId}`} className="flex flex-col gap-2">
               <div className="flex items-center justify-between p-2 rounded-lg bg-background border border-default">
                 <div className="bg-form-background border border-default rounded-lg flex items-center justify-center p-2">
-                  <FileText size={16} />
+                  <FileText size={24} />
                 </div>
                 <div className="flex flex-col gap-2 min-w-0 flex-1 mx-4">
-                  <div className="text-xs truncate font-semibold">{file.file.name}</div>
-                  <Progress value={file.progress} />
+                  <div className="flex flex-row items-center">
+                    <BadgeStatus status={itemFile.status} />
+                    <span className="ml-2 text-sm truncate font-semibold">
+                      {itemFile.file.name}
+                    </span>
+                  </div>
+                  <div className="flex flex-row items-center gap-2">
+                    <Progress value={itemFile.progress} />
+                    {itemFile.status === FileStatus.ANALYSIS && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        disabled
+                        className="w-1 h-1 flex-shrink-0 cursor-pointer text-destructive hover:text-destructive/80"
+                      >
+                        <Loader2 className="animate-spin" color="#333333" />
+                      </Button>
+                    )}
+                    {itemFile.status === FileStatus.ERROR && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        className="w-1 h-1 flex-shrink-0 cursor-pointer text-destructive hover:text-destructive/80"
+                        onClick={() => {
+                          handleFileRetry(indexFile);
+                        }}
+                      >
+                        <RotateCcw color="#333333" />
+                      </Button>
+                    )}
+                  </div>
                 </div>
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="ghost"
                   onClick={() => {
-                    setFileList(fileList.filter((_, i) => i !== index));
+                    setFileList(fileList.filter((_, i) => i !== indexFile));
                   }}
                   className="flex-shrink-0 cursor-pointer text-destructive hover:text-destructive/80"
                 >
                   <X className="w-4 h-4" />
                 </Button>
               </div>
-              {file.result && (
+              {itemFile.status === FileStatus.DONE && (
                 <div className="flex flex-col gap-2">
-                  {file.result.map((item, index) => (
-                    <div key={index} className="flex flex-row gap-2">
+                  {itemFile.resultAnalysis?.map((itemAnalysis, indexAnalysis) => (
+                    <div key={indexAnalysis} className="flex flex-row gap-2">
                       <div className="flex-[0_0_auto] max-w-[50%] text-xs font-semibold whitespace-pre-wrap">
-                        {item.key}:
+                        {itemAnalysis.key}:
                       </div>
                       <div className="flex-1 text-xs whitespace-pre-wrap">
-                        {item.value}
+                        {itemAnalysis.value}
                       </div>
                     </div>
                   ))}

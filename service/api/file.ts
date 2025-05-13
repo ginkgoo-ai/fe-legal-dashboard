@@ -3,6 +3,7 @@ import ApiRequest from '../axios';
 
 export const FileApi = {
   file: '/storage/v1/files',
+  files: '/storage/v2/files',
 };
 
 const uploadFile = async (
@@ -22,6 +23,34 @@ const uploadFile = async (
     },
     signal: abortSignal,
     onUploadProgress: progressEvent => {
+      const percentCompleted = Math.round(
+        (progressEvent.loaded * 100) / (progressEvent?.total ?? 0)
+      );
+      onUploadeProgress?.(percentCompleted);
+    },
+  });
+};
+
+const uploadFiles = async (
+  files: File[],
+  config?: {
+    onUploadeProgress?: (percentCompleted: number) => void;
+    abortSignal?: AbortSignal;
+  }
+): Promise<{ cloudFiles: FileType[] }> => {
+  const { onUploadeProgress, abortSignal } = config ?? {};
+  const formData = new FormData();
+  files.forEach(file => {
+    formData.append('files', file);
+  });
+
+  return ApiRequest.post(`${FileApi.files}`, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+    signal: abortSignal,
+    onUploadProgress: progressEvent => {
+      console.log('progressEvent', progressEvent);
       const percentCompleted = Math.round(
         (progressEvent.loaded * 100) / (progressEvent?.total ?? 0)
       );
@@ -55,4 +84,4 @@ const saveBlob = (blobPart: BlobPart, fileName: string) => {
   window.URL.revokeObjectURL(url);
 };
 
-export { downloadFile, saveBlob, uploadFile };
+export { downloadFile, saveBlob, uploadFile, uploadFiles };
