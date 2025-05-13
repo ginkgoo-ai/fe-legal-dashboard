@@ -10,16 +10,17 @@ const app = next({ dev });
 const handle = app.getRequestHandler();
 
 const httpsOptions = {
-  key: fs.readFileSync(path.resolve(__dirname, 'cert', 'local.legal.dev-key.pem')),
-  cert: fs.readFileSync(path.resolve(__dirname, 'cert', 'local.legal.dev.pem')),
+  key: fs.readFileSync(path.resolve(__dirname, 'cert', 'local.slatecast.dev-key.pem')), // key: fs.readFileSync(path.resolve(__dirname, 'cert', 'local.legal.dev-key.pem')),
+  cert: fs.readFileSync(path.resolve(__dirname, 'cert', 'local.slatecast.dev.pem')), // cert: fs.readFileSync(path.resolve(__dirname, 'cert', 'local.legal.dev.pem')),
 };
 
 app.prepare().then(() => {
   createServer(httpsOptions, (req, res) => {
     const parsedUrl = parse(req.url, true);
     handle(req, res, parsedUrl);
-  }).listen(443, 'local.legal.dev', err => {
+  }).listen(443, 'local.slatecast.dev', err => {
+    // }).listen(443, 'local.legal.dev', err => {
     if (err) throw err;
-    console.log('> Ready on https://local.legal.dev:443');
+    console.log('> Ready on https://local.slatecast.dev:443'); // console.log('> Ready on https://local.legal.dev:443');
   });
 });

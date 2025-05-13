@@ -1,3 +1,4 @@
-export * from "./user";
-export * from "./auth";
-export * from "./chat";
+export * from './auth';
+export * from './chat';
+export * from './file';
+export * from './user';

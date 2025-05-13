@@ -1,12 +1,13 @@
 'use client';
 
 import GlobalManager from '@/customManager/GlobalManager';
+import useRequest from '@/hooks/useRequest';
 import Tracer from '@/lib/telemetry/tracer';
+import { getUserInfo } from '@/service/api';
 import { useUserStore } from '@/store';
 import '@/style/global.css';
-import { UserInfo } from '@/types/user';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 
 export default function RootLayout({
   children,
@@ -15,39 +16,39 @@ export default function RootLayout({
 }>) {
   const { setUserInfo } = useUserStore();
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
-  const [user, setUser] = useState<UserInfo | null>(null);
+  // const [loading, setLoading] = useState(false);
+  // const [user, setUser] = useState<UserInfo | null>(null);
 
-  const mockUserInfo = {
-    id: '1',
-    name: 'John Doe',
-    email: 'john.doe@example.com',
-    avatar: 'https://github.com/shadcn.png',
-    roles: [{ id: '1', name: 'ADMIN' }],
-    firstName: 'John',
-    lastName: 'Doe',
-    enabled: true,
-    sub: '1234567890',
-    fullname: 'John Doe',
-    logoFileId: '1234567890',
-    picture: 'https://github.com/shadcn.png',
-  };
+  // const mockUserInfo = {
+  //   id: '1',
+  //   name: 'John Doe',
+  //   email: 'john.doe@example.com',
+  //   avatar: 'https://github.com/shadcn.png',
+  //   roles: [{ id: '1', name: 'ADMIN' }],
+  //   firstName: 'John',
+  //   lastName: 'Doe',
+  //   enabled: true,
+  //   sub: '1234567890',
+  //   fullname: 'John Doe',
+  //   logoFileId: '1234567890',
+  //   picture: 'https://github.com/shadcn.png',
+  // };
 
-  // const { loading, data: user } = useRequest(getUserInfo, {
-  //   errorRetryCount: 1,
-  //   immediate: true,
-  //   onSuccess: user => {
-  //     setUserInfo(user);
+  const { loading, data: user } = useRequest(getUserInfo, {
+    errorRetryCount: 1,
+    immediate: true,
+    onSuccess: user => {
+      setUserInfo(user);
 
-  //     const pathname = window.location.pathname;
+      const pathname = window.location.pathname;
 
-  //     if (!user.enabled && pathname !== '/403') {
-  //       router.replace('/403');
-  //     } else if (user.enabled && pathname === '/403') {
-  //       router.replace('/');
-  //     }
-  //   },
-  // });
+      if (!user.enabled && pathname !== '/403') {
+        router.replace('/403');
+      } else if (user.enabled && pathname === '/403') {
+        router.replace('/');
+      }
+    },
+  });
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -59,8 +60,8 @@ export default function RootLayout({
       });
     }
 
-    setUser(mockUserInfo);
-    setUserInfo(mockUserInfo);
+    // setUser(mockUserInfo);
+    // setUserInfo(mockUserInfo);
   }, []);
 
   return (
