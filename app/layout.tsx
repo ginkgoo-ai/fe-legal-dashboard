@@ -28,9 +28,9 @@ export default function RootLayout({
 
       const pathname = window.location.pathname;
 
-      if (!user.enabled && pathname !== '/403') {
+      if (!user?.enabled && pathname !== '/403') {
         router.replace('/403');
-      } else if (user.enabled && pathname === '/403') {
+      } else if (user?.enabled && pathname === '/403') {
         router.replace('/');
       }
     },
