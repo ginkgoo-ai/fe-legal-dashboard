@@ -1,5 +1,12 @@
 import { StepProps } from 'antd';
 
+export enum CaseStreamStatusEnum {
+  INIT = 'INIT',
+  STREAMING = 'STREAMING',
+  ERROR = 'ERROR',
+  DONE = 'DONE',
+}
+
 export enum PilotStatusEnum {
   INIT = 'INIT',
   OPEN = 'OPEN',
@@ -8,6 +15,9 @@ export enum PilotStatusEnum {
   ACTION = 'ACTION',
   WAIT = 'WAIT',
   HOLD = 'HOLD',
+  MANUAL = 'MANUAL',
+  NOT_SUPPORT = 'NOT_SUPPORT',
+  COMING_SOON = 'COMING_SOON',
 }
 
 export type ActionResultType = 'success' | 'notFound' | '';

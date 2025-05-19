@@ -7,13 +7,19 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { useEventManager } from '@/hooks/useEventManager';
 import { cn } from '@/lib/utils';
+import { caseStream } from '@/service/api';
 import { uploadFiles } from '@/service/api/file';
 import { FileType } from '@/types/file';
-import { IActionItemType, IStepItemType, PilotStatusEnum } from '@/types/pilot';
+import {
+  CaseStreamStatusEnum,
+  IActionItemType,
+  IStepItemType,
+  PilotStatusEnum,
+} from '@/types/pilot';
 import { Splitter, StepProps, Steps, Tag, Tooltip } from 'antd';
 import { produce } from 'immer';
 import { FileText, Loader2, RotateCcw, X } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { v4 as uuid } from 'uuid';
 import { mockUploadFile } from './mock';
@@ -36,6 +42,11 @@ interface IFileItemType {
 
 export default function UploadFilePage() {
   const [fileList, setFileList] = useState<IFileItemType[]>([]);
+  const [caseId, setCaseId] = useState<string>('44c6cd75-b7c4-4e27-b643-ab14c15ee3a0');
+  const [caseStreamStatus, setCaseStreamStatus] = useState<CaseStreamStatusEnum>(
+    CaseStreamStatusEnum.INIT
+  );
+  const [caseStreamDocumentList, setCaseStreamDocumentList] = useState<any[]>([]);
   const [pilotStatus, setPilotStatus] = useState<PilotStatusEnum>(PilotStatusEnum.HOLD);
   const [stepListCurrent, setStepListCurrent] = useState<number>(0);
   const [stepListItems, setStepListItems] = useState<StepProps[]>([]);
@@ -195,6 +206,63 @@ export default function UploadFilePage() {
     }
   };
 
+  const registerCaseStream = async () => {
+    try {
+      const { cancel, request } = await caseStream(
+        { caseId },
+        (controller: any) => {
+          // 可以立即获取到 controller
+          // setRequestController({ cancel: () => controller.abort() });
+        },
+        res => {
+          console.log('🚀 ~ res:', res);
+          // const parts = parseMessageContent(res);
+
+          setCaseStreamStatus(CaseStreamStatusEnum.STREAMING);
+          // originalMessageLogRef.current = res;
+          try {
+            const data = JSON.parse(res);
+            setCaseStreamDocumentList(
+              data.documents.map((itemDocument: any) => {
+                const metadataForFrontObject = JSON.parse(itemDocument.metadataJson);
+                return {
+                  ...itemDocument,
+                  metadataForFront: metadataForFrontObject
+                    ? Object.keys(metadataForFrontObject).map((key: any) => {
+                        return {
+                          key,
+                          value: metadataForFrontObject[key],
+                        };
+                      })
+                    : [],
+                };
+              })
+            );
+          } catch (error) {
+            console.error('Error parse message', error);
+          }
+        }
+      );
+
+      try {
+        await request;
+      } catch (error: any) {
+        throw error;
+      }
+    } catch (err: any) {
+      if (err.name === 'AbortError' || err.name === 'CanceledError') {
+        // Common Error
+      } else {
+        // Cancel Error
+      }
+    } finally {
+    }
+  };
+
+  useEffect(() => {
+    registerCaseStream();
+  }, []);
+
   const handleFileChange = async (files: File[]) => {
     const newFiles = files.map(file => ({
       localId: uuid(),
@@ -233,13 +301,107 @@ export default function UploadFilePage() {
       <div className="flex-1">
         <Splitter lazy style={{ boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)' }}>
           <Splitter.Panel defaultSize="30%" min="20%" max="70%">
-            First
-            <HeaderRobot />
+            <div className="flex-col gap-4">
+              <div className="flex flex-col gap-2">
+                <FileUpload
+                  accept="application/pdf,image/jpeg,image/png,image/gif,image/webp,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/plain"
+                  multiple
+                  maxSize={50}
+                  onChange={handleFileChange}
+                  onError={handleFileError}
+                  label="Drag & drop your file"
+                  subLabel="Supported file types: PDF, JPG, PNG, GIF, WEBP, DOC, DOCX, XLS, XLSX, TXT"
+                  triggerText="browse files"
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                {fileList.map((itemFile, indexFile) => (
+                  <div key={`${itemFile.localId}`} className="flex flex-col gap-2">
+                    <div className="flex items-center justify-between p-2 rounded-lg bg-background border border-default">
+                      <div className="bg-form-background border border-default rounded-lg flex items-center justify-center p-2">
+                        <FileText size={24} />
+                      </div>
+                      <div className="flex flex-col gap-2 min-w-0 flex-1 mx-4">
+                        <div className="flex flex-row items-center">
+                          <BadgeStatus status={itemFile.status} />
+                          <span className="ml-2 text-sm truncate font-semibold">
+                            {itemFile.file.name}
+                          </span>
+                        </div>
+                        <div className="flex flex-row items-center gap-2">
+                          <Progress value={itemFile.progress} />
+                          {itemFile.status === FileStatus.ANALYSIS && (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              disabled
+                              className="w-1 h-1 flex-shrink-0 cursor-pointer text-destructive hover:text-destructive/80"
+                            >
+                              <Loader2 className="animate-spin" color="#333333" />
+                            </Button>
+                          )}
+                          {itemFile.status === FileStatus.ERROR && (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              className="w-1 h-1 flex-shrink-0 cursor-pointer text-destructive hover:text-destructive/80"
+                              onClick={() => {
+                                handleFileRetry(indexFile);
+                              }}
+                            >
+                              <RotateCcw color="#333333" />
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        onClick={() => {
+                          setFileList(fileList.filter((_, i) => i !== indexFile));
+                        }}
+                        className="flex-shrink-0 cursor-pointer text-destructive hover:text-destructive/80"
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </Splitter.Panel>
           <Splitter.Panel defaultSize="40%" min="20%" max="70%">
-            Second
+            <div>{caseStreamStatus}</div>
+            <div className="flex flex-col gap-2">
+              {caseStreamDocumentList.map((itemDocument, indexDocument) => {
+                return (
+                  <div key={`case-stream-document-${indexDocument}`}>
+                    <div>{itemDocument.title}</div>
+                    <div>{itemDocument.description}</div>
+                    {itemDocument.metadataForFront.map(
+                      (itemMetadata: any, indexMetadata: any) => {
+                        return (
+                          <div
+                            key={`case-stream-document-metadata-${indexMetadata}`}
+                            className="flex flex-row gap-2"
+                          >
+                            <div className="flex-[0_0_auto] max-w-[50%] text-xs font-semibold whitespace-pre-wrap">
+                              {itemMetadata.key}:
+                            </div>
+                            <div className="flex-1 text-xs whitespace-pre-wrap">
+                              {itemMetadata.value}
+                            </div>
+                          </div>
+                        );
+                      }
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </Splitter.Panel>
           <Splitter.Panel defaultSize="30%" min="20%" max="70%">
+            <HeaderRobot />
             <div className="flex flex-col gap-2 h-full overflow-y-auto">
               <div className="flex flex-row gap-2">
                 <span className="whitespace-nowrap font-bold">Status:</span>
@@ -261,89 +423,6 @@ export default function UploadFilePage() {
             </div>
           </Splitter.Panel>
         </Splitter>
-      </div>
-
-      <div className="flex-col gap-4 hidden">
-        <div className="flex flex-col gap-2">
-          <FileUpload
-            accept="application/pdf,image/jpeg,image/png,image/gif,image/webp,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/plain"
-            multiple
-            maxSize={50}
-            onChange={handleFileChange}
-            onError={handleFileError}
-            label="Drag & drop your file"
-            subLabel="Supported file types: PDF, JPG, PNG, GIF, WEBP, DOC, DOCX, XLS, XLSX, TXT"
-            triggerText="browse files"
-          />
-        </div>
-        <div className="flex flex-col gap-2">
-          {fileList.map((itemFile, indexFile) => (
-            <div key={`${itemFile.localId}`} className="flex flex-col gap-2">
-              <div className="flex items-center justify-between p-2 rounded-lg bg-background border border-default">
-                <div className="bg-form-background border border-default rounded-lg flex items-center justify-center p-2">
-                  <FileText size={24} />
-                </div>
-                <div className="flex flex-col gap-2 min-w-0 flex-1 mx-4">
-                  <div className="flex flex-row items-center">
-                    <BadgeStatus status={itemFile.status} />
-                    <span className="ml-2 text-sm truncate font-semibold">
-                      {itemFile.file.name}
-                    </span>
-                  </div>
-                  <div className="flex flex-row items-center gap-2">
-                    <Progress value={itemFile.progress} />
-                    {itemFile.status === FileStatus.ANALYSIS && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        disabled
-                        className="w-1 h-1 flex-shrink-0 cursor-pointer text-destructive hover:text-destructive/80"
-                      >
-                        <Loader2 className="animate-spin" color="#333333" />
-                      </Button>
-                    )}
-                    {itemFile.status === FileStatus.ERROR && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        className="w-1 h-1 flex-shrink-0 cursor-pointer text-destructive hover:text-destructive/80"
-                        onClick={() => {
-                          handleFileRetry(indexFile);
-                        }}
-                      >
-                        <RotateCcw color="#333333" />
-                      </Button>
-                    )}
-                  </div>
-                </div>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  onClick={() => {
-                    setFileList(fileList.filter((_, i) => i !== indexFile));
-                  }}
-                  className="flex-shrink-0 cursor-pointer text-destructive hover:text-destructive/80"
-                >
-                  <X className="w-4 h-4" />
-                </Button>
-              </div>
-              {itemFile.status === FileStatus.DONE && (
-                <div className="flex flex-col gap-2">
-                  {itemFile.resultAnalysis?.map((itemAnalysis, indexAnalysis) => (
-                    <div key={indexAnalysis} className="flex flex-row gap-2">
-                      <div className="flex-[0_0_auto] max-w-[50%] text-xs font-semibold whitespace-pre-wrap">
-                        {itemAnalysis.key}:
-                      </div>
-                      <div className="flex-1 text-xs whitespace-pre-wrap">
-                        {itemAnalysis.value}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
       </div>
     </div>
   );

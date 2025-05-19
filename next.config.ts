@@ -7,6 +7,9 @@ const nextConfig: NextConfig = {
   experimental: {
     routerBFCache: false,
   },
+  env: {
+    APP_ENV: process.env.APP_ENV,
+  },
   async rewrites() {
     return [
       {
