@@ -8,7 +8,6 @@ import { useTheme } from 'next-themes';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { HeaderRobot } from '../headerRobot';
 import LogoutTrigger from '../logoutTigger';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import {
@@ -148,7 +147,6 @@ const Header = (props: { className?: string }) => {
         </Link>
       </div>
       <div className="flex items-center gap-4">
-        <HeaderRobot />
         <User />
       </div>
     </header>

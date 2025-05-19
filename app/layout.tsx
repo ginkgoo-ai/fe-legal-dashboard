@@ -6,6 +6,7 @@ import useRequest from '@/hooks/useRequest';
 import Tracer from '@/lib/telemetry/tracer';
 import { getUserInfo } from '@/service/api';
 import { useUserStore } from '@/store';
+import { useExtensionsStore } from '@/store/extensionsStore';
 import '@/style/global.css';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef } from 'react';
@@ -16,6 +17,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   const { setUserInfo } = useUserStore();
+  const { setExtensionsInfo } = useExtensionsStore();
   const { emit } = useEventManager('ginkgo-message', () => {});
   const router = useRouter();
   const timerRegister = useRef<NodeJS.Timeout | null>(null);
@@ -50,12 +52,15 @@ export default function RootLayout({
       origin === window.location.origin &&
       (/^ginkgo-[^-]+-all-.*$/.test(type) || /^ginkgo-[^-]+-page-.*$/.test(type))
     ) {
+      emit(data);
+
       if (type === 'ginkgo-background-page-register') {
         if (timerRegister.current) {
+          console.log('clearInterval timerRegister.current');
           clearInterval(timerRegister.current);
+          setExtensionsInfo(data);
         }
       }
-      emit(data);
     }
   };
 
@@ -64,6 +69,8 @@ export default function RootLayout({
       window.document.title = GlobalManager.siteName;
       window.addEventListener('message', handleMessage);
       timerRegister.current = setInterval(() => {
+        // TODO: 依赖心跳包
+        console.log('postMessage to ginkgo-background-page-register');
         window.postMessage(
           {
             type: 'ginkgo-page-page-register',
