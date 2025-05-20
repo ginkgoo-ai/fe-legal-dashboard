@@ -6,6 +6,10 @@ export const FileApi = {
   files: '/storage/v2/files',
 };
 
+const baseUrl = process.env.LOCAL_BASE_URL
+  ? `${process.env.LOCAL_BASE_URL}:8080/api`
+  : process.env.NEXT_PUBLIC_API_URL;
+
 const uploadFile = async (
   file: File,
   config?: {
@@ -17,7 +21,7 @@ const uploadFile = async (
   const formData = new FormData();
   formData.append('file', file);
 
-  return ApiRequest.post(`${FileApi.file}`, formData, {
+  return ApiRequest.post(`${baseUrl}${FileApi.file}`, formData, {
     headers: {
       'Content-Type': 'multipart/form-data',
     },
@@ -44,7 +48,7 @@ const uploadFiles = async (
     formData.append('files', file);
   });
 
-  return ApiRequest.post(`${FileApi.files}`, formData, {
+  return ApiRequest.post(`${baseUrl}${FileApi.files}`, formData, {
     headers: {
       'Content-Type': 'multipart/form-data',
     },

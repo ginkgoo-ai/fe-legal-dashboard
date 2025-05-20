@@ -2,8 +2,8 @@
 class GlobalManager {
   static instance: null | GlobalManager = null;
 
-  siteName = 'Legal Dashboard';
-  siteDescription = 'Legal Dashboard';
+  siteName = 'Ginkgoo.Legal';
+  siteDescription = 'Ginkgoo.Legal';
   static getInstance() {
     if (!this.instance) {
       this.instance = new GlobalManager();

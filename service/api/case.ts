@@ -1,32 +1,31 @@
-interface IChatParamsType {
+import ApiRequest from '../axios';
+interface ICaseStreamParamsType {
   caseId: string;
+}
+
+interface IOcrDocumentsParamsType {
+  caseId: string;
+  storageIds: string[];
 }
 
 export const PilotApi = {
   caseStream: '/cases/:caseId/stream',
-  documents: '/cases/:caseId/stream',
+  documents: '/cases/:caseId/documents',
 };
 
+const baseUrl = process.env.LOCAL_BASE_URL
+  ? `${process.env.LOCAL_BASE_URL}:7878`
+  : process.env.NEXT_PUBLIC_API_URL;
+
 const caseStream = async (
-  params: IChatParamsType,
+  params: ICaseStreamParamsType,
   onRequest?: (controller: AbortController) => void,
   onProgress?: (text: string) => void
-): Promise<{ cancel: () => void; request: Promise<IChatParamsType> }> => {
-  const { caseId } = params;
-
-  const controller = new AbortController();
-
-  onRequest?.(controller);
-
+): Promise<{ cancel: () => void; request: Promise<ICaseStreamParamsType> }> => {
   let res = '';
-
-  const request = new Promise<IChatParamsType>((resolve, reject) => {
-    console.log('process.env.APP_ENV', process.env.APP_ENV);
-    const baseUrl =
-      process.env.APP_ENV === 'local'
-        ? 'http://192.168.31.147:7878'
-        : process.env.NEXT_PUBLIC_API_URL;
-
+  const { caseId } = params;
+  const controller = new AbortController();
+  const request = new Promise<ICaseStreamParamsType>((resolve, reject) => {
     fetch(`${baseUrl}${PilotApi.caseStream}`.replace(':caseId', caseId), {
       method: 'GET',
       signal: controller.signal,
@@ -49,7 +48,6 @@ const caseStream = async (
             ?.read()
             .then(({ done, value }) => {
               if (done) {
-                res = '';
                 resolve({} as any);
                 return;
               }
@@ -88,10 +86,27 @@ const caseStream = async (
       .catch(reject);
   });
 
+  onRequest?.(controller);
+
   return {
     cancel: () => controller.abort(),
     request,
   };
 };
 
-export { caseStream };
+const ocrDocuments = async (params: IOcrDocumentsParamsType): Promise<string[]> => {
+  const { caseId, storageIds = [] } = params;
+  return ApiRequest.post(
+    `${baseUrl}${PilotApi.documents}`.replace(':caseId', caseId),
+    {
+      storageIds,
+    },
+    {
+      headers: {
+        Accept: 'application/json',
+      },
+    }
+  );
+};
+
+export { caseStream, ocrDocuments };

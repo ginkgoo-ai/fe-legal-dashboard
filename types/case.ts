@@ -7,6 +7,16 @@ export enum CaseStreamStatusEnum {
   DONE = 'DONE',
 }
 
+export enum CaseStatusEnum {
+  ANALYZING = 'ANALYZING',
+  PROGRESS = 'PROGRESS',
+  READY = 'READY',
+  AUTO_FILLING = 'AUTO_FILLING',
+  HOLD = 'HOLD',
+  FINAL_REVIEW = 'FINAL_REVIEW',
+  DEFAULT = 'DEFAULT',
+}
+
 export enum PilotStatusEnum {
   INIT = 'INIT',
   OPEN = 'OPEN',

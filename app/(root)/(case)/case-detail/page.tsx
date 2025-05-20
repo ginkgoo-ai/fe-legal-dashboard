@@ -7,22 +7,25 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { useEventManager } from '@/hooks/useEventManager';
 import { cn } from '@/lib/utils';
-import { caseStream } from '@/service/api';
+import { caseStream, ocrDocuments } from '@/service/api';
 import { uploadFiles } from '@/service/api/file';
-import { FileType } from '@/types/file';
 import {
-  CaseStreamStatusEnum,
+  CaseStatusEnum,
   IActionItemType,
   IStepItemType,
   PilotStatusEnum,
-} from '@/types/pilot';
-import { Splitter, StepProps, Steps, Tag, Tooltip } from 'antd';
+} from '@/types/case';
+import { FileType } from '@/types/file';
+import { Breadcrumb, Splitter, StepProps, Steps, Tag, Tooltip } from 'antd';
 import { produce } from 'immer';
 import { FileText, Loader2, RotateCcw, X } from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { v4 as uuid } from 'uuid';
-import { mockUploadFile } from './mock';
+
+import { TagCaseStatus } from '@/components/case/tag-case-status';
+import './index.css';
 
 enum FileStatus {
   UPLOADING = 'UPLOADING',
@@ -40,12 +43,17 @@ interface IFileItemType {
   resultFile?: FileType;
 }
 
-export default function UploadFilePage() {
-  const [fileList, setFileList] = useState<IFileItemType[]>([]);
-  const [caseId, setCaseId] = useState<string>('44c6cd75-b7c4-4e27-b643-ab14c15ee3a0');
-  const [caseStreamStatus, setCaseStreamStatus] = useState<CaseStreamStatusEnum>(
-    CaseStreamStatusEnum.INIT
+export default function CaseDetailPage() {
+  const searchParams = useSearchParams();
+  const caseId = decodeURIComponent(
+    searchParams.get('caseId') || '44c6cd75-b7c4-4e27-b643-ab14c15ee3a0'
   );
+
+  const [titleDetail, setTitleDetail] = useState<string>('');
+  const [breadcrumbItems, setBreadcrumbItems] = useState<any[]>([]);
+  const [fileList, setFileList] = useState<IFileItemType[]>([]);
+
+  const [caseStatus, setCaseStatus] = useState<CaseStatusEnum>(CaseStatusEnum.PROGRESS);
   const [caseStreamDocumentList, setCaseStreamDocumentList] = useState<any[]>([]);
   const [pilotStatus, setPilotStatus] = useState<PilotStatusEnum>(PilotStatusEnum.HOLD);
   const [stepListCurrent, setStepListCurrent] = useState<number>(0);
@@ -128,10 +136,13 @@ export default function UploadFilePage() {
     return result;
   };
 
-  const actionAnalysisFile = async (cloudFiles: FileType[]) => {
-    await new Promise(resolve => setTimeout(resolve, 3000));
+  const actionOcrFile = async (cloudFiles: FileType[]) => {
+    const data = await ocrDocuments({
+      caseId,
+      storageIds: cloudFiles.map(file => file.id),
+    });
 
-    if (Math.random() < 0.5) {
+    if (data?.length > 0) {
       setFileList(prev =>
         produce(prev, draft => {
           draft.forEach((file: IFileItemType) => {
@@ -142,7 +153,6 @@ export default function UploadFilePage() {
             ) {
               file.status = FileStatus.DONE;
               file.progress = 100;
-              file.resultAnalysis = mockUploadFile;
             }
           });
         })
@@ -190,7 +200,7 @@ export default function UploadFilePage() {
           });
         })
       );
-      await actionAnalysisFile(data.cloudFiles);
+      await actionOcrFile(data.cloudFiles);
     } else {
       toast.error('Upload file failed.');
       setFileList(prev =>
@@ -217,29 +227,29 @@ export default function UploadFilePage() {
         res => {
           console.log('🚀 ~ res:', res);
           // const parts = parseMessageContent(res);
-
-          setCaseStreamStatus(CaseStreamStatusEnum.STREAMING);
           // originalMessageLogRef.current = res;
           try {
             const data = JSON.parse(res);
-            setCaseStreamDocumentList(
-              data.documents.map((itemDocument: any) => {
-                const metadataForFrontObject = JSON.parse(itemDocument.metadataJson);
-                return {
-                  ...itemDocument,
-                  metadataForFront: metadataForFrontObject
-                    ? Object.keys(metadataForFrontObject).map((key: any) => {
-                        return {
-                          key,
-                          value: metadataForFrontObject[key],
-                        };
-                      })
-                    : [],
-                };
-              })
-            );
+            const caseStreamDocumentListTmp = data.documents.map((itemDocument: any) => {
+              const metadataForFrontObject = itemDocument.metadataJson
+                ? JSON.parse(itemDocument.metadataJson)
+                : {};
+              return {
+                ...itemDocument,
+                metadataForFront: metadataForFrontObject
+                  ? Object.keys(metadataForFrontObject).map((key: any) => {
+                      return {
+                        key,
+                        value: JSON.stringify(metadataForFrontObject[key]),
+                      };
+                    })
+                  : [],
+              };
+            });
+
+            setCaseStreamDocumentList(caseStreamDocumentListTmp);
           } catch (error) {
-            console.error('Error parse message', error);
+            console.warn('[Debug] Error parse message', error);
           }
         }
       );
@@ -262,6 +272,23 @@ export default function UploadFilePage() {
   useEffect(() => {
     registerCaseStream();
   }, []);
+
+  useEffect(() => {
+    if (!titleDetail) {
+      return;
+    }
+
+    setBreadcrumbItems([
+      {
+        title: 'Cases',
+        href: '/pilot-portal',
+      },
+      {
+        // title: `${caseName} - ${caseType}`,
+        title: titleDetail,
+      },
+    ]);
+  }, [titleDetail]);
 
   const handleFileChange = async (files: File[]) => {
     const newFiles = files.map(file => ({
@@ -295,13 +322,41 @@ export default function UploadFilePage() {
   };
 
   return (
-    <div className="box-border flex w-full flex-1 flex-col gap-4 py-4">
-      <h1 className="text-xl font-bold">Pilot Detail</h1>
+    <div className="box-border flex w-full flex-1 flex-col h-0 case-detail-wrap">
+      {/* Breadcrumb */}
+      <div
+        className={cn(
+          'bg-background flex h-[50px] w-full items-center justify-between border-b px-4'
+        )}
+      >
+        <div className="flex items-center gap-4">
+          <Breadcrumb separator=">" items={breadcrumbItems} />
+        </div>
+        <div className="flex items-center gap-4">
+          <TagCaseStatus status={caseStatus} />
+        </div>
+      </div>
 
-      <div className="flex-1">
-        <Splitter lazy style={{ boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)' }}>
-          <Splitter.Panel defaultSize="30%" min="20%" max="70%">
-            <div className="flex-col gap-4">
+      {/* max-w-[var(--width-max)] px-[var(--width-padding)] */}
+      <div className="flex h-0 w-full flex-1 flex-col px-6 py-6">
+        <Splitter
+          lazy={false}
+          style={{
+            borderRadius: '12px',
+            gap: '12px',
+          }}
+        >
+          <Splitter.Panel
+            defaultSize="30%"
+            min="20%"
+            max="70%"
+            className="bg-white rounded-2xl flex-col gap-4"
+          >
+            <div className="flex flex-row px-4 justify-between items-center h-[66px] border-b">
+              <div className="text-base font-semibold text-[#1F2937]">Documents</div>
+              <div></div>
+            </div>
+            <div className="flex flex-col gap-2 overflow-y-auto box-border p-4">
               <div className="flex flex-col gap-2">
                 <FileUpload
                   accept="application/pdf,image/jpeg,image/png,image/gif,image/webp,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/plain"
@@ -370,15 +425,23 @@ export default function UploadFilePage() {
               </div>
             </div>
           </Splitter.Panel>
-          <Splitter.Panel defaultSize="40%" min="20%" max="70%">
-            <div>{caseStreamStatus}</div>
-            <div className="flex flex-col gap-2">
+          <Splitter.Panel
+            defaultSize="40%"
+            min="20%"
+            max="70%"
+            className="bg-white rounded-2xl flex-col gap-4"
+          >
+            <div className="flex flex-row px-4 justify-between items-center h-[66px] border-b">
+              <div className="text-base font-semibold text-[#1F2937]">Case summary</div>
+              <div></div>
+            </div>
+            <div className="flex flex-col gap-2 box-border p-4">
               {caseStreamDocumentList.map((itemDocument, indexDocument) => {
                 return (
                   <div key={`case-stream-document-${indexDocument}`}>
                     <div>{itemDocument.title}</div>
                     <div>{itemDocument.description}</div>
-                    {itemDocument.metadataForFront.map(
+                    {itemDocument.metadataForFront?.map(
                       (itemMetadata: any, indexMetadata: any) => {
                         return (
                           <div
@@ -400,9 +463,18 @@ export default function UploadFilePage() {
               })}
             </div>
           </Splitter.Panel>
-          <Splitter.Panel defaultSize="30%" min="20%" max="70%">
-            <HeaderRobot />
-            <div className="flex flex-col gap-2 h-full overflow-y-auto">
+          <Splitter.Panel
+            defaultSize="30%"
+            min="20%"
+            max="70%"
+            className="bg-white rounded-2xl flex-col gap-4"
+          >
+            <div className="flex flex-row px-4 justify-between items-center h-[66px] border-b">
+              <div className="text-base font-semibold text-[#1F2937]">Case summary</div>
+              <div></div>
+            </div>
+            <div className="flex flex-col gap-2 overflow-y-auto box-border p-4">
+              <HeaderRobot />
               <div className="flex flex-row gap-2">
                 <span className="whitespace-nowrap font-bold">Status:</span>
                 <span

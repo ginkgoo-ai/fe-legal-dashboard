@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "nodemon",
-    "dev:local": "APP_ENV=local next dev",
+    "dev:local": "LOCAL_BASE_URL=http://192.168.31.147 next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
@@ -33,6 +33,7 @@
     "cmdk": "^1.0.4",
     "countries-list": "^3.1.1",
     "date-fns": "^4.1.0",
+    "dayjs": "^1.11.13",
     "fast-deep-equal": "^3.1.3",
     "framer-motion": "^12.6.5",
     "immer": "^10.1.1",

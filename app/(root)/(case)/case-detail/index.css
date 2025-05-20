@@ -1,0 +1,13 @@
+.case-detail-wrap {
+  .ant-splitter-bar-dragger::before {
+    background-color: rgba(0, 0, 0, 0) !important;
+  }
+
+  .ant-splitter-bar {
+    background-color: rgba(0, 0, 0, 0) !important;
+  }
+
+  .ant-splitter-bar:hover {
+    background-color: rgba(0, 0, 0, 0) !important;
+  }
+}

@@ -7,7 +7,7 @@ export default function RootPage() {
   const router = useRouter();
 
   useEffect(() => {
-    router.push('/pilot-detail');
+    router.push('/case-portal');
   }, []);
 
   return (
