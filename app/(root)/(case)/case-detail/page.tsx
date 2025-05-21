@@ -1,6 +1,7 @@
 'use client';
 
 import { BadgeStatus } from '@/components/badgeStatus';
+import { TagStatus } from '@/components/case/tag-status';
 import { FileUpload } from '@/components/common/form/upload/fileUpload';
 import { HeaderRobot } from '@/components/headerRobot';
 import { Button } from '@/components/ui/button';
@@ -10,8 +11,8 @@ import { cn } from '@/lib/utils';
 import { caseStream, ocrDocuments } from '@/service/api';
 import { uploadFiles } from '@/service/api/file';
 import {
-  CaseStatusEnum,
   IActionItemType,
+  ICaseItemType,
   IStepItemType,
   PilotStatusEnum,
 } from '@/types/case';
@@ -23,8 +24,6 @@ import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { v4 as uuid } from 'uuid';
-
-import { TagCaseStatus } from '@/components/case/tag-case-status';
 import './index.css';
 
 enum FileStatus {
@@ -43,6 +42,11 @@ interface IFileItemType {
   resultFile?: FileType;
 }
 
+const breadcrumbItemsCasePortal = {
+  title: 'Cases',
+  href: '/case-portal',
+};
+
 export default function CaseDetailPage() {
   const searchParams = useSearchParams();
   const caseId = decodeURIComponent(
@@ -50,10 +54,12 @@ export default function CaseDetailPage() {
   );
 
   const [titleDetail, setTitleDetail] = useState<string>('');
-  const [breadcrumbItems, setBreadcrumbItems] = useState<any[]>([]);
+  const [breadcrumbItems, setBreadcrumbItems] = useState<any[]>([
+    breadcrumbItemsCasePortal,
+  ]);
   const [fileList, setFileList] = useState<IFileItemType[]>([]);
 
-  const [caseStatus, setCaseStatus] = useState<CaseStatusEnum>(CaseStatusEnum.PROGRESS);
+  const [caseInfo, setCaseInfo] = useState<ICaseItemType>({});
   const [caseStreamDocumentList, setCaseStreamDocumentList] = useState<any[]>([]);
   const [pilotStatus, setPilotStatus] = useState<PilotStatusEnum>(PilotStatusEnum.HOLD);
   const [stepListCurrent, setStepListCurrent] = useState<number>(0);
@@ -279,10 +285,7 @@ export default function CaseDetailPage() {
     }
 
     setBreadcrumbItems([
-      {
-        title: 'Cases',
-        href: '/pilot-portal',
-      },
+      breadcrumbItemsCasePortal,
       {
         // title: `${caseName} - ${caseType}`,
         title: titleDetail,
@@ -333,7 +336,13 @@ export default function CaseDetailPage() {
           <Breadcrumb separator=">" items={breadcrumbItems} />
         </div>
         <div className="flex items-center gap-4">
-          <TagCaseStatus status={caseStatus} />
+          {!!caseInfo.caseStatusForFront?.text && (
+            <TagStatus
+              colorBackground={caseInfo.caseStatusForFront?.colorBackground}
+              colorText={caseInfo.caseStatusForFront?.colorText}
+              text={caseInfo.caseStatusForFront?.text}
+            />
+          )}
         </div>
       </div>
 

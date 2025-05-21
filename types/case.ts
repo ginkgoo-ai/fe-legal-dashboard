@@ -32,6 +32,22 @@ export enum PilotStatusEnum {
 
 export type ActionResultType = 'success' | 'notFound' | '';
 
+export interface ICaseItemType {
+  id: string;
+  title: string;
+  caseName: string;
+  caseType: string;
+  status: CaseStatusEnum;
+  createdAt: string;
+  updatedAt: string;
+  caseStatusForFront?: {
+    colorBackground: string;
+    colorText: string;
+    text: string;
+  };
+  [key: string]: unknown;
+}
+
 export interface IAddressItemType {
   hidden?: boolean;
   type: string;
