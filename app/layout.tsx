@@ -55,29 +55,30 @@ export default function RootLayout({
       emit(data);
 
       if (type === 'ginkgo-background-page-register') {
-        if (timerRegister.current) {
-          console.log('clearInterval timerRegister.current');
-          clearInterval(timerRegister.current);
-          setExtensionsInfo(data);
-        }
+        setExtensionsInfo(data);
       }
     }
+  };
+
+  const postHeartRegister = () => {
+    console.log('postMessage to ginkgo-background-page-register');
+    window.postMessage(
+      {
+        type: 'ginkgo-page-page-register',
+      },
+      window.location.origin
+    );
   };
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
       window.document.title = GlobalManager.siteName;
       window.addEventListener('message', handleMessage);
+
+      postHeartRegister();
       timerRegister.current = setInterval(() => {
-        // TODO: 依赖心跳包
-        console.log('postMessage to ginkgo-background-page-register');
-        window.postMessage(
-          {
-            type: 'ginkgo-page-page-register',
-          },
-          window.location.origin
-        );
-      }, 1000);
+        postHeartRegister();
+      }, 3000);
 
       Tracer({
         url: process.env.NEXT_PUBLIC_OTEL_EXPORTER_OTLP_ENDPOINT as string,
@@ -89,6 +90,9 @@ export default function RootLayout({
     // 清理监听器
     return () => {
       window?.removeEventListener('message', handleMessage);
+      if (timerRegister.current) {
+        clearTimeout(timerRegister.current);
+      }
     };
   }, []);
 

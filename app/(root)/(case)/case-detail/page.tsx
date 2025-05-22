@@ -3,13 +3,13 @@
 import { BadgeStatus } from '@/components/badgeStatus';
 import { TagStatus } from '@/components/case/tag-status';
 import { FileUpload } from '@/components/common/form/upload/fileUpload';
-import { HeaderRobot } from '@/components/headerRobot';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { useEventManager } from '@/hooks/useEventManager';
 import { cn } from '@/lib/utils';
 import { caseStream, ocrDocuments } from '@/service/api';
 import { uploadFiles } from '@/service/api/file';
+import { useExtensionsStore } from '@/store/extensionsStore';
 import {
   IActionItemType,
   ICaseItemType,
@@ -19,9 +19,9 @@ import {
 import { FileType } from '@/types/file';
 import { Breadcrumb, Splitter, StepProps, Steps, Tag, Tooltip } from 'antd';
 import { produce } from 'immer';
-import { FileText, Loader2, RotateCcw, X } from 'lucide-react';
+import { CirclePlay, CircleStop, FileText, Loader2, RotateCcw, X } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { v4 as uuid } from 'uuid';
 import './index.css';
@@ -53,23 +53,27 @@ export default function CaseDetailPage() {
     searchParams.get('caseId') || '44c6cd75-b7c4-4e27-b643-ab14c15ee3a0'
   );
 
+  const fill_data = useRef<Record<string, any>>({});
+
   const [titleDetail, setTitleDetail] = useState<string>('');
   const [breadcrumbItems, setBreadcrumbItems] = useState<any[]>([
     breadcrumbItemsCasePortal,
   ]);
   const [fileList, setFileList] = useState<IFileItemType[]>([]);
 
-  const [caseInfo, setCaseInfo] = useState<ICaseItemType>({});
+  const [caseInfo, setCaseInfo] = useState<ICaseItemType | null>(null);
   const [caseStreamDocumentList, setCaseStreamDocumentList] = useState<any[]>([]);
   const [pilotStatus, setPilotStatus] = useState<PilotStatusEnum>(PilotStatusEnum.HOLD);
   const [stepListCurrent, setStepListCurrent] = useState<number>(0);
   const [stepListItems, setStepListItems] = useState<StepProps[]>([]);
 
+  const { extensionsInfo } = useExtensionsStore();
+
   const { emit } = useEventManager('ginkgo-message', message => {
     // console.log('🚀 ~ useEventManager ~ data:', message);
 
     const { type, pilotItem } = message;
-    if (type === 'ginkgo-background-all-pilot-update') {
+    if (type === 'ginkgo-background-all-case-update') {
       setPilotStatus(pilotItem.pilotStatus);
       setStepListCurrent(pilotItem.stepListCurrent);
       setStepListItems(calcStepListCurrent(pilotItem.stepListItems));
@@ -242,7 +246,8 @@ export default function CaseDetailPage() {
                 : {};
               return {
                 ...itemDocument,
-                metadataForFront: metadataForFrontObject
+                metadataForFrontObject,
+                metadataForFrontList: metadataForFrontObject
                   ? Object.keys(metadataForFrontObject).map((key: any) => {
                       return {
                         key,
@@ -252,6 +257,18 @@ export default function CaseDetailPage() {
                   : [],
               };
             });
+
+            fill_data.current = {};
+            caseStreamDocumentListTmp.forEach(
+              (
+                item: { documentType: string; metadataForFrontObject: any },
+                index: number
+              ) => {
+                fill_data.current[item.documentType] = item.metadataForFrontObject;
+              }
+            );
+
+            console.log('fill_data.current', fill_data.current);
 
             setCaseStreamDocumentList(caseStreamDocumentListTmp);
           } catch (error) {
@@ -324,6 +341,27 @@ export default function CaseDetailPage() {
     toast.error(error);
   };
 
+  const handleBtnStartClick = () => {
+    // 只发送消息给本页面
+    const message = {
+      type: 'ginkgo-page-all-case-start',
+      caseId,
+      fill_data: fill_data.current,
+    };
+
+    window.postMessage(message, window.location.origin);
+  };
+
+  const handleBtnStopClick = () => {
+    // 只发送消息给本页面
+    const message = {
+      type: 'ginkgo-page-all-case-stop',
+      caseId,
+    };
+
+    window.postMessage(message, window.location.origin);
+  };
+
   return (
     <div className="box-border flex w-full flex-1 flex-col h-0 case-detail-wrap">
       {/* Breadcrumb */}
@@ -336,7 +374,7 @@ export default function CaseDetailPage() {
           <Breadcrumb separator=">" items={breadcrumbItems} />
         </div>
         <div className="flex items-center gap-4">
-          {!!caseInfo.caseStatusForFront?.text && (
+          {!!caseInfo?.caseStatusForFront?.text && (
             <TagStatus
               colorBackground={caseInfo.caseStatusForFront?.colorBackground}
               colorText={caseInfo.caseStatusForFront?.colorText}
@@ -450,7 +488,7 @@ export default function CaseDetailPage() {
                   <div key={`case-stream-document-${indexDocument}`}>
                     <div>{itemDocument.title}</div>
                     <div>{itemDocument.description}</div>
-                    {itemDocument.metadataForFront?.map(
+                    {itemDocument.metadataForFrontList?.map(
                       (itemMetadata: any, indexMetadata: any) => {
                         return (
                           <div
@@ -483,7 +521,27 @@ export default function CaseDetailPage() {
               <div></div>
             </div>
             <div className="flex flex-col gap-2 overflow-y-auto box-border p-4">
-              <HeaderRobot />
+              <div className="flex flex-row gap-2">
+                <span className="whitespace-nowrap font-bold">Version:</span>
+                <span className={cn('font-bold')}>{extensionsInfo?.version}</span>
+              </div>
+              <Button
+                variant="default"
+                className="h-fit rounded-full border p-1.5 dark:border-zinc-600"
+                disabled={!extensionsInfo?.version}
+                onClick={handleBtnStartClick}
+              >
+                <CirclePlay size={14} />
+              </Button>
+              <Button
+                variant="ghost"
+                className="h-fit rounded-full border p-1.5 dark:border-zinc-600"
+                disabled={!extensionsInfo?.version}
+                onClick={handleBtnStopClick}
+              >
+                <CircleStop size={14} />
+              </Button>
+
               <div className="flex flex-row gap-2">
                 <span className="whitespace-nowrap font-bold">Status:</span>
                 <span
