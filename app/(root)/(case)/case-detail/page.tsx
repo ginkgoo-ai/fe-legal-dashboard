@@ -17,7 +17,7 @@ import {
   PilotStatusEnum,
 } from '@/types/case';
 import { FileType } from '@/types/file';
-import { Breadcrumb, Splitter, StepProps, Steps, Tag, Tooltip } from 'antd';
+import { Breadcrumb, Card, Splitter, StepProps, Steps, Tag, Tooltip } from 'antd';
 import { produce } from 'immer';
 import { CirclePlay, CircleStop, FileText, Loader2, RotateCcw, X } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
@@ -153,20 +153,7 @@ export default function CaseDetailPage() {
     });
 
     if (data?.length > 0) {
-      setFileList(prev =>
-        produce(prev, draft => {
-          draft.forEach((file: IFileItemType) => {
-            if (
-              cloudFiles.some(cloudFile => {
-                return cloudFile.id === file.resultFile?.id;
-              })
-            ) {
-              file.status = FileStatus.DONE;
-              file.progress = 100;
-            }
-          });
-        })
-      );
+      // TODO:
     } else {
       toast.error('Analysis file failed.');
       setFileList(prev =>
@@ -235,6 +222,15 @@ export default function CaseDetailPage() {
           // setRequestController({ cancel: () => controller.abort() });
         },
         res => {
+          setFileList(prev =>
+            produce(prev, draft => {
+              draft.forEach((file: IFileItemType) => {
+                file.status = FileStatus.DONE;
+                file.progress = 100;
+              });
+            })
+          );
+
           console.log('🚀 ~ res:', res);
           // const parts = parseMessageContent(res);
           // originalMessageLogRef.current = res;
@@ -400,7 +396,7 @@ export default function CaseDetailPage() {
             className="bg-white rounded-2xl flex-col gap-4"
           >
             <div className="flex flex-row px-4 justify-between items-center h-[66px] border-b">
-              <div className="text-base font-semibold text-[#1F2937]">Documents</div>
+              <div className="text-base font-semibold text-[#1F2937]">Refernce</div>
               <div></div>
             </div>
             <div className="flex flex-col gap-2 overflow-y-auto box-border p-4">
@@ -479,15 +475,19 @@ export default function CaseDetailPage() {
             className="bg-white rounded-2xl flex-col gap-4"
           >
             <div className="flex flex-row px-4 justify-between items-center h-[66px] border-b">
-              <div className="text-base font-semibold text-[#1F2937]">Case summary</div>
+              <div className="text-base font-semibold text-[#1F2937]">Profile vault</div>
               <div></div>
             </div>
             <div className="flex flex-col gap-2 box-border p-4">
               {caseStreamDocumentList.map((itemDocument, indexDocument) => {
                 return (
-                  <div key={`case-stream-document-${indexDocument}`}>
-                    <div>{itemDocument.title}</div>
+                  <Card key={`case-stream-document-${indexDocument}`}>
+                    <div>
+                      <span className="font-bold">{indexDocument + 1}.</span>
+                      <span className="">{itemDocument.title}</span>
+                    </div>
                     <div>{itemDocument.description}</div>
+                    <div className="font-bold">{itemDocument.documentType}</div>
                     {itemDocument.metadataForFrontList?.map(
                       (itemMetadata: any, indexMetadata: any) => {
                         return (
@@ -505,7 +505,7 @@ export default function CaseDetailPage() {
                         );
                       }
                     )}
-                  </div>
+                  </Card>
                 );
               })}
             </div>
@@ -517,7 +517,7 @@ export default function CaseDetailPage() {
             className="bg-white rounded-2xl flex-col gap-4"
           >
             <div className="flex flex-row px-4 justify-between items-center h-[66px] border-b">
-              <div className="text-base font-semibold text-[#1F2937]">Case summary</div>
+              <div className="text-base font-semibold text-[#1F2937]">Pilot</div>
               <div></div>
             </div>
             <div className="flex flex-col gap-2 overflow-y-auto box-border p-4">

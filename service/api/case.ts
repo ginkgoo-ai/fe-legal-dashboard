@@ -29,7 +29,7 @@ const caseStream = async (
     fetch(`${baseUrl}${PilotApi.caseStream}`.replace(':caseId', caseId), {
       method: 'GET',
       signal: controller.signal,
-      // credentials: 'include',
+      credentials: 'include',
       headers: {
         Accept: 'text/event-stream',
       },
@@ -59,10 +59,13 @@ const caseStream = async (
                 if (line.startsWith('data:')) {
                   const data = line.split('data:')[1];
 
+                  console.log('line', line);
+
                   if (data && data.trim()) {
                     res += data;
                     try {
                       onProgress?.(res);
+                      res = '';
                     } catch (e) {
                       console.error('解析数据失败:', e, '原始数据:', data);
                     }
