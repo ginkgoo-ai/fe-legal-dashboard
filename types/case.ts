@@ -84,3 +84,19 @@ export interface IStepItemType extends StepProps {
   actioncurrent: number;
   actionlist: IActionItemType[];
 }
+
+export interface IPilotType {
+  caseId: string;
+  fill_data: Record<string, unknown>;
+  tabInfo: {
+    [key: string]: unknown;
+  };
+  timer: NodeJS.Timeout | null;
+  pilotStatus: PilotStatusEnum;
+  stepListCurrent: number;
+  stepListItems: IStepItemType[];
+  repeatHash: string;
+  repeatCurrent: number;
+  pdfUrl: string;
+  cookiesStr: string;
+}

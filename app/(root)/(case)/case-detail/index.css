@@ -10,4 +10,16 @@
   .ant-splitter-bar:hover {
     background-color: rgba(0, 0, 0, 0) !important;
   }
+
+  .ant-steps-item-title {
+    padding: 0;
+    width: 100%;
+  }
+}
+
+.ant-drawer {
+  .ant-steps-item-title {
+    padding: 0;
+    width: 100%;
+  }
 }

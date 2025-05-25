@@ -8,6 +8,7 @@ import { getUserInfo } from '@/service/api';
 import { useUserStore } from '@/store';
 import { useExtensionsStore } from '@/store/extensionsStore';
 import '@/style/global.css';
+import { ExtensionsInfo } from '@/types/extensions';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef } from 'react';
 
@@ -16,11 +17,15 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const { setUserInfo } = useUserStore();
-  const { setExtensionsInfo } = useExtensionsStore();
-  const { emit } = useEventManager('ginkgo-message', () => {});
   const router = useRouter();
+
+  const extensionsInfoRef = useRef<ExtensionsInfo | null>(null);
   const timerRegister = useRef<NodeJS.Timeout | null>(null);
+
+  const { setUserInfo } = useUserStore();
+  const { extensionsInfo, setExtensionsInfo } = useExtensionsStore();
+
+  const { emit } = useEventManager('ginkgo-message', () => {});
 
   const { loading, data: user } = useRequest(getUserInfo, {
     errorRetryCount: 1,
@@ -54,14 +59,16 @@ export default function RootLayout({
     ) {
       emit(data);
 
-      if (type === 'ginkgo-background-page-register') {
+      if (
+        type === 'ginkgo-background-page-register' &&
+        extensionsInfoRef.current?.version !== data?.version
+      ) {
         setExtensionsInfo(data);
       }
     }
   };
 
   const postHeartRegister = () => {
-    console.log('postMessage to ginkgo-background-page-register');
     window.postMessage(
       {
         type: 'ginkgo-page-page-register',
@@ -76,9 +83,12 @@ export default function RootLayout({
       window.addEventListener('message', handleMessage);
 
       postHeartRegister();
+      setTimeout(() => {
+        postHeartRegister();
+      }, 2000);
       timerRegister.current = setInterval(() => {
         postHeartRegister();
-      }, 3000);
+      }, 5000);
 
       Tracer({
         url: process.env.NEXT_PUBLIC_OTEL_EXPORTER_OTLP_ENDPOINT as string,
@@ -95,6 +105,10 @@ export default function RootLayout({
       }
     };
   }, []);
+
+  useEffect(() => {
+    extensionsInfoRef.current = extensionsInfo;
+  }, [extensionsInfo]);
 
   return (
     <html suppressHydrationWarning lang="en">

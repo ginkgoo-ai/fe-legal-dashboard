@@ -1,6 +1,5 @@
 import axios, {
   AxiosError,
-  AxiosHeaders,
   AxiosInstance,
   AxiosRequestConfig,
   AxiosResponse,
@@ -26,13 +25,9 @@ const NEXT_PUBLIC_API_URL = process.env.NEXT_PUBLIC_API_URL;
 const NEXT_PUBLIC_AUTH_HOST = process.env.NEXT_PUBLIC_AUTH_HOST;
 
 const apiWithoutBaseURLList = ['/logout'];
-const apiPrefixWithoutWorkspaceIdList = ['/identity'];
-const apiWithoutWorkspaceIdList = ['/workspace/workspaces', '/logout'];
 
 const baseURL = NEXT_PUBLIC_API_URL ? `${NEXT_PUBLIC_API_URL}/api` : '/api';
 const timeout = 30000;
-const whiteList = ['/oauth2/token'];
-const timeoutWhiteList: string[] = ['/ai/assistant'];
 
 export const navigateToLogin = async () => {
   const authUrl = new URL(
@@ -71,33 +66,13 @@ const createAxiosInstance = (): AxiosInstance => {
   // request interceptors
   instance.interceptors.request.use(
     config => {
-      if (whiteList.includes(config.url!)) {
-        return config;
-      }
-      if (timeoutWhiteList.includes(config.url!)) {
-        return {
-          ...config,
-          timeout: 300000,
-        };
-      }
       if (apiWithoutBaseURLList.includes(config.url!)) {
         return {
           ...config,
           baseURL: NEXT_PUBLIC_API_URL,
         };
       }
-      if (
-        !apiPrefixWithoutWorkspaceIdList.some(api => config.url?.indexOf(api) === 0) &&
-        !apiWithoutWorkspaceIdList.some(api => config.url === api)
-      ) {
-        return {
-          ...config,
-          headers: new AxiosHeaders({
-            ...config.headers,
-            // "X-Workspace-Id": getWorkspaceId(),
-          }),
-        };
-      }
+
       return config;
     },
     (error: AxiosError) => {

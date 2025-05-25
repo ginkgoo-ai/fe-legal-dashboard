@@ -8,18 +8,29 @@ import { Progress } from '@/components/ui/progress';
 import { useEventManager } from '@/hooks/useEventManager';
 import { cn } from '@/lib/utils';
 import { caseStream, ocrDocuments } from '@/service/api';
-import { uploadFiles } from '@/service/api/file';
+import { downloadCustomFile, uploadFiles } from '@/service/api/file';
 import { useExtensionsStore } from '@/store/extensionsStore';
 import {
   IActionItemType,
   ICaseItemType,
+  IPilotType,
   IStepItemType,
   PilotStatusEnum,
 } from '@/types/case';
 import { FileType } from '@/types/file';
 import { Breadcrumb, Card, Splitter, StepProps, Steps, Tag, Tooltip } from 'antd';
+import { AxiosHeaders } from 'axios';
 import { produce } from 'immer';
-import { CirclePlay, CircleStop, FileText, Loader2, RotateCcw, X } from 'lucide-react';
+import {
+  CirclePlay,
+  CircleStop,
+  Download,
+  FileText,
+  Loader2,
+  RotateCcw,
+  SquareArrowOutUpRight,
+  X,
+} from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
@@ -63,7 +74,7 @@ export default function CaseDetailPage() {
 
   const [caseInfo, setCaseInfo] = useState<ICaseItemType | null>(null);
   const [caseStreamDocumentList, setCaseStreamDocumentList] = useState<any[]>([]);
-  const [pilotStatus, setPilotStatus] = useState<PilotStatusEnum>(PilotStatusEnum.HOLD);
+  const [pilotInfo, setPilotInfo] = useState<IPilotType | null>(null);
   const [stepListCurrent, setStepListCurrent] = useState<number>(0);
   const [stepListItems, setStepListItems] = useState<StepProps[]>([]);
 
@@ -72,11 +83,37 @@ export default function CaseDetailPage() {
   const { emit } = useEventManager('ginkgo-message', message => {
     // console.log('🚀 ~ useEventManager ~ data:', message);
 
-    const { type, pilotInfo } = message;
-    if (type === 'ginkgo-background-all-case-update') {
-      setPilotStatus(pilotInfo.pilotStatus);
-      setStepListCurrent(pilotInfo.stepListCurrent);
-      setStepListItems(calcStepListCurrent(pilotInfo.stepListItems));
+    const { type: typeMsg, pilotInfo: pilotInfoMsg } = message;
+    if (typeMsg === 'ginkgo-background-all-case-update') {
+      const {
+        caseId: caseIdMsg,
+        stepListCurrent: stepListCurrentMsg,
+        stepListItems: stepListItemsMsg,
+      } = pilotInfoMsg || {};
+
+      setPilotInfo(pilotInfoMsg);
+      setStepListCurrent(stepListCurrentMsg);
+      setStepListItems(calcStepListCurrent(stepListItemsMsg));
+
+      if (
+        stepListCurrentMsg >= 0 &&
+        stepListItemsMsg?.length > 0 &&
+        !!stepListItemsMsg[stepListCurrentMsg]
+      ) {
+        setTimeout(() => {
+          const { actioncurrent, actionlist } =
+            stepListItemsMsg[stepListCurrentMsg] || {};
+          if (actioncurrent >= 0 && actionlist?.length > 0) {
+            document
+              .getElementById(`action-item-${stepListCurrentMsg}-${actioncurrent}`)
+              ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          } else {
+            document
+              .getElementById(`step-item-${stepListCurrentMsg}`)
+              ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }, 40);
+      }
     }
   });
 
@@ -306,6 +343,15 @@ export default function CaseDetailPage() {
     ]);
   }, [titleDetail]);
 
+  useEffect(() => {
+    if (!!extensionsInfo?.version) {
+      window.postMessage({
+        type: 'ginkgo-page-background-case-query',
+        caseId,
+      });
+    }
+  }, [extensionsInfo?.version]);
+
   const handleFileChange = async (files: File[]) => {
     const newFiles = files.map(file => ({
       localId: uuid(),
@@ -358,6 +404,36 @@ export default function CaseDetailPage() {
     window.postMessage(message, window.location.origin);
   };
 
+  const handleBtnDownloadClick = async () => {
+    console.log('handleBtnDownloadClick', pilotInfo);
+    if (pilotInfo?.pdfUrl && pilotInfo?.cookiesStr) {
+      const headers = new AxiosHeaders();
+      // headers.set('Accept', 'application/octet-stream');
+      headers.set('withCredentials', true);
+      headers.set('Cookie', pilotInfo.cookiesStr);
+
+      const resDownloadCustomFile = await downloadCustomFile({
+        url: pilotInfo.pdfUrl,
+        headers,
+      });
+
+      // await saveBlob({ blobPart: resDownloadCustomFile });
+    }
+  };
+
+  const handleBtnJumpClick = async () => {
+    if (!!pilotInfo?.tabInfo?.url) {
+      const message = {
+        type: 'ginkgo-page-background-tab-update',
+        tabId: pilotInfo?.tabInfo?.id,
+        updateProperties: { active: true },
+      };
+
+      console.log('handleBtnJumpClick', message);
+      window.postMessage(message, window.location.origin);
+    }
+  };
+
   return (
     <div className="box-border flex w-full flex-1 flex-col h-0 case-detail-wrap">
       {/* Breadcrumb */}
@@ -393,13 +469,12 @@ export default function CaseDetailPage() {
             defaultSize="30%"
             min="20%"
             max="70%"
-            className="bg-white rounded-2xl flex-col gap-4"
+            className="bg-white rounded-2xl flex-col gap-4 flex"
           >
-            <div className="flex flex-row px-4 justify-between items-center h-[66px] border-b">
-              <div className="text-base font-semibold text-[#1F2937]">Refernce</div>
-              <div></div>
+            <div className="flex flex-row p-4 justify-between items-center h-[66px] border-b flex-[0_0_auto]">
+              <div className="text-base font-semibold text-[#1F2937]">Reference</div>
             </div>
-            <div className="flex flex-col gap-2 overflow-y-auto box-border p-4">
+            <div className="flex flex-col gap-2 overflow-y-auto box-border p-4 flex-1 h-0">
               <div className="flex flex-col gap-2">
                 <FileUpload
                   accept="application/pdf,image/jpeg,image/png,image/gif,image/webp,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/plain"
@@ -472,13 +547,12 @@ export default function CaseDetailPage() {
             defaultSize="40%"
             min="20%"
             max="70%"
-            className="bg-white rounded-2xl flex-col gap-4"
+            className="bg-white rounded-2xl flex-col gap-4 flex"
           >
-            <div className="flex flex-row px-4 justify-between items-center h-[66px] border-b">
+            <div className="flex flex-row p-4 justify-between items-center h-[66px] border-b flex-[0_0_auto]">
               <div className="text-base font-semibold text-[#1F2937]">Profile vault</div>
-              <div></div>
             </div>
-            <div className="flex flex-col gap-2 box-border p-4">
+            <div className="flex flex-col gap-2 overflow-y-auto box-border p-4 flex-1 h-0">
               {caseStreamDocumentList.map((itemDocument, indexDocument) => {
                 return (
                   <Card key={`case-stream-document-${indexDocument}`}>
@@ -514,51 +588,79 @@ export default function CaseDetailPage() {
             defaultSize="30%"
             min="20%"
             max="70%"
-            className="bg-white rounded-2xl flex-col gap-4"
+            className="bg-white rounded-2xl flex-col gap-4 flex"
           >
-            <div className="flex flex-row px-4 justify-between items-center h-[66px] border-b">
+            <div className="flex flex-row p-4 justify-between items-center h-[66px] border-b flex-[0_0_auto]">
               <div className="text-base font-semibold text-[#1F2937]">Pilot</div>
-              <div></div>
             </div>
-            <div className="flex flex-col gap-2 overflow-y-auto box-border p-4">
-              <div className="flex flex-row gap-2">
-                <span className="whitespace-nowrap font-bold">Version:</span>
-                <span className={cn('font-bold')}>{extensionsInfo?.version}</span>
-              </div>
-              <Button
-                variant="default"
-                className="h-fit rounded-full border p-1.5 dark:border-zinc-600"
-                disabled={!extensionsInfo?.version}
-                onClick={handleBtnStartClick}
-              >
-                <CirclePlay size={14} />
-              </Button>
-              <Button
-                variant="ghost"
-                className="h-fit rounded-full border p-1.5 dark:border-zinc-600"
-                disabled={!extensionsInfo?.version}
-                onClick={handleBtnStopClick}
-              >
-                <CircleStop size={14} />
-              </Button>
-
-              <div className="flex flex-row gap-2">
-                <span className="whitespace-nowrap font-bold">Status:</span>
-                <span
-                  className={cn('font-bold', {
-                    'text-green-500': pilotStatus !== PilotStatusEnum.HOLD,
-                    'text-red-500': pilotStatus === PilotStatusEnum.HOLD,
-                  })}
-                >
-                  {pilotStatus}
-                </span>
-              </div>
+            <div className="flex-[0_0_auto] p-4 ">
               <div className="whitespace-nowrap font-bold">Steps:</div>
+            </div>
+            <div className="flex flex-col gap-2 overflow-y-auto box-border p-4 flex-1 h-0">
               <Steps
                 direction="vertical"
                 current={stepListCurrent}
                 items={stepListItems}
               />
+            </div>
+            <div className="flex flex-col gap-2 flex-[0_0_auto] p-4">
+              <div className="flex flex-row gap-2">
+                <div className="flex flex-row gap-2">
+                  <span className="whitespace-nowrap font-bold">Status:</span>
+                  <span
+                    className={cn('font-bold', {
+                      'text-green-500': pilotInfo?.pilotStatus !== PilotStatusEnum.HOLD,
+                      'text-red-500': pilotInfo?.pilotStatus === PilotStatusEnum.HOLD,
+                    })}
+                  >
+                    {pilotInfo?.pilotStatus || ''}
+                  </span>
+                </div>
+                <div className="flex flex-row gap-2">
+                  <span className="whitespace-nowrap font-bold">Version:</span>
+                  <span className={cn('font-bold')}>{extensionsInfo?.version}</span>
+                </div>
+              </div>
+              <div className="flex flex-row gap-2">
+                <Button
+                  variant="default"
+                  className="h-fit rounded-full border p-1.5 dark:border-zinc-600"
+                  disabled={!extensionsInfo?.version}
+                  onClick={handleBtnStartClick}
+                >
+                  <CirclePlay size={14} />
+                </Button>
+                <Button
+                  variant="ghost"
+                  className="h-fit rounded-full border p-1.5 dark:border-zinc-600"
+                  disabled={!extensionsInfo?.version}
+                  onClick={handleBtnStopClick}
+                >
+                  <CircleStop size={14} />
+                </Button>
+
+                <Button
+                  variant="ghost"
+                  className="h-fit rounded-full border p-1.5 dark:border-zinc-600"
+                  disabled={
+                    !extensionsInfo?.version ||
+                    !pilotInfo?.pdfUrl ||
+                    !pilotInfo?.cookiesStr
+                  }
+                  onClick={handleBtnDownloadClick}
+                >
+                  <Download size={14} />
+                </Button>
+
+                <Button
+                  variant="ghost"
+                  className="h-fit rounded-full border p-1.5 dark:border-zinc-600"
+                  disabled={!extensionsInfo?.version}
+                  onClick={handleBtnJumpClick}
+                >
+                  <SquareArrowOutUpRight size={14} />
+                </Button>
+              </div>
             </div>
           </Splitter.Panel>
         </Splitter>

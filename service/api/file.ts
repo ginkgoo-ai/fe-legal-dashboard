@@ -1,4 +1,5 @@
 import { FileType } from '@/types/file';
+import { AxiosHeaders } from 'axios';
 import ApiRequest from '../axios';
 
 export const FileApi = {
@@ -76,16 +77,44 @@ const downloadFile = async (fileId: string): Promise<BlobPart> => {
   );
 };
 
-const saveBlob = (blobPart: BlobPart, fileName: string) => {
+const downloadCustomFile = async (params: {
+  method?: 'GET';
+  url: string;
+  headers?: AxiosHeaders;
+}): Promise<BlobPart> => {
+  const {
+    method = 'GET',
+    url,
+    headers = {
+      Accept: 'application/octet-stream',
+    },
+  } = params || {};
+
+  return ApiRequest.get(
+    url,
+    {},
+    {
+      baseURL: '',
+      headers,
+      responseType: 'blob',
+    }
+  );
+};
+
+const saveBlob = (params: { blobPart: BlobPart; fileName?: string }) => {
+  const { blobPart, fileName } = params;
   const blob = new Blob([blobPart]);
   const url = window.URL.createObjectURL(blob);
   const a = document.createElement('a');
+
   a.href = url;
-  a.download = fileName;
+  if (fileName) {
+    a.download = fileName;
+  }
   document.body.appendChild(a);
   a.click();
   a.remove();
   window.URL.revokeObjectURL(url);
 };
 
-export { downloadFile, saveBlob, uploadFile, uploadFiles };
+export { downloadCustomFile, downloadFile, saveBlob, uploadFile, uploadFiles };
