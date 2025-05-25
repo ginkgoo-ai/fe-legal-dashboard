@@ -72,11 +72,11 @@ export default function CaseDetailPage() {
   const { emit } = useEventManager('ginkgo-message', message => {
     // console.log('🚀 ~ useEventManager ~ data:', message);
 
-    const { type, pilotItem } = message;
+    const { type, pilotInfo } = message;
     if (type === 'ginkgo-background-all-case-update') {
-      setPilotStatus(pilotItem.pilotStatus);
-      setStepListCurrent(pilotItem.stepListCurrent);
-      setStepListItems(calcStepListCurrent(pilotItem.stepListItems));
+      setPilotStatus(pilotInfo.pilotStatus);
+      setStepListCurrent(pilotInfo.stepListCurrent);
+      setStepListItems(calcStepListCurrent(pilotInfo.stepListItems));
     }
   });
 
