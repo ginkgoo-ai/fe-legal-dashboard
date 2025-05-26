@@ -6,7 +6,7 @@ import { FileUpload } from '@/components/common/form/upload/fileUpload';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { useEventManager } from '@/hooks/useEventManager';
-import { cn } from '@/lib/utils';
+import { cn, parseCaseInfo } from '@/lib/utils';
 import { caseStream, ocrDocuments } from '@/service/api';
 import { downloadCustomFile, uploadFiles } from '@/service/api/file';
 import { useExtensionsStore } from '@/store/extensionsStore';
@@ -27,6 +27,7 @@ import {
   Download,
   FileText,
   Loader2,
+  PanelLeft,
   PanelRight,
   RotateCcw,
   SquareArrowOutUpRight,
@@ -59,6 +60,14 @@ const breadcrumbItemsCasePortal = {
   href: '/case-portal',
 };
 
+const PANEL_SIZE_LIMIT = 200;
+const SIZE_REFERENCE_DEFAULT = window.innerWidth * 0.3;
+const SIZE_PROFILEVAULT_DEFAULT = window.innerWidth * 0.4;
+const SIZE_PILOT_DEFAULT = window.innerWidth * 0.3;
+const SIZE_REFERENCE_MIN = 70;
+const SIZE_PROFILEVAULT_MIN = 200;
+const SIZE_PILOT_MIN = 70;
+
 export default function CaseDetailPage() {
   const searchParams = useSearchParams();
   const caseId = decodeURIComponent(
@@ -67,10 +76,16 @@ export default function CaseDetailPage() {
 
   const fill_data = useRef<Record<string, any>>({});
 
-  const [titleDetail, setTitleDetail] = useState<string>('');
   const [breadcrumbItems, setBreadcrumbItems] = useState<any[]>([
     breadcrumbItemsCasePortal,
   ]);
+
+  const [sizeReference, setSizeReference] = useState<number>(SIZE_REFERENCE_DEFAULT);
+  const [sizeProfileVault, setSizeProfileVault] = useState<number>(
+    SIZE_PROFILEVAULT_DEFAULT
+  );
+  const [sizePilot, setSizePilot] = useState<number>(SIZE_PILOT_DEFAULT);
+
   const [fileList, setFileList] = useState<IFileItemType[]>([]);
 
   const [caseInfo, setCaseInfo] = useState<ICaseItemType | null>(null);
@@ -304,6 +319,7 @@ export default function CaseDetailPage() {
 
             console.log('fill_data.current', fill_data.current);
 
+            setCaseInfo(parseCaseInfo(data));
             setCaseStreamDocumentList(caseStreamDocumentListTmp);
           } catch (error) {
             console.warn('[Debug] Error parse message', error);
@@ -331,7 +347,7 @@ export default function CaseDetailPage() {
   }, []);
 
   useEffect(() => {
-    if (!titleDetail) {
+    if (!caseInfo?.title) {
       return;
     }
 
@@ -339,10 +355,10 @@ export default function CaseDetailPage() {
       breadcrumbItemsCasePortal,
       {
         // title: `${caseName} - ${caseType}`,
-        title: titleDetail,
+        title: caseInfo?.title,
       },
     ]);
-  }, [titleDetail]);
+  }, [caseInfo]);
 
   useEffect(() => {
     if (!!extensionsInfo?.version) {
@@ -382,6 +398,38 @@ export default function CaseDetailPage() {
 
   const handleFileError = (error: string) => {
     toast.error(error);
+  };
+
+  const handleSplitterResize = (sizes: number[]) => {
+    const [left, mid, right] = sizes || [];
+
+    setSizeReference(left);
+    setSizeProfileVault(mid);
+    setSizePilot(right);
+  };
+
+  const handleBtnPanelLeftClick = () => {
+    console.log('handleBtnPanelLeftClick');
+    // setCollapsibleReference(prev => {
+    //   return !prev;
+    // });
+    if (sizeReference > SIZE_REFERENCE_MIN) {
+      setSizeReference(SIZE_REFERENCE_MIN);
+    } else {
+      setSizeReference(SIZE_REFERENCE_DEFAULT);
+    }
+  };
+
+  const handleBtnPanelRightClick = () => {
+    console.log('handleBtnPanelRightClick');
+    // setCollapsiblePilot(prev => {
+    //   return !prev;
+    // });
+    if (sizePilot > SIZE_PILOT_MIN) {
+      setSizePilot(SIZE_PILOT_MIN);
+    } else {
+      setSizePilot(SIZE_PILOT_DEFAULT);
+    }
   };
 
   const handleBtnStartClick = () => {
@@ -443,7 +491,7 @@ export default function CaseDetailPage() {
     }
   };
 
-  const handleBtnPanelRightClick = async () => {
+  const handleBtnSidepanelOpenClick = async () => {
     const messageOpenSidepanel = {
       type: 'ginkgo-page-background-sidepanel-open',
       options: {
@@ -481,18 +529,23 @@ export default function CaseDetailPage() {
         <Splitter
           lazy={false}
           style={{
-            borderRadius: '12px',
+            // borderRadius: '12px',
             gap: '12px',
           }}
+          onResize={handleSplitterResize}
         >
           <Splitter.Panel
-            defaultSize="30%"
-            min="20%"
-            max="70%"
-            className="bg-white rounded-2xl flex-col gap-4 flex"
+            min={SIZE_REFERENCE_MIN}
+            size={sizeReference}
+            className="bg-white rounded-2xl flex-col flex"
           >
             <div className="flex flex-row p-4 justify-between items-center h-[66px] border-b flex-[0_0_auto]">
-              <div className="text-base font-semibold text-[#1F2937]">Reference</div>
+              {sizeReference > PANEL_SIZE_LIMIT && (
+                <div className="text-base font-semibold text-[#1F2937]">Reference</div>
+              )}
+              <Button variant="ghost" onClick={handleBtnPanelLeftClick}>
+                <PanelLeft />
+              </Button>
             </div>
             <div className="flex flex-col gap-2 overflow-y-auto box-border p-4 flex-1 h-0">
               <div className="flex flex-col gap-2">
@@ -564,10 +617,9 @@ export default function CaseDetailPage() {
             </div>
           </Splitter.Panel>
           <Splitter.Panel
-            defaultSize="40%"
-            min="20%"
-            max="70%"
-            className="bg-white rounded-2xl flex-col gap-4 flex"
+            min={SIZE_PROFILEVAULT_MIN}
+            size={sizeProfileVault}
+            className="bg-white rounded-2xl flex-col flex"
           >
             <div className="flex flex-row p-4 justify-between items-center h-[66px] border-b flex-[0_0_auto]">
               <div className="text-base font-semibold text-[#1F2937]">Profile vault</div>
@@ -605,13 +657,17 @@ export default function CaseDetailPage() {
             </div>
           </Splitter.Panel>
           <Splitter.Panel
-            defaultSize="30%"
-            min="20%"
-            max="70%"
-            className="bg-white rounded-2xl flex-col gap-4 flex"
+            min={SIZE_PILOT_MIN}
+            size={sizePilot}
+            className="bg-white rounded-2xl flex-col flex"
           >
             <div className="flex flex-row p-4 justify-between items-center h-[66px] border-b flex-[0_0_auto]">
-              <div className="text-base font-semibold text-[#1F2937]">Pilot</div>
+              {sizePilot > PANEL_SIZE_LIMIT && (
+                <div className="text-base font-semibold text-[#1F2937]">Pilot</div>
+              )}
+              <Button variant="ghost" onClick={handleBtnPanelRightClick}>
+                <PanelRight />
+              </Button>
             </div>
             <div className="flex-[0_0_auto] p-4 ">
               <div className="whitespace-nowrap font-bold">Steps:</div>
@@ -644,24 +700,21 @@ export default function CaseDetailPage() {
               <div className="flex flex-row gap-2">
                 <Button
                   variant="default"
-                  className="h-fit rounded-full border p-1.5 dark:border-zinc-600"
                   disabled={!extensionsInfo?.version}
                   onClick={handleBtnStartClick}
                 >
-                  <CirclePlay size={14} />
+                  <CirclePlay />
                 </Button>
                 <Button
-                  variant="ghost"
-                  className="h-fit rounded-full border p-1.5 dark:border-zinc-600"
+                  variant="outline"
                   disabled={!extensionsInfo?.version}
                   onClick={handleBtnStopClick}
                 >
-                  <CircleStop size={14} />
+                  <CircleStop />
                 </Button>
 
                 <Button
-                  variant="ghost"
-                  className="h-fit rounded-full border p-1.5 dark:border-zinc-600"
+                  variant="outline"
                   disabled={
                     !extensionsInfo?.version ||
                     !pilotInfo?.pdfUrl ||
@@ -669,25 +722,23 @@ export default function CaseDetailPage() {
                   }
                   onClick={handleBtnDownloadClick}
                 >
-                  <Download size={14} />
+                  <Download />
                 </Button>
 
                 <Button
-                  variant="ghost"
-                  className="h-fit rounded-full border p-1.5 dark:border-zinc-600"
+                  variant="outline"
                   disabled={!extensionsInfo?.version || !pilotInfo?.tabInfo?.id}
                   onClick={handleBtnJumpClick}
                 >
-                  <SquareArrowOutUpRight size={14} />
+                  <SquareArrowOutUpRight />
                 </Button>
 
                 <Button
-                  variant="ghost"
-                  className="h-fit rounded-full border p-1.5 dark:border-zinc-600"
+                  variant="outline"
                   disabled={!extensionsInfo?.version || !pilotInfo?.tabInfo?.id}
-                  onClick={handleBtnPanelRightClick}
+                  onClick={handleBtnSidepanelOpenClick}
                 >
-                  <PanelRight size={14} />
+                  <PanelRight />
                 </Button>
               </div>
             </div>
