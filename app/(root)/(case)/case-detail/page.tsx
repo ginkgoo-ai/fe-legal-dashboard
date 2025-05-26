@@ -27,6 +27,7 @@ import {
   Download,
   FileText,
   Loader2,
+  PanelRight,
   RotateCcw,
   SquareArrowOutUpRight,
   X,
@@ -423,15 +424,34 @@ export default function CaseDetailPage() {
 
   const handleBtnJumpClick = async () => {
     if (!!pilotInfo?.tabInfo?.url) {
-      const message = {
+      const messageJump = {
         type: 'ginkgo-page-background-tab-update',
         tabId: pilotInfo?.tabInfo?.id,
         updateProperties: { active: true },
       };
+      window.postMessage(messageJump, window.location.origin);
 
-      console.log('handleBtnJumpClick', message);
-      window.postMessage(message, window.location.origin);
+      const messageOpenSidepanel = {
+        type: 'ginkgo-page-background-sidepanel-open',
+        options: {
+          tabId: pilotInfo?.tabInfo?.id,
+        },
+      };
+      window.postMessage(messageOpenSidepanel, window.location.origin);
+
+      // console.log('handleBtnJumpClick', messageJump, messageOpenSidepanel);
     }
+  };
+
+  const handleBtnPanelRightClick = async () => {
+    const messageOpenSidepanel = {
+      type: 'ginkgo-page-background-sidepanel-open',
+      options: {
+        tabId: pilotInfo?.tabInfo?.id,
+      },
+    };
+
+    window.postMessage(messageOpenSidepanel, window.location.origin);
   };
 
   return (
@@ -655,10 +675,19 @@ export default function CaseDetailPage() {
                 <Button
                   variant="ghost"
                   className="h-fit rounded-full border p-1.5 dark:border-zinc-600"
-                  disabled={!extensionsInfo?.version}
+                  disabled={!extensionsInfo?.version || !pilotInfo?.tabInfo?.id}
                   onClick={handleBtnJumpClick}
                 >
                   <SquareArrowOutUpRight size={14} />
+                </Button>
+
+                <Button
+                  variant="ghost"
+                  className="h-fit rounded-full border p-1.5 dark:border-zinc-600"
+                  disabled={!extensionsInfo?.version || !pilotInfo?.tabInfo?.id}
+                  onClick={handleBtnPanelRightClick}
+                >
+                  <PanelRight size={14} />
                 </Button>
               </div>
             </div>
