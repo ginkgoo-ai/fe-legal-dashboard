@@ -1,10 +1,15 @@
 import { FileType } from '@/types/file';
+import { AxiosHeaders } from 'axios';
 import ApiRequest from '../axios';
 
 export const FileApi = {
   file: '/storage/v1/files',
   files: '/storage/v2/files',
 };
+
+const baseUrl = process.env.LOCAL_BASE_URL
+  ? `${process.env.LOCAL_BASE_URL}:8080/api`
+  : process.env.NEXT_PUBLIC_API_URL;
 
 const uploadFile = async (
   file: File,
@@ -17,7 +22,7 @@ const uploadFile = async (
   const formData = new FormData();
   formData.append('file', file);
 
-  return ApiRequest.post(`${FileApi.file}`, formData, {
+  return ApiRequest.post(`${baseUrl}${FileApi.file}`, formData, {
     headers: {
       'Content-Type': 'multipart/form-data',
     },
@@ -44,7 +49,7 @@ const uploadFiles = async (
     formData.append('files', file);
   });
 
-  return ApiRequest.post(`${FileApi.files}`, formData, {
+  return ApiRequest.post(`${baseUrl}${FileApi.files}`, formData, {
     headers: {
       'Content-Type': 'multipart/form-data',
     },
@@ -72,16 +77,44 @@ const downloadFile = async (fileId: string): Promise<BlobPart> => {
   );
 };
 
-const saveBlob = (blobPart: BlobPart, fileName: string) => {
+const downloadCustomFile = async (params: {
+  method?: 'GET';
+  url: string;
+  headers?: AxiosHeaders;
+}): Promise<BlobPart> => {
+  const {
+    method = 'GET',
+    url,
+    headers = {
+      Accept: 'application/octet-stream',
+    },
+  } = params || {};
+
+  return ApiRequest.get(
+    url,
+    {},
+    {
+      baseURL: '',
+      headers,
+      responseType: 'blob',
+    }
+  );
+};
+
+const saveBlob = (params: { blobPart: BlobPart; fileName?: string }) => {
+  const { blobPart, fileName } = params;
   const blob = new Blob([blobPart]);
   const url = window.URL.createObjectURL(blob);
   const a = document.createElement('a');
+
   a.href = url;
-  a.download = fileName;
+  if (fileName) {
+    a.download = fileName;
+  }
   document.body.appendChild(a);
   a.click();
   a.remove();
   window.URL.revokeObjectURL(url);
 };
 
-export { downloadFile, saveBlob, uploadFile, uploadFiles };
+export { downloadCustomFile, downloadFile, saveBlob, uploadFile, uploadFiles };

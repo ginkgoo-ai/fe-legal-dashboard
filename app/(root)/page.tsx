@@ -1,8 +1,5 @@
 'use client';
 
-import { buttonVariants } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
@@ -10,12 +7,12 @@ export default function RootPage() {
   const router = useRouter();
 
   useEffect(() => {
-    router.push('/upload-file');
+    router.push('/case-portal');
   }, []);
 
   return (
-    <div>
-      <Link
+    <div className="w-full h-full relative">
+      {/* <Link
         className={cn(
           buttonVariants({
             size: 'lg',
@@ -26,7 +23,7 @@ export default function RootPage() {
         prefetch={true}
       >
         Upload File
-      </Link>
+      </Link> */}
     </div>
   );
 }

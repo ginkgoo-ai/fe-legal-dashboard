@@ -1,38 +1,31 @@
 'use client';
 
 import GlobalManager from '@/customManager/GlobalManager';
+import { useEventManager } from '@/hooks/useEventManager';
 import useRequest from '@/hooks/useRequest';
 import Tracer from '@/lib/telemetry/tracer';
 import { getUserInfo } from '@/service/api';
 import { useUserStore } from '@/store';
+import { useExtensionsStore } from '@/store/extensionsStore';
 import '@/style/global.css';
+import { ExtensionsInfo } from '@/types/extensions';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const { setUserInfo } = useUserStore();
   const router = useRouter();
-  // const [loading, setLoading] = useState(false);
-  // const [user, setUser] = useState<UserInfo | null>(null);
 
-  // const mockUserInfo = {
-  //   id: '1',
-  //   name: 'John Doe',
-  //   email: 'john.doe@example.com',
-  //   avatar: 'https://github.com/shadcn.png',
-  //   roles: [{ id: '1', name: 'ADMIN' }],
-  //   firstName: 'John',
-  //   lastName: 'Doe',
-  //   enabled: true,
-  //   sub: '1234567890',
-  //   fullname: 'John Doe',
-  //   logoFileId: '1234567890',
-  //   picture: 'https://github.com/shadcn.png',
-  // };
+  const extensionsInfoRef = useRef<ExtensionsInfo | null>(null);
+  const timerRegister = useRef<NodeJS.Timeout | null>(null);
+
+  const { setUserInfo } = useUserStore();
+  const { extensionsInfo, setExtensionsInfo } = useExtensionsStore();
+
+  const { emit } = useEventManager('ginkgo-message', () => {});
 
   const { loading, data: user } = useRequest(getUserInfo, {
     errorRetryCount: 1,
@@ -42,17 +35,61 @@ export default function RootLayout({
 
       const pathname = window.location.pathname;
 
-      if (!user.enabled && pathname !== '/403') {
+      if (!user?.enabled && pathname !== '/403') {
         router.replace('/403');
-      } else if (user.enabled && pathname === '/403') {
+      } else if (user?.enabled && pathname === '/403') {
         router.replace('/');
       }
     },
   });
 
+  const handleMessage = (event: MessageEvent) => {
+    const { origin, data } = event;
+    const { type } = data;
+
+    if (type.startsWith('ginkgo-page-')) {
+      // 如果是来源自身的消息，则不会处理
+      return;
+    }
+
+    // 确保消息来源是当前页面 且 目标为 all 或者 page
+    if (
+      origin === window.location.origin &&
+      (/^ginkgo-[^-]+-all-.*$/.test(type) || /^ginkgo-[^-]+-page-.*$/.test(type))
+    ) {
+      emit(data);
+
+      if (
+        type === 'ginkgo-background-page-register' &&
+        extensionsInfoRef.current?.version !== data?.version
+      ) {
+        setExtensionsInfo(data);
+      }
+    }
+  };
+
+  const postHeartRegister = () => {
+    window.postMessage(
+      {
+        type: 'ginkgo-page-page-register',
+      },
+      window.location.origin
+    );
+  };
+
   useEffect(() => {
     if (typeof window !== 'undefined') {
       window.document.title = GlobalManager.siteName;
+      window.addEventListener('message', handleMessage);
+
+      postHeartRegister();
+      setTimeout(() => {
+        postHeartRegister();
+      }, 2000);
+      timerRegister.current = setInterval(() => {
+        postHeartRegister();
+      }, 5000);
+
       Tracer({
         url: process.env.NEXT_PUBLIC_OTEL_EXPORTER_OTLP_ENDPOINT as string,
         serviceName: process.env.NEXT_PUBLIC_OTEL_SERVICE_NAME as string,
@@ -60,9 +97,18 @@ export default function RootLayout({
       });
     }
 
-    // setUser(mockUserInfo);
-    // setUserInfo(mockUserInfo);
+    // 清理监听器
+    return () => {
+      window?.removeEventListener('message', handleMessage);
+      if (timerRegister.current) {
+        clearTimeout(timerRegister.current);
+      }
+    };
   }, []);
+
+  useEffect(() => {
+    extensionsInfoRef.current = extensionsInfo;
+  }, [extensionsInfo]);
 
   return (
     <html suppressHydrationWarning lang="en">

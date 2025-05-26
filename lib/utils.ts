@@ -1,10 +1,6 @@
-import { ChatMessagePart } from '@/types';
+import { CaseStatusEnum, ChatMessagePart, ICaseItemType } from '@/types';
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-
-export const cn = (...inputs: ClassValue[]) => {
-  return twMerge(clsx(inputs));
-};
 
 const CONTENT_PATTERNS = {
   sheet: {
@@ -20,6 +16,48 @@ const CONTENT_PATTERNS = {
     extract: (match: string) => match.match(/```card(.*?)```/s)?.[1] || '',
   },
   // 可以继续添加其他类型的模式
+};
+
+const CASE_STATUS_MAP = {
+  [CaseStatusEnum.ANALYZING]: {
+    colorBackground: '#EEE5FF',
+    colorText: '#8950FC',
+    text: 'Analyzing',
+  },
+  [CaseStatusEnum.PROGRESS]: {
+    colorBackground: '#F1FAFF',
+    colorText: '#00A3FF',
+    text: 'In Progress',
+  },
+  [CaseStatusEnum.READY]: {
+    colorBackground: '#C9F7F5',
+    colorText: '#1BC5BD',
+    text: 'Ready to Fill',
+  },
+  [CaseStatusEnum.AUTO_FILLING]: {
+    colorBackground: '#EEE5FF',
+    colorText: '#8950FC',
+    text: 'Auto-Filling',
+  },
+  [CaseStatusEnum.HOLD]: {
+    colorBackground: '#FFF4DE',
+    colorText: '#FFA800',
+    text: 'On Hold',
+  },
+  [CaseStatusEnum.FINAL_REVIEW]: {
+    colorBackground: '#FFF4DE',
+    colorText: '#FFA800',
+    text: 'Final Review',
+  },
+  [CaseStatusEnum.DEFAULT]: {
+    colorBackground: '#F5F5F5',
+    colorText: '#999999',
+    text: '',
+  },
+};
+
+export const cn = (...inputs: ClassValue[]) => {
+  return twMerge(clsx(inputs));
 };
 
 export const parseMessageContent = (content: string): ChatMessagePart[] => {
@@ -56,4 +94,12 @@ export const parseMessageContent = (content: string): ChatMessagePart[] => {
   } catch (error) {
     return [];
   }
+};
+
+export const parseCaseInfo = (caseInfo: ICaseItemType) => {
+  return {
+    ...caseInfo,
+    caseStatusForFront:
+      CASE_STATUS_MAP[caseInfo.status] || CASE_STATUS_MAP[CaseStatusEnum.DEFAULT],
+  };
 };

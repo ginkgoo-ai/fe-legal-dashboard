@@ -7,6 +7,9 @@ const nextConfig: NextConfig = {
   experimental: {
     routerBFCache: false,
   },
+  env: {
+    LOCAL_BASE_URL: process.env.LOCAL_BASE_URL,
+  },
   async rewrites() {
     return [
       {
