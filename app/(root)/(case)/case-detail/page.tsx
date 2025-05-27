@@ -1,10 +1,8 @@
 'use client';
 
-import { BadgeStatus } from '@/components/badgeStatus';
+import { PanelReference } from '@/components/case/panel-reference';
 import { TagStatus } from '@/components/case/tag-status';
-import { FileUpload } from '@/components/common/form/upload/fileUpload';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
 import { useEventManager } from '@/hooks/useEventManager';
 import { cn, parseCaseInfo } from '@/lib/utils';
 import { caseStream, ocrDocuments } from '@/service/api';
@@ -17,43 +15,23 @@ import {
   IStepItemType,
   PilotStatusEnum,
 } from '@/types/case';
-import { FileType } from '@/types/file';
+import { FileStatus, FileType, IFileItemType } from '@/types/file';
 import { Breadcrumb, Card, Splitter, StepProps, Steps, Tag, Tooltip } from 'antd';
+import { ItemType } from 'antd/es/breadcrumb/Breadcrumb';
 import { AxiosHeaders } from 'axios';
 import { produce } from 'immer';
 import {
   CirclePlay,
   CircleStop,
   Download,
-  FileText,
-  Loader2,
-  PanelLeft,
   PanelRight,
-  RotateCcw,
   SquareArrowOutUpRight,
-  X,
 } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { v4 as uuid } from 'uuid';
 import './index.css';
-
-enum FileStatus {
-  UPLOADING = 'UPLOADING',
-  ANALYSIS = 'ANALYSIS',
-  DONE = 'DONE',
-  ERROR = 'ERROR',
-}
-
-interface IFileItemType {
-  localId: string;
-  status: FileStatus;
-  file: File;
-  progress: number;
-  resultAnalysis?: Record<string, string>[];
-  resultFile?: FileType;
-}
 
 const breadcrumbItemsCasePortal = {
   title: 'Cases',
@@ -76,7 +54,7 @@ export default function CaseDetailPage() {
 
   const fill_data = useRef<Record<string, any>>({});
 
-  const [breadcrumbItems, setBreadcrumbItems] = useState<any[]>([
+  const [breadcrumbItems, setBreadcrumbItems] = useState<ItemType[]>([
     breadcrumbItemsCasePortal,
   ]);
 
@@ -539,82 +517,15 @@ export default function CaseDetailPage() {
             size={sizeReference}
             className="bg-white rounded-2xl flex-col flex"
           >
-            <div className="flex flex-row p-4 justify-between items-center h-[66px] border-b flex-[0_0_auto]">
-              {sizeReference > PANEL_SIZE_LIMIT && (
-                <div className="text-base font-semibold text-[#1F2937]">Reference</div>
-              )}
-              <Button variant="ghost" onClick={handleBtnPanelLeftClick}>
-                <PanelLeft />
-              </Button>
-            </div>
-            <div className="flex flex-col gap-2 overflow-y-auto box-border p-4 flex-1 h-0">
-              <div className="flex flex-col gap-2">
-                <FileUpload
-                  accept="application/pdf,image/jpeg,image/png,image/gif,image/webp,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/plain"
-                  multiple
-                  maxSize={50}
-                  onChange={handleFileChange}
-                  onError={handleFileError}
-                  label="Drag & drop your file"
-                  subLabel="Supported file types: PDF, JPG, PNG, GIF, WEBP, DOC, DOCX, XLS, XLSX, TXT"
-                  triggerText="browse files"
-                />
-              </div>
-              <div className="flex flex-col gap-2">
-                {fileList.map((itemFile, indexFile) => (
-                  <div key={`${itemFile.localId}`} className="flex flex-col gap-2">
-                    <div className="flex items-center justify-between p-2 rounded-lg bg-background border border-default">
-                      <div className="bg-form-background border border-default rounded-lg flex items-center justify-center p-2">
-                        <FileText size={24} />
-                      </div>
-                      <div className="flex flex-col gap-2 min-w-0 flex-1 mx-4">
-                        <div className="flex flex-row items-center">
-                          <BadgeStatus status={itemFile.status} />
-                          <span className="ml-2 text-sm truncate font-semibold">
-                            {itemFile.file.name}
-                          </span>
-                        </div>
-                        <div className="flex flex-row items-center gap-2">
-                          <Progress value={itemFile.progress} />
-                          {itemFile.status === FileStatus.ANALYSIS && (
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              disabled
-                              className="w-1 h-1 flex-shrink-0 cursor-pointer text-destructive hover:text-destructive/80"
-                            >
-                              <Loader2 className="animate-spin" color="#333333" />
-                            </Button>
-                          )}
-                          {itemFile.status === FileStatus.ERROR && (
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              className="w-1 h-1 flex-shrink-0 cursor-pointer text-destructive hover:text-destructive/80"
-                              onClick={() => {
-                                handleFileRetry(indexFile);
-                              }}
-                            >
-                              <RotateCcw color="#333333" />
-                            </Button>
-                          )}
-                        </div>
-                      </div>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        onClick={() => {
-                          setFileList(fileList.filter((_, i) => i !== indexFile));
-                        }}
-                        className="flex-shrink-0 cursor-pointer text-destructive hover:text-destructive/80"
-                      >
-                        <X className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <PanelReference
+              showTitle={sizeReference > PANEL_SIZE_LIMIT}
+              fileList={fileList}
+              onFileChange={handleFileChange}
+              onFileError={handleFileError}
+              onFileRetry={handleFileRetry}
+              onFileListUpdate={setFileList}
+              onBtnPanelLeftClick={handleBtnPanelLeftClick}
+            />
           </Splitter.Panel>
           <Splitter.Panel
             min={SIZE_PROFILEVAULT_MIN}
