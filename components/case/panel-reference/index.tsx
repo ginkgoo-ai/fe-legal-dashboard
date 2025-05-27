@@ -14,7 +14,7 @@ import { toast } from 'sonner';
 import { v4 as uuid } from 'uuid';
 
 interface PanelReferenceProps {
-  caseInfo: ICaseItemType;
+  caseInfo: ICaseItemType | null;
   showTitle: boolean;
   fileList: IFileItemType[];
   onFileListUpdate: Dispatch<SetStateAction<IFileItemType[]>>;
@@ -26,7 +26,7 @@ function PurePanelReference(props: PanelReferenceProps) {
 
   const actionOcrFile = async (cloudFiles: FileType[]) => {
     const data = await ocrDocuments({
-      caseId: caseInfo?.id,
+      caseId: caseInfo?.id || '',
       storageIds: cloudFiles.map(file => file.id),
     });
 

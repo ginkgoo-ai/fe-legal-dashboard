@@ -15,7 +15,7 @@ import { CirclePlay, CircleStop, PanelRight, SquareArrowOutUpRight } from 'lucid
 import { memo, useEffect, useState } from 'react';
 
 interface PanelPanelPilotProps {
-  caseInfo: ICaseItemType;
+  caseInfo: ICaseItemType | null;
   showTitle: boolean;
   onBtnPanelRightClick: () => void;
 }

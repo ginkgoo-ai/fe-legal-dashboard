@@ -178,15 +178,13 @@ export default function CaseDetailPage() {
               size={sizeReference}
               className="bg-white rounded-2xl flex-col flex"
             >
-              {!!caseInfo && (
-                <PanelReference
-                  caseInfo={caseInfo}
-                  showTitle={sizeReference > PANEL_SIZE_LIMIT}
-                  fileList={fileList}
-                  onFileListUpdate={setFileList}
-                  onBtnPanelLeftClick={handleBtnPanelLeftClick}
-                />
-              )}
+              <PanelReference
+                caseInfo={caseInfo}
+                showTitle={sizeReference > PANEL_SIZE_LIMIT}
+                fileList={fileList}
+                onFileListUpdate={setFileList}
+                onBtnPanelLeftClick={handleBtnPanelLeftClick}
+              />
             </Splitter.Panel>
             <Splitter.Panel
               min={SIZE_PROFILEVAULT_MIN}
@@ -202,13 +200,11 @@ export default function CaseDetailPage() {
               size={sizePilot}
               className="bg-white rounded-2xl flex-col flex"
             >
-              {!!caseInfo && (
-                <PanelPilot
-                  caseInfo={caseInfo}
-                  showTitle={sizePilot > PANEL_SIZE_LIMIT}
-                  onBtnPanelRightClick={handleBtnPanelRightClick}
-                />
-              )}
+              <PanelPilot
+                caseInfo={caseInfo}
+                showTitle={sizePilot > PANEL_SIZE_LIMIT}
+                onBtnPanelRightClick={handleBtnPanelRightClick}
+              />
             </Splitter.Panel>
           </Splitter>
         )}
