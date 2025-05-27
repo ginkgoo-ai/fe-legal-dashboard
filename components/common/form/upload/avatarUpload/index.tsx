@@ -2,9 +2,8 @@ import defaultWorkspaceImage from '@/assets/default-workspace.png';
 import defaultImage from '@/assets/default.png';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Loading } from '@/components/ui/loading';
+// import { Loading } from '@/components/ui/loading';
 import { cn } from '@/utils';
-import { Trash2 } from 'lucide-react';
 import React, { ChangeEvent, useRef, useState } from 'react';
 
 export interface AvatarUploadProps {
@@ -38,11 +37,11 @@ export default React.forwardRef<HTMLInputElement, AvatarUploadProps>(
     const workspaceImage =
       scenario === 'workspace' ? defaultWorkspaceImage : defaultImage;
 
-    React.useEffect(() => {
-      if (url && url !== workspaceImage) {
-        setPreviewUrl(url);
-      }
-    });
+    // React.useEffect(() => {
+    //   if (url && url !== workspaceImage) {
+    //     setPreviewUrl(url);
+    //   }
+    // });
 
     const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
       const file = event.target.files?.[0];
@@ -59,7 +58,7 @@ export default React.forwardRef<HTMLInputElement, AvatarUploadProps>(
 
     return (
       <div className={cn('relative  flex flex-row', className ?? '')}>
-        <Loading loading={loading}>
+        {/* <Loading loading={loading}>
           <div
             className={cn(
               'w-32 h-32 relative bg-background rounded-lg flex items-center justify-center overflow-hidden mr-4',
@@ -76,14 +75,14 @@ export default React.forwardRef<HTMLInputElement, AvatarUploadProps>(
               <img src={workspaceImage} className="w-full h-full object-cover" />
             )}
           </div>
-        </Loading>
+        </Loading> */}
         <div className="flex flex-col justify-between">
           <div className="flex flex-col gap-2">
             <span className={cn(error && 'text-red-500')}>{title}</span>
             <p
               className={cn(
                 'text-sm text-muted-foreground mb-4',
-                error && 'text-red-500',
+                error && 'text-red-500'
               )}
             >
               {description}
@@ -113,7 +112,7 @@ export default React.forwardRef<HTMLInputElement, AvatarUploadProps>(
               </Button>
             </label>
 
-            {previewUrl && url !== workspaceImage && !loading && (
+            {/* {previewUrl && url !== workspaceImage && !loading && (
               <Button
                 variant="outline"
                 className="text-red-500 bg-white dark:bg-black rounded-full"
@@ -124,10 +123,10 @@ export default React.forwardRef<HTMLInputElement, AvatarUploadProps>(
               >
                 <Trash2 />
               </Button>
-            )}
+            )} */}
           </div>
         </div>
       </div>
     );
-  },
+  }
 );

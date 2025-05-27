@@ -19,7 +19,7 @@ const {
   VITE_OTEL_EXPORTER_OTLP_ENDPOINT,
   VITE_OTEL_SERVICE_NAME,
   VITE_OTEL_RESOURCE_ATTRIBUTES,
-} = import.meta.env;
+} = (import.meta as any).env;
 
 const Tracer = async () => {
   const { ZoneContextManager } = await import('@opentelemetry/context-zone');
@@ -34,7 +34,7 @@ const Tracer = async () => {
           [key]: value,
         };
       },
-      {} as Record<string, string>,
+      {} as Record<string, string>
     ),
   });
 
@@ -49,7 +49,7 @@ const Tracer = async () => {
         }),
         {
           scheduledDelayMillis: 1000,
-        },
+        }
       ),
     ],
   });
