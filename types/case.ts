@@ -52,7 +52,7 @@ export interface ICaseItemType {
   id: string;
   title: string;
   caseType: string;
-  documents: ICaseItemDocumentType[];
+  documents?: ICaseItemDocumentType[];
   status: CaseStatusEnum;
   createdAt: string;
   updatedAt: string;
