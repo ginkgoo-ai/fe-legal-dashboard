@@ -87,7 +87,7 @@ export default function CasePortalPage() {
           >
             <div className="flex flex-col w-full h-[170px]">
               <div className="flex flex-row justify-between items-center w-full">
-                <span className="text-base font-bold">{itemCase.caseName}</span>
+                <span className="text-base font-bold">{itemCase.title}</span>
                 <TagStatus
                   colorBackground={itemCase.caseStatusForFront?.colorBackground}
                   colorText={itemCase.caseStatusForFront?.colorText}

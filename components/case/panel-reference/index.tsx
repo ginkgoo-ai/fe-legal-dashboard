@@ -3,30 +3,124 @@ import { PanelContainer } from '@/components/case/panel-container';
 import { FileUpload } from '@/components/common/form/upload/fileUpload';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { FileStatus, IFileItemType } from '@/types/file';
+import { ocrDocuments } from '@/service/api';
+import { uploadFiles } from '@/service/api/file';
+import { ICaseItemType } from '@/types/case';
+import { FileStatus, FileType, IFileItemType } from '@/types/file';
+import { produce } from 'immer';
 import { FileText, Loader2, PanelLeft, RotateCcw, X } from 'lucide-react';
-import { memo } from 'react';
+import { Dispatch, memo, SetStateAction } from 'react';
+import { toast } from 'sonner';
+import { v4 as uuid } from 'uuid';
 
 interface PanelReferenceProps {
+  caseInfo: ICaseItemType;
   showTitle: boolean;
   fileList: IFileItemType[];
-  onFileChange: (files: File[]) => void;
-  onFileError: (error: string) => void;
-  onFileRetry: (index: number) => void;
-  onFileListUpdate: (files: IFileItemType[]) => void;
+  onFileListUpdate: Dispatch<SetStateAction<IFileItemType[]>>;
   onBtnPanelLeftClick: () => void;
 }
 
 function PurePanelReference(props: PanelReferenceProps) {
-  const {
-    showTitle,
-    fileList,
-    onFileChange,
-    onFileError,
-    onFileRetry,
-    onFileListUpdate,
-    onBtnPanelLeftClick,
-  } = props;
+  const { caseInfo, showTitle, fileList, onFileListUpdate, onBtnPanelLeftClick } = props;
+
+  const actionOcrFile = async (cloudFiles: FileType[]) => {
+    const data = await ocrDocuments({
+      caseId: caseInfo?.id,
+      storageIds: cloudFiles.map(file => file.id),
+    });
+
+    if (data?.length > 0) {
+      // TODO:
+    } else {
+      toast.error('Analysis file failed.');
+      onFileListUpdate(prev =>
+        produce(prev, draft => {
+          draft.forEach(file => {
+            if (
+              cloudFiles.some(cloudFile => {
+                return cloudFile.id === file.resultFile?.id;
+              })
+            ) {
+              file.status = FileStatus.ERROR;
+              file.progress = 0;
+            }
+          });
+        })
+      );
+    }
+  };
+
+  const actionUploadFile = async (newFiles: IFileItemType[]) => {
+    const data = await uploadFiles(
+      newFiles.map(file => file.file),
+      {
+        onUploadeProgress: (percentCompleted: number) => {
+          // console.log('percentCompleted', percentCompleted);
+        },
+      }
+    );
+    if (data?.cloudFiles) {
+      onFileListUpdate(prev =>
+        produce(prev, draft => {
+          draft.forEach(file => {
+            const indexNewFile = newFiles.findIndex(
+              newFile => newFile.localId === file.localId
+            );
+            if (indexNewFile >= 0) {
+              file.status = FileStatus.ANALYSIS;
+              file.progress = 100;
+              file.resultFile = data.cloudFiles[indexNewFile];
+            }
+          });
+        })
+      );
+      await actionOcrFile(data.cloudFiles);
+    } else {
+      toast.error('Upload file failed.');
+      onFileListUpdate(prev =>
+        produce(prev, draft => {
+          draft.forEach(file => {
+            if (newFiles.some(newFile => newFile.localId === file.localId)) {
+              file.status = FileStatus.ERROR;
+              file.progress = 0;
+            }
+          });
+        })
+      );
+    }
+  };
+
+  const handleFileChange = async (files: File[]) => {
+    const newFiles = files.map(file => ({
+      localId: uuid(),
+      status: FileStatus.UPLOADING,
+      file,
+      progress: 0,
+    }));
+
+    onFileListUpdate(prev =>
+      produce(prev, draft => {
+        draft.push(...newFiles);
+      })
+    );
+
+    await actionUploadFile(newFiles);
+  };
+
+  const handleFileError = (error: string) => {
+    toast.error(error);
+  };
+
+  const handleFileRetry = async (indexFile: number) => {
+    onFileListUpdate(prev =>
+      produce(prev, draft => {
+        draft[indexFile].status = FileStatus.UPLOADING;
+      })
+    );
+
+    await actionUploadFile([fileList[indexFile]]);
+  };
 
   return (
     <PanelContainer
@@ -46,8 +140,8 @@ function PurePanelReference(props: PanelReferenceProps) {
             accept="application/pdf,image/jpeg,image/png,image/gif,image/webp,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/plain"
             multiple
             maxSize={50}
-            onChange={onFileChange}
-            onError={onFileError}
+            onChange={handleFileChange}
+            onError={handleFileError}
             label="Drag & drop your file"
             subLabel="Supported file types: PDF, JPG, PNG, GIF, WEBP, DOC, DOCX, XLS, XLSX, TXT"
             triggerText="browse files"
@@ -85,7 +179,7 @@ function PurePanelReference(props: PanelReferenceProps) {
                         variant="ghost"
                         className="w-1 h-1 flex-shrink-0 cursor-pointer text-destructive hover:text-destructive/80"
                         onClick={() => {
-                          onFileRetry(indexFile);
+                          handleFileRetry(indexFile);
                         }}
                       >
                         <RotateCcw color="#333333" />

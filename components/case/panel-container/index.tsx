@@ -3,7 +3,7 @@ import React, { memo } from 'react';
 interface PanelContainerProps {
   title: string;
   showTitle: boolean;
-  renderHeaderExtend: () => React.ReactNode;
+  renderHeaderExtend?: () => React.ReactNode;
   children: React.ReactNode;
 }
 
@@ -16,7 +16,7 @@ function PurePanelContainer(props: PanelContainerProps) {
         {showTitle && (
           <div className="text-base font-semibold text-[#1F2937]">{title}</div>
         )}
-        {renderHeaderExtend()}
+        {renderHeaderExtend?.()}
       </div>
       <div className="flex flex-col gap-2 overflow-y-auto box-border p-4 flex-1 h-0">
         {children}
