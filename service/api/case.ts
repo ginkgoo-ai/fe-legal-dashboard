@@ -15,7 +15,7 @@ export const PilotApi = {
 
 const baseUrl = process.env.LOCAL_BASE_URL
   ? `${process.env.LOCAL_BASE_URL}:7878`
-  : process.env.NEXT_PUBLIC_API_URL;
+  : `${process.env.NEXT_PUBLIC_API_URL}/api`;
 
 const IS_MOCK = true;
 
