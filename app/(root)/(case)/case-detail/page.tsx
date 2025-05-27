@@ -12,7 +12,7 @@ import { Breadcrumb, Splitter } from 'antd';
 import { ItemType } from 'antd/es/breadcrumb/Breadcrumb';
 import { produce } from 'immer';
 import { useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import './index.css';
 
 const breadcrumbItemsCasePortal = {
@@ -21,9 +21,6 @@ const breadcrumbItemsCasePortal = {
 };
 
 const PANEL_SIZE_LIMIT = 200;
-const SIZE_REFERENCE_DEFAULT = window.innerWidth * 0.3;
-const SIZE_PROFILEVAULT_DEFAULT = window.innerWidth * 0.4;
-const SIZE_PILOT_DEFAULT = window.innerWidth * 0.3;
 const SIZE_REFERENCE_MIN = 70;
 const SIZE_PROFILEVAULT_MIN = 200;
 const SIZE_PILOT_MIN = 70;
@@ -34,14 +31,16 @@ export default function CaseDetailPage() {
     searchParams.get('caseId') || '44c6cd75-b7c4-4e27-b643-ab14c15ee3a0'
   );
 
+  const SIZE_REFERENCE_DEFAULT = useRef(0);
+  const SIZE_PROFILEVAULT_DEFAULT = useRef(0);
+  const SIZE_PILOT_DEFAULT = useRef(0);
+
   const [breadcrumbItems, setBreadcrumbItems] = useState<ItemType[]>([
     breadcrumbItemsCasePortal,
   ]);
-  const [sizeReference, setSizeReference] = useState<number>(SIZE_REFERENCE_DEFAULT);
-  const [sizeProfileVault, setSizeProfileVault] = useState<number>(
-    SIZE_PROFILEVAULT_DEFAULT
-  );
-  const [sizePilot, setSizePilot] = useState<number>(SIZE_PILOT_DEFAULT);
+  const [sizeReference, setSizeReference] = useState<number>(0);
+  const [sizeProfileVault, setSizeProfileVault] = useState<number>(0);
+  const [sizePilot, setSizePilot] = useState<number>(0);
 
   const [caseInfo, setCaseInfo] = useState<ICaseItemType | null>(null);
   const [fileList, setFileList] = useState<IFileItemType[]>([]);
@@ -93,6 +92,14 @@ export default function CaseDetailPage() {
   };
 
   useEffect(() => {
+    SIZE_REFERENCE_DEFAULT.current = window.innerWidth * 0.3;
+    SIZE_PROFILEVAULT_DEFAULT.current = window.innerWidth * 0.4;
+    SIZE_PILOT_DEFAULT.current = window.innerWidth * 0.3;
+
+    setSizeReference(SIZE_REFERENCE_DEFAULT.current);
+    setSizeProfileVault(SIZE_PROFILEVAULT_DEFAULT.current);
+    setSizePilot(SIZE_PILOT_DEFAULT.current);
+
     registerCaseStream();
   }, []);
 
@@ -121,7 +128,7 @@ export default function CaseDetailPage() {
     if (sizeReference > SIZE_REFERENCE_MIN) {
       setSizeReference(SIZE_REFERENCE_MIN);
     } else {
-      setSizeReference(SIZE_REFERENCE_DEFAULT);
+      setSizeReference(SIZE_REFERENCE_DEFAULT.current);
     }
   };
 
@@ -129,7 +136,7 @@ export default function CaseDetailPage() {
     if (sizePilot > SIZE_PILOT_MIN) {
       setSizePilot(SIZE_PILOT_MIN);
     } else {
-      setSizePilot(SIZE_PILOT_DEFAULT);
+      setSizePilot(SIZE_PILOT_DEFAULT.current);
     }
   };
 
@@ -157,52 +164,54 @@ export default function CaseDetailPage() {
 
       {/* max-w-[var(--width-max)] px-[var(--width-padding)] */}
       <div className="flex h-0 w-full flex-1 flex-col px-6 py-6">
-        <Splitter
-          lazy={false}
-          style={{
-            // borderRadius: '12px',
-            gap: '12px',
-          }}
-          onResize={handleSplitterResize}
-        >
-          <Splitter.Panel
-            min={SIZE_REFERENCE_MIN}
-            size={sizeReference}
-            className="bg-white rounded-2xl flex-col flex"
+        {sizeReference && sizeProfileVault && sizePilot && (
+          <Splitter
+            lazy={false}
+            style={{
+              // borderRadius: '12px',
+              gap: '12px',
+            }}
+            onResize={handleSplitterResize}
           >
-            {!!caseInfo && (
-              <PanelReference
-                caseInfo={caseInfo}
-                showTitle={sizeReference > PANEL_SIZE_LIMIT}
-                fileList={fileList}
-                onFileListUpdate={setFileList}
-                onBtnPanelLeftClick={handleBtnPanelLeftClick}
+            <Splitter.Panel
+              min={SIZE_REFERENCE_MIN}
+              size={sizeReference}
+              className="bg-white rounded-2xl flex-col flex"
+            >
+              {!!caseInfo && (
+                <PanelReference
+                  caseInfo={caseInfo}
+                  showTitle={sizeReference > PANEL_SIZE_LIMIT}
+                  fileList={fileList}
+                  onFileListUpdate={setFileList}
+                  onBtnPanelLeftClick={handleBtnPanelLeftClick}
+                />
+              )}
+            </Splitter.Panel>
+            <Splitter.Panel
+              min={SIZE_PROFILEVAULT_MIN}
+              size={sizeProfileVault}
+              className="bg-white rounded-2xl flex-col flex"
+            >
+              <PanelProfileVault
+                profileVaultDocumentList={caseInfo?.profileVaultDocumentListForFront}
               />
-            )}
-          </Splitter.Panel>
-          <Splitter.Panel
-            min={SIZE_PROFILEVAULT_MIN}
-            size={sizeProfileVault}
-            className="bg-white rounded-2xl flex-col flex"
-          >
-            <PanelProfileVault
-              profileVaultDocumentList={caseInfo?.profileVaultDocumentListForFront}
-            />
-          </Splitter.Panel>
-          <Splitter.Panel
-            min={SIZE_PILOT_MIN}
-            size={sizePilot}
-            className="bg-white rounded-2xl flex-col flex"
-          >
-            {!!caseInfo && (
-              <PanelPilot
-                caseInfo={caseInfo}
-                showTitle={sizePilot > PANEL_SIZE_LIMIT}
-                onBtnPanelRightClick={handleBtnPanelRightClick}
-              />
-            )}
-          </Splitter.Panel>
-        </Splitter>
+            </Splitter.Panel>
+            <Splitter.Panel
+              min={SIZE_PILOT_MIN}
+              size={sizePilot}
+              className="bg-white rounded-2xl flex-col flex"
+            >
+              {!!caseInfo && (
+                <PanelPilot
+                  caseInfo={caseInfo}
+                  showTitle={sizePilot > PANEL_SIZE_LIMIT}
+                  onBtnPanelRightClick={handleBtnPanelRightClick}
+                />
+              )}
+            </Splitter.Panel>
+          </Splitter>
+        )}
       </div>
     </div>
   );
