@@ -9,8 +9,8 @@ interface IOcrDocumentsParamsType {
 }
 
 export const PilotApi = {
-  caseStream: '/cases/:caseId/stream',
-  documents: '/cases/:caseId/documents',
+  caseStream: '/legalcase/:caseId/stream',
+  documents: '/legalcase/:caseId/documents',
 };
 
 const baseUrl = process.env.LOCAL_BASE_URL
