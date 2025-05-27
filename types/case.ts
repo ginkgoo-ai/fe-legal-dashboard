@@ -32,11 +32,27 @@ export enum PilotStatusEnum {
 
 export type ActionResultType = 'success' | 'notFound' | '';
 
+export interface ICaseItemDocumentType {
+  id: string;
+  storageId: string;
+  title: string;
+  description: string;
+  documentType: string;
+  createdAt: string;
+  updatedAt: string;
+  fileType: string; // "application/pdf"
+  metadataJson: string;
+}
+
+export interface IProfileVaultDocumentType extends ICaseItemDocumentType {
+  metadataForFrontList: Record<string, string>[];
+}
+
 export interface ICaseItemType {
   id: string;
   title: string;
-  caseName: string;
   caseType: string;
+  documents: ICaseItemDocumentType[];
   status: CaseStatusEnum;
   createdAt: string;
   updatedAt: string;
@@ -45,6 +61,8 @@ export interface ICaseItemType {
     colorText: string;
     text: string;
   };
+  fillDataForFront?: Record<string, unknown>;
+  profileVaultDocumentListForFront?: IProfileVaultDocumentType[];
   [key: string]: unknown;
 }
 

@@ -1,3 +1,10 @@
+export enum FileStatus {
+  UPLOADING = 'UPLOADING',
+  ANALYSIS = 'ANALYSIS',
+  DONE = 'DONE',
+  ERROR = 'ERROR',
+}
+
 export type FileType = {
   id: string;
   originalName: string;
@@ -12,3 +19,12 @@ export type FileType = {
   createdAt: string;
   updatedAt: string;
 };
+
+export interface IFileItemType {
+  localId: string;
+  status: FileStatus;
+  file: File;
+  progress: number;
+  resultAnalysis?: Record<string, string>[];
+  resultFile?: FileType;
+}
