@@ -3,7 +3,7 @@
 import GlobalManager from '@/customManager/GlobalManager';
 import { cn } from '@/lib/utils';
 import { useUserStore } from '@/store';
-import { ChevronDown, LogOut, Palette } from 'lucide-react';
+import { ChevronDown, LogOut } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -15,13 +15,13 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuPortal,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
+  // DropdownMenuPortal,
+  // DropdownMenuRadioGroup,
+  // DropdownMenuRadioItem,
   DropdownMenuSeparator,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
+  // DropdownMenuSub,
+  // DropdownMenuSubContent,
+  // DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu';
 
@@ -88,8 +88,8 @@ const User = () => {
             </Avatar>
           </div>
         </DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <DropdownMenuSub>
+        {/* <DropdownMenuSeparator /> */}
+        {/* <DropdownMenuSub>
           <DropdownMenuSubTrigger className="inline-flex w-full items-center gap-2">
             <Palette size={16} />
             Theme
@@ -107,7 +107,7 @@ const User = () => {
               </DropdownMenuRadioGroup>
             </DropdownMenuSubContent>
           </DropdownMenuPortal>
-        </DropdownMenuSub>
+        </DropdownMenuSub> */}
         <DropdownMenuSeparator />
         <LogoutTrigger>
           <DropdownMenuItem className="inline-flex w-full items-center gap-2">
