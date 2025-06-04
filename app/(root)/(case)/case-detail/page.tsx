@@ -12,7 +12,7 @@ import { Breadcrumb, Splitter } from 'antd';
 import { ItemType } from 'antd/es/breadcrumb/Breadcrumb';
 import { produce } from 'immer';
 import { useSearchParams } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
 import './index.css';
 
 const breadcrumbItemsCasePortal = {
@@ -25,7 +25,7 @@ const SIZE_REFERENCE_MIN = 70;
 const SIZE_PROFILEVAULT_MIN = 200;
 const SIZE_PILOT_MIN = 70;
 
-export default function CaseDetailPage() {
+function CaseDetailContent() {
   const searchParams = useSearchParams();
   const caseId = decodeURIComponent(
     searchParams.get('caseId') || '44c6cd75-b7c4-4e27-b643-ab14c15ee3a0'
@@ -210,5 +210,13 @@ export default function CaseDetailPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function CaseDetailPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <CaseDetailContent />
+    </Suspense>
   );
 }
