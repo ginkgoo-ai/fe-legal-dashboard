@@ -126,7 +126,7 @@ export default function RootLayout({
       </head>
 
       <body className="flex h-[100vh] w-[100vw] flex-col">
-        {loading || !user ? (
+        {loading ? (
           <div className="flex flex-1 h-auto items-center justify-center">
             <div className="border-primary h-8 w-8 animate-spin rounded-full border-4 border-t-transparent" />
           </div>
