@@ -89,15 +89,14 @@ function PurePanelReference(props: PanelReferenceProps) {
   };
 
   useEffect(() => {
-    setFileList(prev => {
-      // update for caseStream...
-      return caseInfo?.documents?.map(item => {
-        return {
+    setFileList(() => {
+      return (
+        caseInfo?.documents?.map(item => ({
           localId: uuid(),
           status: FileStatus.DONE,
           ocrFile: item,
-        };
-      });
+        })) || []
+      );
     });
   }, [caseInfo?.timestamp]);
 
