@@ -1,4 +1,4 @@
-import { FileType } from '@/types/file';
+import { ICloudFileType } from '@/types/file';
 import { AxiosHeaders } from 'axios';
 import ApiRequest from '../axios';
 
@@ -17,7 +17,7 @@ const uploadFile = async (
     onUploadeProgress?: (percentCompleted: number) => void;
     abortSignal?: AbortSignal;
   }
-): Promise<FileType> => {
+): Promise<ICloudFileType> => {
   const { onUploadeProgress, abortSignal } = config ?? {};
   const formData = new FormData();
   formData.append('file', file);
@@ -42,7 +42,7 @@ const uploadFiles = async (
     onUploadeProgress?: (percentCompleted: number) => void;
     abortSignal?: AbortSignal;
   }
-): Promise<{ cloudFiles: FileType[] }> => {
+): Promise<{ cloudFiles: ICloudFileType[] }> => {
   const { onUploadeProgress, abortSignal } = config ?? {};
   const formData = new FormData();
   files.forEach(file => {

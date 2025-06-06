@@ -1,5 +1,6 @@
 import { CaseStatusEnum, ChatMessagePart, ICaseItemType } from '@/types';
 import { type ClassValue, clsx } from 'clsx';
+import dayjs from 'dayjs';
 import { twMerge } from 'tailwind-merge';
 
 const CONTENT_PATTERNS = {
@@ -113,10 +114,12 @@ export const parseCaseInfo = (caseInfo: ICaseItemType): ICaseItemType => {
               };
             })
           : [],
+        timestamp: +dayjs(),
       };
     }) || [];
-  const fill_data: Record<string, unknown> = {};
 
+  // gen fill_data
+  const fill_data: Record<string, unknown> = {};
   profileVaultDocumentList.forEach(
     (item: { documentType: string; metadataForFrontObject: any }, index: number) => {
       fill_data[item.documentType] = item.metadataForFrontObject;

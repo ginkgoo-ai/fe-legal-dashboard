@@ -1,6 +1,6 @@
 'use client';
 
-import { TagStatus } from '@/components/case/tag-status';
+import { TagStatus } from '@/components/case/tagStatus';
 import { Button } from '@/components/ui/button';
 import UtilsManager from '@/customManager/UtilsManager';
 import { parseCaseInfo } from '@/lib';

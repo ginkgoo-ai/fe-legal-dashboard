@@ -1,16 +1,15 @@
 'use client';
 
-import { PanelPilot } from '@/components/case/panel-pilot';
-import { PanelProfileVault } from '@/components/case/panel-profile-vault';
-import { PanelReference } from '@/components/case/panel-reference';
-import { TagStatus } from '@/components/case/tag-status';
+import { PanelPilot } from '@/components/case/panelPilot';
+import { PanelProfileVault } from '@/components/case/panelProfileVault';
+import { PanelReference } from '@/components/case/panelReference';
+import { TagStatus } from '@/components/case/tagStatus';
+import UtilsManager from '@/customManager/UtilsManager';
 import { cn, parseCaseInfo } from '@/lib/utils';
 import { caseStream } from '@/service/api';
 import { ICaseItemType } from '@/types/case';
-import { FileStatus, IFileItemType } from '@/types/file';
 import { Breadcrumb, Splitter } from 'antd';
 import { ItemType } from 'antd/es/breadcrumb/Breadcrumb';
-import { produce } from 'immer';
 import { useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useRef, useState } from 'react';
 import './index.css';
@@ -27,9 +26,7 @@ const SIZE_PILOT_MIN = 70;
 
 function CaseDetailContent() {
   const searchParams = useSearchParams();
-  const caseId = decodeURIComponent(
-    searchParams.get('caseId') || '44c6cd75-b7c4-4e27-b643-ab14c15ee3a0'
-  );
+  const caseId = decodeURIComponent(searchParams.get('caseId') || '');
 
   const SIZE_REFERENCE_DEFAULT = useRef(0);
   const SIZE_PROFILEVAULT_DEFAULT = useRef(0);
@@ -38,12 +35,12 @@ function CaseDetailContent() {
   const [breadcrumbItems, setBreadcrumbItems] = useState<ItemType[]>([
     breadcrumbItemsCasePortal,
   ]);
+
   const [sizeReference, setSizeReference] = useState<number>(0);
   const [sizeProfileVault, setSizeProfileVault] = useState<number>(0);
   const [sizePilot, setSizePilot] = useState<number>(0);
 
   const [caseInfo, setCaseInfo] = useState<ICaseItemType | null>(null);
-  const [fileList, setFileList] = useState<IFileItemType[]>([]);
 
   const registerCaseStream = async () => {
     try {
@@ -54,18 +51,9 @@ function CaseDetailContent() {
           // setRequestController({ cancel: () => controller.abort() });
         },
         res => {
-          setFileList(prev =>
-            produce(prev, draft => {
-              draft.forEach((file: IFileItemType) => {
-                file.status = FileStatus.DONE;
-                file.progress = 100;
-              });
-            })
-          );
-
           console.log('🚀 ~ res:', res);
-          // const parts = parseMessageContent(res);
           // originalMessageLogRef.current = res;
+
           try {
             const data = JSON.parse(res);
 
@@ -117,6 +105,7 @@ function CaseDetailContent() {
   }, [caseInfo]);
 
   const handleSplitterResize = (sizes: number[]) => {
+    console.log('handleSplitterResize', sizes);
     const [left, mid, right] = sizes || [];
 
     setSizeReference(left);
@@ -139,6 +128,11 @@ function CaseDetailContent() {
       setSizePilot(SIZE_PILOT_DEFAULT.current);
     }
   };
+
+  if (!caseId) {
+    UtilsManager.navigateBack();
+    return null;
+  }
 
   return (
     <div className="box-border flex w-full flex-1 flex-col h-0 case-detail-wrap">
@@ -164,7 +158,7 @@ function CaseDetailContent() {
 
       {/* max-w-[var(--width-max)] px-[var(--width-padding)] */}
       <div className="flex h-0 w-full flex-1 flex-col px-6 py-6">
-        {sizeReference && sizeProfileVault && sizePilot && (
+        {sizeReference && sizeProfileVault && sizePilot ? (
           <Splitter
             lazy={false}
             style={{
@@ -173,32 +167,37 @@ function CaseDetailContent() {
             }}
             onResize={handleSplitterResize}
           >
+            {/* Reference */}
             <Splitter.Panel
               min={SIZE_REFERENCE_MIN}
               size={sizeReference}
-              className="bg-white rounded-2xl flex-col flex"
+              className={cn('bg-white relative rounded-2xl flex-col flex h-full', {
+                'transition-all': true,
+              })}
             >
               <PanelReference
                 caseInfo={caseInfo}
                 showTitle={sizeReference > PANEL_SIZE_LIMIT}
-                fileList={fileList}
-                onFileListUpdate={setFileList}
                 onBtnPanelLeftClick={handleBtnPanelLeftClick}
               />
             </Splitter.Panel>
+            {/* Profile Vault */}
             <Splitter.Panel
               min={SIZE_PROFILEVAULT_MIN}
               size={sizeProfileVault}
-              className="bg-white rounded-2xl flex-col flex"
+              className={cn('bg-white relative rounded-2xl flex-col flex h-full', {
+                'transition-all': true,
+              })}
             >
-              <PanelProfileVault
-                profileVaultDocumentList={caseInfo?.profileVaultDocumentListForFront}
-              />
+              <PanelProfileVault caseInfo={caseInfo} />
             </Splitter.Panel>
+            {/* Pilot */}
             <Splitter.Panel
               min={SIZE_PILOT_MIN}
               size={sizePilot}
-              className="bg-white rounded-2xl flex-col flex"
+              className={cn('bg-white relative rounded-2xl flex-col flex h-full', {
+                'transition-all': true,
+              })}
             >
               <PanelPilot
                 caseInfo={caseInfo}
@@ -207,7 +206,7 @@ function CaseDetailContent() {
               />
             </Splitter.Panel>
           </Splitter>
-        )}
+        ) : null}
       </div>
     </div>
   );

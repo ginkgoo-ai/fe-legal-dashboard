@@ -1,3 +1,4 @@
+import { IOcrFileType } from '@/types/file';
 import { StepProps } from 'antd';
 
 export enum CaseStreamStatusEnum {
@@ -32,19 +33,7 @@ export enum PilotStatusEnum {
 
 export type ActionResultType = 'success' | 'notFound' | '';
 
-export interface ICaseItemDocumentType {
-  id: string;
-  storageId: string;
-  title: string;
-  description: string;
-  documentType: string;
-  createdAt: string;
-  updatedAt: string;
-  fileType: string; // "application/pdf"
-  metadataJson: string;
-}
-
-export interface IProfileVaultDocumentType extends ICaseItemDocumentType {
+export interface IProfileVaultDocumentType extends IOcrFileType {
   metadataForFrontList: Record<string, string>[];
 }
 
@@ -52,7 +41,7 @@ export interface ICaseItemType {
   id: string;
   title: string;
   caseType: string;
-  documents?: ICaseItemDocumentType[];
+  documents?: IOcrFileType[];
   status: CaseStatusEnum;
   createdAt: string;
   updatedAt: string;
@@ -63,6 +52,7 @@ export interface ICaseItemType {
   };
   fillDataForFront?: Record<string, unknown>;
   profileVaultDocumentListForFront?: IProfileVaultDocumentType[];
+  timestamp: number;
   [key: string]: unknown;
 }
 

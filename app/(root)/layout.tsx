@@ -35,6 +35,7 @@ export default function RootLayout({
         algorithm: isDarkMode ? theme.darkAlgorithm : theme.defaultAlgorithm,
         token: {
           colorPrimary: '#2C9AFF',
+          fontFamily: "'Poppins', serif",
         },
         components: {
           Button: {

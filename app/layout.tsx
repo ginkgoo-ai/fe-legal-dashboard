@@ -3,14 +3,15 @@
 import GlobalManager from '@/customManager/GlobalManager';
 import { useEventManager } from '@/hooks/useEventManager';
 import useRequest from '@/hooks/useRequest';
-import Tracer from '@/lib/telemetry/tracer';
 import { getUserInfo } from '@/service/api';
 import { useUserStore } from '@/store';
 import { useExtensionsStore } from '@/store/extensionsStore';
 import '@/style/global.css';
 import { ExtensionsInfo } from '@/types/extensions';
-import { useRouter } from 'next/navigation';
-import { useEffect, useRef } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
+import { useEffect, useRef, useState } from 'react';
+
+const whiteListForNotNeetAuth = ['/403'];
 
 export default function RootLayout({
   children,
@@ -18,28 +19,36 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   const router = useRouter();
+  const pathname = usePathname();
 
   const extensionsInfoRef = useRef<ExtensionsInfo | null>(null);
   const timerRegister = useRef<NodeJS.Timeout | null>(null);
+
+  const [loading, setLoading] = useState<boolean>(true);
 
   const { setUserInfo } = useUserStore();
   const { extensionsInfo, setExtensionsInfo } = useExtensionsStore();
 
   const { emit } = useEventManager('ginkgo-message', () => {});
 
-  const { loading, data: user } = useRequest(getUserInfo, {
+  const { data: user } = useRequest(getUserInfo, {
     errorRetryCount: 1,
     immediate: true,
     onSuccess: user => {
-      setUserInfo(user);
+      if (!user) {
+        return;
+      }
 
-      const pathname = window.location.pathname;
+      setUserInfo(user);
 
       if (!user?.enabled && pathname !== '/403') {
         router.replace('/403');
       } else if (user?.enabled && pathname === '/403') {
         router.replace('/');
       }
+    },
+    onFinally: () => {
+      setLoading(false);
     },
   });
 
@@ -90,11 +99,11 @@ export default function RootLayout({
         postHeartRegister();
       }, 5000);
 
-      Tracer({
-        url: process.env.NEXT_PUBLIC_OTEL_EXPORTER_OTLP_ENDPOINT as string,
-        serviceName: process.env.NEXT_PUBLIC_OTEL_SERVICE_NAME as string,
-        attributes: process.env.NEXT_PUBLIC_OTEL_RESOURCE_ATTRIBUTES as string,
-      });
+      // Tracer({
+      //   url: process.env.NEXT_PUBLIC_OTEL_EXPORTER_OTLP_ENDPOINT as string,
+      //   serviceName: process.env.NEXT_PUBLIC_OTEL_SERVICE_NAME as string,
+      //   attributes: process.env.NEXT_PUBLIC_OTEL_RESOURCE_ATTRIBUTES as string,
+      // });
     }
 
     // 清理监听器
@@ -120,13 +129,13 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
-          href="https://fonts.googleapis.com/css2?family=Domine:wght@400..700&family=Outfit:wght@100..900&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;700&display=swap"
           rel="stylesheet"
         />
       </head>
 
       <body className="flex h-[100vh] w-[100vw] flex-col">
-        {loading ? (
+        {loading || (whiteListForNotNeetAuth.includes(pathname) && !user) ? (
           <div className="flex flex-1 h-auto items-center justify-center">
             <div className="border-primary h-8 w-8 animate-spin rounded-full border-4 border-t-transparent" />
           </div>
