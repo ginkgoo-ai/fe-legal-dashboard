@@ -1,11 +1,11 @@
-import { PanelContainer } from '@/components/case/panel-container';
-import { FileUpload } from '@/components/common/form/upload/fileUpload';
-import { ItemFile } from '@/components/common/item-file';
+import { PanelContainer } from '@/components/case/panelContainer';
+import { FileUploadSimple } from '@/components/common/form/upload/fileUploadSimple';
+import { ItemFile } from '@/components/common/itemFile';
 import { Button } from '@/components/ui/button';
 import { ocrDocuments } from '@/service/api';
 import { uploadFiles } from '@/service/api/file';
 import { ICaseItemType } from '@/types/case';
-import { FileStatus, FileType, IFileItemType } from '@/types/file';
+import { FileStatus, ICloudFileType, IFileItemType } from '@/types/file';
 import { produce } from 'immer';
 import { PanelLeft } from 'lucide-react';
 import { memo, useEffect, useState } from 'react';
@@ -24,14 +24,14 @@ function PurePanelReference(props: PanelReferenceProps) {
 
   const [fileList, setFileList] = useState<IFileItemType[]>([]);
 
-  const actionOcrFile = async (cloudFiles: FileType[]) => {
+  const actionOcrFile = async (cloudFiles: ICloudFileType[]) => {
     const data = await ocrDocuments({
       caseId: caseInfo?.id || '',
       storageIds: cloudFiles.map(file => file.id),
     });
 
     if (data?.length > 0) {
-      // nothing...
+      // nothing... async ocr...
     } else {
       toast.error('Analysis file failed.');
       setFileList(prev =>
@@ -39,7 +39,7 @@ function PurePanelReference(props: PanelReferenceProps) {
           draft.forEach(file => {
             if (
               cloudFiles.some(cloudFile => {
-                return cloudFile.id === file.resultFile?.id;
+                return cloudFile.id === file.cloudFile?.id;
               })
             ) {
               file.status = FileStatus.ERROR;
@@ -52,7 +52,7 @@ function PurePanelReference(props: PanelReferenceProps) {
 
   const actionUploadFile = async (newFiles: IFileItemType[]) => {
     const data = await uploadFiles(
-      newFiles.map(file => file.file),
+      newFiles.map(file => file.localFile!),
       {
         onUploadeProgress: (percentCompleted: number) => {
           // console.log('percentCompleted', percentCompleted);
@@ -68,7 +68,7 @@ function PurePanelReference(props: PanelReferenceProps) {
             );
             if (indexNewFile >= 0) {
               file.status = FileStatus.ANALYSIS;
-              file.resultFile = data.cloudFiles[indexNewFile];
+              file.cloudFile = data.cloudFiles[indexNewFile];
             }
           });
         })
@@ -90,22 +90,23 @@ function PurePanelReference(props: PanelReferenceProps) {
 
   useEffect(() => {
     setFileList(prev => {
-      console.log('');
-      return caseInfo?.profileVaultDocumentListForFront?.map(item => {
+      // update for caseStream...
+      return caseInfo?.documents?.map(item => {
         return {
           localId: uuid(),
-          status: FileStatus.UPLOADING,
-          // file,
+          status: FileStatus.DONE,
+          ocrFile: item,
         };
       });
     });
   }, [caseInfo?.timestamp]);
 
   const handleFileChange = async (files: File[]) => {
+    console.log('handleFileChange', files);
     const newFiles = files.map(file => ({
       localId: uuid(),
       status: FileStatus.UPLOADING,
-      file,
+      localFile: file,
     }));
 
     setFileList(prev =>
@@ -143,25 +144,19 @@ function PurePanelReference(props: PanelReferenceProps) {
         );
       }}
     >
-      <div className="flex flex-col gap-2 overflow-y-auto box-border flex-1 h-0">
-        <div className="flex flex-col gap-2">
-          <FileUpload
+      <div className="flex flex-col overflow-y-auto box-border flex-1 h-0">
+        <div className="flex flex-col">
+          <FileUploadSimple
             accept="application/pdf,image/jpeg,image/png,image/gif,image/webp,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/plain"
             multiple
             maxSize={50}
             onChange={handleFileChange}
             onError={handleFileError}
-            label="Drag & drop your file"
-            subLabel="Supported file types: PDF, JPG, PNG, GIF, WEBP, DOC, DOCX, XLS, XLSX, TXT"
-            triggerText="browse files"
           />
         </div>
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-8 mt-8">
           {fileList.map((itemFile, indexFile) => (
-            <ItemFile
-              key={`reference-item-${indexFile}`}
-              resultFile={itemFile?.resultFile}
-            />
+            <ItemFile key={`reference-item-${indexFile}`} file={itemFile} />
           ))}
         </div>
       </div>

@@ -6,29 +6,13 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { useInterval } from '@/hooks/useInterval';
 import { uploadFiles } from '@/service/api/file';
-import { FileType } from '@/types/file';
+import { FileStatus, ICloudFileType, IFileItemType } from '@/types/file';
 import { produce } from 'immer';
 import { FileText, Loader2, RotateCcw, X } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { v4 as uuid } from 'uuid';
 import { mockUploadFile } from './mock';
-
-enum FileStatus {
-  UPLOADING = 'UPLOADING',
-  ANALYSIS = 'ANALYSIS',
-  DONE = 'DONE',
-  ERROR = 'ERROR',
-}
-
-interface IFileItemType {
-  localId: string;
-  status: FileStatus;
-  file: File;
-  progress: number;
-  resultAnalysis?: Record<string, string>[];
-  resultFile?: FileType;
-}
 
 export default function UploadFilePage() {
   const [fileList, setFileList] = useState<IFileItemType[]>([]);
@@ -38,7 +22,7 @@ export default function UploadFilePage() {
       setFileList(prev =>
         produce(prev, draft => {
           draft.forEach(file => {
-            if (file.progress >= 100) return;
+            if ((file?.progress ?? 0) >= 100) return;
 
             const shouldUpdate =
               file.status === FileStatus.UPLOADING && Math.random() < 0.6;
@@ -48,8 +32,11 @@ export default function UploadFilePage() {
             const increment = Math.floor(Math.random() * maxIncrement) + 1;
 
             file.progress = Math.max(
-              file.progress,
-              Math.min(90 + Math.floor(Math.random() * 10), file.progress + increment)
+              file?.progress ?? 0,
+              Math.min(
+                90 + Math.floor(Math.random() * 10),
+                (file?.progress ?? 0) + increment
+              )
             );
           });
         })
@@ -59,7 +46,7 @@ export default function UploadFilePage() {
     true
   );
 
-  const actionAnalysisFile = async (cloudFiles: FileType[]) => {
+  const actionAnalysisFile = async (cloudFiles: ICloudFileType[]) => {
     await new Promise(resolve => setTimeout(resolve, 3000));
 
     if (Math.random() < 0.5) {
@@ -68,12 +55,12 @@ export default function UploadFilePage() {
           draft.forEach((file: IFileItemType) => {
             if (
               cloudFiles.some(cloudFile => {
-                return cloudFile.id === file.resultFile?.id;
+                return cloudFile.id === file.cloudFile?.id;
               })
             ) {
               file.status = FileStatus.DONE;
               file.progress = 100;
-              file.resultAnalysis = mockUploadFile;
+              file.ocrResult = mockUploadFile;
             }
           });
         })
@@ -85,7 +72,7 @@ export default function UploadFilePage() {
           draft.forEach(file => {
             if (
               cloudFiles.some(cloudFile => {
-                return cloudFile.id === file.resultFile?.id;
+                return cloudFile.id === file.cloudFile?.id;
               })
             ) {
               file.status = FileStatus.ERROR;
@@ -99,7 +86,7 @@ export default function UploadFilePage() {
 
   const actionUploadFile = async (newFiles: IFileItemType[]) => {
     const data = await uploadFiles(
-      newFiles.map(file => file.file),
+      newFiles.map(file => file.localFile!),
       {
         onUploadeProgress: (percentCompleted: number) => {
           // console.log('percentCompleted', percentCompleted);
@@ -116,7 +103,7 @@ export default function UploadFilePage() {
             if (indexNewFile >= 0) {
               file.status = FileStatus.ANALYSIS;
               file.progress = 100;
-              file.resultFile = data.cloudFiles[indexNewFile];
+              file.cloudFile = data.cloudFiles[indexNewFile];
             }
           });
         })
@@ -196,7 +183,7 @@ export default function UploadFilePage() {
                   <div className="flex flex-row items-center">
                     <BadgeStatus status={itemFile.status} />
                     <span className="ml-2 text-sm truncate font-semibold">
-                      {itemFile.file.name}
+                      {itemFile.localFile?.name || ''}
                     </span>
                   </div>
                   <div className="flex flex-row items-center gap-2">
@@ -238,13 +225,13 @@ export default function UploadFilePage() {
               </div>
               {itemFile.status === FileStatus.DONE && (
                 <div className="flex flex-col gap-2">
-                  {itemFile.resultAnalysis?.map((itemAnalysis, indexAnalysis) => (
-                    <div key={indexAnalysis} className="flex flex-row gap-2">
+                  {itemFile.ocrResult?.map((itemResult, indexResult) => (
+                    <div key={indexResult} className="flex flex-row gap-2">
                       <div className="flex-[0_0_auto] max-w-[50%] text-xs font-semibold whitespace-pre-wrap">
-                        {itemAnalysis.key}:
+                        {itemResult.key}:
                       </div>
                       <div className="flex-1 text-xs whitespace-pre-wrap">
-                        {itemAnalysis.value}
+                        {itemResult.value}
                       </div>
                     </div>
                   ))}

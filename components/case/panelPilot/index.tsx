@@ -1,4 +1,4 @@
-import { PanelContainer } from '@/components/case/panel-container';
+import { PanelContainer } from '@/components/case/panelContainer';
 import { Button } from '@/components/ui/button';
 import { useEventManager } from '@/hooks/useEventManager';
 import { cn } from '@/lib/utils';

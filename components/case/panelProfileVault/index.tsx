@@ -1,4 +1,4 @@
-import { PanelContainer } from '@/components/case/panel-container';
+import { PanelContainer } from '@/components/case/panelContainer';
 import { ICaseItemType } from '@/types';
 import { Card } from 'antd';
 import { memo, useEffect } from 'react';

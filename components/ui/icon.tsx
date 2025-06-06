@@ -139,8 +139,8 @@ export const IconImage = ({ size = 16 }: { size?: number }) => {
 export const IconFileStatusError = ({ size = 16 }: { size?: number }) => {
   return (
     <svg
-      width="24"
-      height="24"
+      width={size}
+      height={size}
       viewBox="0 0 24 24"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
@@ -164,11 +164,12 @@ export const IconFileStatusError = ({ size = 16 }: { size?: number }) => {
 export const IconFileStatusLoading = ({ size = 16 }: { size?: number }) => {
   return (
     <svg
-      width="24"
-      height="24"
+      width={size}
+      height={size}
       viewBox="0 0 24 24"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
+      className="animate-spin"
     >
       <path
         d="M12 2C17.523 2 22 6.477 22 12C22 17.523 17.523 22 12 22C6.477 22 2 17.523 2 12C2 6.477 6.477 2 12 2ZM12 5C10.1435 5 8.36301 5.7375 7.05025 7.05025C5.7375 8.36301 5 10.1435 5 12C5 13.8565 5.7375 15.637 7.05025 16.9497C8.36301 18.2625 10.1435 19 12 19C13.8565 19 15.637 18.2625 16.9497 16.9497C18.2625 15.637 19 13.8565 19 12C19 10.1435 18.2625 8.36301 16.9497 7.05025C15.637 5.7375 13.8565 5 12 5Z"
@@ -185,8 +186,8 @@ export const IconFileStatusLoading = ({ size = 16 }: { size?: number }) => {
 export const IconFileStatusSuccess = ({ size = 16 }: { size?: number }) => {
   return (
     <svg
-      width="24"
-      height="24"
+      width={size}
+      height={size}
       viewBox="0 0 24 24"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
@@ -202,8 +203,8 @@ export const IconFileStatusSuccess = ({ size = 16 }: { size?: number }) => {
 export const IconFileTypeDoc = ({ size = 16 }: { size?: number }) => {
   return (
     <svg
-      width="40"
-      height="40"
+      width={size}
+      height={size}
       viewBox="0 0 40 40"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
@@ -227,8 +228,8 @@ export const IconFileTypeDoc = ({ size = 16 }: { size?: number }) => {
 export const IconFileTypeExcel = ({ size = 16 }: { size?: number }) => {
   return (
     <svg
-      width="40"
-      height="40"
+      width={size}
+      height={size}
       viewBox="0 0 40 40"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
@@ -252,8 +253,8 @@ export const IconFileTypeExcel = ({ size = 16 }: { size?: number }) => {
 export const IconFileTypeImage = ({ size = 16 }: { size?: number }) => {
   return (
     <svg
-      width="40"
-      height="40"
+      width={size}
+      height={size}
       viewBox="0 0 40 40"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
@@ -281,8 +282,8 @@ export const IconFileTypeImage = ({ size = 16 }: { size?: number }) => {
 export const IconFileTypePDF = ({ size = 16 }: { size?: number }) => {
   return (
     <svg
-      width="40"
-      height="40"
+      width={size}
+      height={size}
       viewBox="0 0 40 40"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
@@ -306,8 +307,8 @@ export const IconFileTypePDF = ({ size = 16 }: { size?: number }) => {
 export const IconFileTypePPT = ({ size = 16 }: { size?: number }) => {
   return (
     <svg
-      width="40"
-      height="40"
+      width={size}
+      height={size}
       viewBox="0 0 40 40"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
@@ -338,8 +339,8 @@ export const IconFileTypePPT = ({ size = 16 }: { size?: number }) => {
 export const IconFileTypeTXT = ({ size = 16 }: { size?: number }) => {
   return (
     <svg
-      width="40"
-      height="40"
+      width={size}
+      height={size}
       viewBox="0 0 40 40"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
@@ -363,8 +364,8 @@ export const IconFileTypeTXT = ({ size = 16 }: { size?: number }) => {
 export const IconFileUpload = ({ size = 16 }: { size?: number }) => {
   return (
     <svg
-      width="24"
-      height="24"
+      width={size}
+      height={size}
       viewBox="0 0 24 24"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
