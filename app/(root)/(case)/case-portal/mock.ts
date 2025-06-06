@@ -17,6 +17,7 @@ export const mockCaseList: ICaseItemType[] = [
     updatedAt: '2025-05-19T09:34:49',
     documentsCount: 2,
     eventsCount: 0,
+    timestamp: 1749205388167,
   },
 ];
 
