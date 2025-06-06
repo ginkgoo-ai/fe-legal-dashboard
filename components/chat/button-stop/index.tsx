@@ -1,6 +1,6 @@
-import { memo } from "react";
-import { Button } from "@/components/ui/button";
-import { StopIcon } from "@/components/ui/icon";
+import { Button } from '@/components/ui/button';
+import { IconStop } from '@/components/ui/icon';
+import { memo } from 'react';
 
 interface ButtonStopProps {
   onStop: () => void;
@@ -13,12 +13,12 @@ function PureButtonStop(props: ButtonStopProps) {
     <Button
       data-testid="stop-button"
       className="h-fit rounded-full border p-1.5 dark:border-zinc-600"
-      onClick={(event) => {
+      onClick={event => {
         event.preventDefault();
         onStop?.();
       }}
     >
-      <StopIcon size={14} />
+      <IconStop size={14} />
     </Button>
   );
 }

@@ -1,28 +1,28 @@
-import { BadgeStatus } from '@/components/badgeStatus';
 import { PanelContainer } from '@/components/case/panel-container';
 import { FileUpload } from '@/components/common/form/upload/fileUpload';
+import { ItemFile } from '@/components/common/item-file';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
 import { ocrDocuments } from '@/service/api';
 import { uploadFiles } from '@/service/api/file';
 import { ICaseItemType } from '@/types/case';
 import { FileStatus, FileType, IFileItemType } from '@/types/file';
 import { produce } from 'immer';
-import { FileText, Loader2, PanelLeft, RotateCcw, X } from 'lucide-react';
-import { Dispatch, memo, SetStateAction } from 'react';
+import { PanelLeft } from 'lucide-react';
+import { memo, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { v4 as uuid } from 'uuid';
 
 interface PanelReferenceProps {
   caseInfo: ICaseItemType | null;
   showTitle: boolean;
-  fileList: IFileItemType[];
-  onFileListUpdate: Dispatch<SetStateAction<IFileItemType[]>>;
+  // onFileListUpdate: Dispatch<SetStateAction<IFileItemType[]>>;
   onBtnPanelLeftClick: () => void;
 }
 
 function PurePanelReference(props: PanelReferenceProps) {
-  const { caseInfo, showTitle, fileList, onFileListUpdate, onBtnPanelLeftClick } = props;
+  const { caseInfo, showTitle, onBtnPanelLeftClick } = props;
+
+  const [fileList, setFileList] = useState<IFileItemType[]>([]);
 
   const actionOcrFile = async (cloudFiles: FileType[]) => {
     const data = await ocrDocuments({
@@ -31,10 +31,10 @@ function PurePanelReference(props: PanelReferenceProps) {
     });
 
     if (data?.length > 0) {
-      // TODO:
+      // nothing...
     } else {
       toast.error('Analysis file failed.');
-      onFileListUpdate(prev =>
+      setFileList(prev =>
         produce(prev, draft => {
           draft.forEach(file => {
             if (
@@ -43,7 +43,6 @@ function PurePanelReference(props: PanelReferenceProps) {
               })
             ) {
               file.status = FileStatus.ERROR;
-              file.progress = 0;
             }
           });
         })
@@ -61,7 +60,7 @@ function PurePanelReference(props: PanelReferenceProps) {
       }
     );
     if (data?.cloudFiles) {
-      onFileListUpdate(prev =>
+      setFileList(prev =>
         produce(prev, draft => {
           draft.forEach(file => {
             const indexNewFile = newFiles.findIndex(
@@ -69,7 +68,6 @@ function PurePanelReference(props: PanelReferenceProps) {
             );
             if (indexNewFile >= 0) {
               file.status = FileStatus.ANALYSIS;
-              file.progress = 100;
               file.resultFile = data.cloudFiles[indexNewFile];
             }
           });
@@ -78,12 +76,11 @@ function PurePanelReference(props: PanelReferenceProps) {
       await actionOcrFile(data.cloudFiles);
     } else {
       toast.error('Upload file failed.');
-      onFileListUpdate(prev =>
+      setFileList(prev =>
         produce(prev, draft => {
           draft.forEach(file => {
             if (newFiles.some(newFile => newFile.localId === file.localId)) {
               file.status = FileStatus.ERROR;
-              file.progress = 0;
             }
           });
         })
@@ -91,15 +88,27 @@ function PurePanelReference(props: PanelReferenceProps) {
     }
   };
 
+  useEffect(() => {
+    setFileList(prev => {
+      console.log('');
+      return caseInfo?.profileVaultDocumentListForFront?.map(item => {
+        return {
+          localId: uuid(),
+          status: FileStatus.UPLOADING,
+          // file,
+        };
+      });
+    });
+  }, [caseInfo?.timestamp]);
+
   const handleFileChange = async (files: File[]) => {
     const newFiles = files.map(file => ({
       localId: uuid(),
       status: FileStatus.UPLOADING,
       file,
-      progress: 0,
     }));
 
-    onFileListUpdate(prev =>
+    setFileList(prev =>
       produce(prev, draft => {
         draft.push(...newFiles);
       })
@@ -113,7 +122,7 @@ function PurePanelReference(props: PanelReferenceProps) {
   };
 
   const handleFileRetry = async (indexFile: number) => {
-    onFileListUpdate(prev =>
+    setFileList(prev =>
       produce(prev, draft => {
         draft[indexFile].status = FileStatus.UPLOADING;
       })
@@ -149,56 +158,10 @@ function PurePanelReference(props: PanelReferenceProps) {
         </div>
         <div className="flex flex-col gap-2">
           {fileList.map((itemFile, indexFile) => (
-            <div key={`${itemFile.localId}`} className="flex flex-col gap-2">
-              <div className="flex items-center justify-between p-2 rounded-lg bg-background border border-default">
-                <div className="bg-form-background border border-default rounded-lg flex items-center justify-center p-2">
-                  <FileText size={24} />
-                </div>
-                <div className="flex flex-col gap-2 min-w-0 flex-1 mx-4">
-                  <div className="flex flex-row items-center">
-                    <BadgeStatus status={itemFile.status} />
-                    <span className="ml-2 text-sm truncate font-semibold">
-                      {itemFile.file.name}
-                    </span>
-                  </div>
-                  <div className="flex flex-row items-center gap-2">
-                    <Progress value={itemFile.progress} />
-                    {itemFile.status === FileStatus.ANALYSIS && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        disabled
-                        className="w-1 h-1 flex-shrink-0 cursor-pointer text-destructive hover:text-destructive/80"
-                      >
-                        <Loader2 className="animate-spin" color="#333333" />
-                      </Button>
-                    )}
-                    {itemFile.status === FileStatus.ERROR && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        className="w-1 h-1 flex-shrink-0 cursor-pointer text-destructive hover:text-destructive/80"
-                        onClick={() => {
-                          handleFileRetry(indexFile);
-                        }}
-                      >
-                        <RotateCcw color="#333333" />
-                      </Button>
-                    )}
-                  </div>
-                </div>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  onClick={() => {
-                    onFileListUpdate(fileList.filter((_, i) => i !== indexFile));
-                  }}
-                  className="flex-shrink-0 cursor-pointer text-destructive hover:text-destructive/80"
-                >
-                  <X className="w-4 h-4" />
-                </Button>
-              </div>
-            </div>
+            <ItemFile
+              key={`reference-item-${indexFile}`}
+              resultFile={itemFile?.resultFile}
+            />
           ))}
         </div>
       </div>

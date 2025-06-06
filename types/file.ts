@@ -23,8 +23,8 @@ export type FileType = {
 export interface IFileItemType {
   localId: string;
   status: FileStatus;
-  file: File;
-  progress: number;
+  file?: File;
+  progress?: number;
   resultAnalysis?: Record<string, string>[];
   resultFile?: FileType;
 }

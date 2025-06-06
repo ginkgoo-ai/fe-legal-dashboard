@@ -164,7 +164,7 @@ function CaseDetailContent() {
 
       {/* max-w-[var(--width-max)] px-[var(--width-padding)] */}
       <div className="flex h-0 w-full flex-1 flex-col px-6 py-6">
-        {sizeReference && sizeProfileVault && sizePilot && (
+        {sizeReference && sizeProfileVault && sizePilot ? (
           <Splitter
             lazy={false}
             style={{
@@ -173,6 +173,7 @@ function CaseDetailContent() {
             }}
             onResize={handleSplitterResize}
           >
+            {/* Reference */}
             <Splitter.Panel
               min={SIZE_REFERENCE_MIN}
               size={sizeReference}
@@ -181,20 +182,19 @@ function CaseDetailContent() {
               <PanelReference
                 caseInfo={caseInfo}
                 showTitle={sizeReference > PANEL_SIZE_LIMIT}
-                fileList={fileList}
                 onFileListUpdate={setFileList}
                 onBtnPanelLeftClick={handleBtnPanelLeftClick}
               />
             </Splitter.Panel>
+            {/* Profile Vault */}
             <Splitter.Panel
               min={SIZE_PROFILEVAULT_MIN}
               size={sizeProfileVault}
               className="bg-white rounded-2xl flex-col flex"
             >
-              <PanelProfileVault
-                profileVaultDocumentList={caseInfo?.profileVaultDocumentListForFront}
-              />
+              <PanelProfileVault caseInfo={caseInfo} />
             </Splitter.Panel>
+            {/* Pilot */}
             <Splitter.Panel
               min={SIZE_PILOT_MIN}
               size={sizePilot}
@@ -207,7 +207,7 @@ function CaseDetailContent() {
               />
             </Splitter.Panel>
           </Splitter>
-        )}
+        ) : null}
       </div>
     </div>
   );

@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { memo } from "react";
-import { FileIcon, ImageIcon, LoaderIcon } from "@/components/ui/icon";
-import { ChatMessagePart } from "@/types/chat";
+import { IconFile, IconImage, IconLoader } from '@/components/ui/icon';
+import { ChatMessagePart } from '@/types/chat';
+import { memo } from 'react';
 
 interface DocumentHeaderProps extends ChatMessagePart {
   isStreaming: boolean;
@@ -16,12 +16,12 @@ const PureDocumentHeader = (props: DocumentHeaderProps) => {
         <div className="text-muted-foreground">
           {isStreaming ? (
             <div className="animate-spin">
-              <LoaderIcon />
+              <IconLoader />
             </div>
-          ) : type === "image" ? (
-            <ImageIcon />
+          ) : type === 'image' ? (
+            <IconImage />
           ) : (
-            <FileIcon />
+            <IconFile />
           )}
         </div>
         <div className="-translate-y-1 font-medium sm:translate-y-0">{title}</div>

@@ -63,6 +63,7 @@ export interface ICaseItemType {
   };
   fillDataForFront?: Record<string, unknown>;
   profileVaultDocumentListForFront?: IProfileVaultDocumentType[];
+  timestamp: number;
   [key: string]: unknown;
 }
 

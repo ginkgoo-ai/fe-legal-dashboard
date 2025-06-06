@@ -1,5 +1,6 @@
 import { CaseStatusEnum, ChatMessagePart, ICaseItemType } from '@/types';
 import { type ClassValue, clsx } from 'clsx';
+import dayjs from 'dayjs';
 import { twMerge } from 'tailwind-merge';
 
 const CONTENT_PATTERNS = {
@@ -113,6 +114,7 @@ export const parseCaseInfo = (caseInfo: ICaseItemType): ICaseItemType => {
               };
             })
           : [],
+        timestamp: +dayjs(),
       };
     }) || [];
   const fill_data: Record<string, unknown> = {};
