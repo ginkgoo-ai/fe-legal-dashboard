@@ -3,6 +3,7 @@ import { FileUploadSimple } from '@/components/common/form/upload/fileUploadSimp
 import { ItemFile } from '@/components/common/itemFile';
 import { Button } from '@/components/ui/button';
 import { IconFoldLeft } from '@/components/ui/icon';
+import { cn } from '@/lib/utils';
 import { ocrDocuments } from '@/service/api';
 import { uploadFiles } from '@/service/api/file';
 import { ICaseItemType } from '@/types/case';
@@ -135,17 +136,16 @@ function PurePanelReference(props: PanelReferenceProps) {
     <PanelContainer
       title="Reference"
       showTitle={!isFold}
-      renderHeaderExtend={() => {
+      renderTitleExtend={() => {
         return (
           <Button variant="ghost" onClick={onBtnPanelLeftClick}>
             <IconFoldLeft size={24} />
           </Button>
         );
       }}
-    >
-      <div className="flex flex-col overflow-y-auto box-border flex-1 h-0">
-        {!isFold && (
-          <div className="flex flex-col mb-8">
+      renderHeader={() => {
+        return !isFold ? (
+          <div className="flex flex-col py-4 w-full">
             <FileUploadSimple
               accept="application/pdf,image/jpeg,image/png,image/gif,image/webp,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/plain"
               multiple
@@ -154,11 +154,18 @@ function PurePanelReference(props: PanelReferenceProps) {
               onError={handleFileError}
             />
           </div>
-        )}
+        ) : null;
+      }}
+    >
+      <div
+        className={cn('flex flex-col overflow-y-auto px-4 pb-4 box-border flex-1 h-0', {
+          'pt-4': true,
+        })}
+      >
         <div className="flex flex-col gap-8">
           {fileList.map((itemFile, indexFile) => (
             <ItemFile
-              key={`reference-item-${indexFile}`}
+              key={`reference-item-${indexFile}-${Math.random()}`}
               file={itemFile}
               isFold={isFold}
             />

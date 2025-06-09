@@ -216,56 +216,52 @@ function PurePanelPilot(props: PanelPanelPilotProps) {
     <PanelContainer
       title="Pilot"
       showTitle={!isFold}
-      renderHeaderExtend={() => {
+      renderTitleExtend={() => {
         return (
           <Button variant="ghost" onClick={onBtnPanelRightClick}>
             <IconFoldRight size={24} />
           </Button>
         );
       }}
-    >
-      <>
-        <div className="flex-[0_0_auto]">
-          <div className="whitespace-nowrap font-bold">Steps:</div>
-        </div>
-        <div className="flex flex-col gap-2 overflow-y-auto box-border flex-1 h-0">
-          <Steps direction="vertical" current={stepListCurrent} items={stepListItems} />
-        </div>
-        <div className="flex flex-col gap-2 flex-[0_0_auto]">
-          <div className="flex flex-row gap-2">
+      renderFooter={() => {
+        return (
+          <div className="flex flex-col w-full">
+            <div className="flex flex-col flex-[0_0_auto]">
+              <div className="flex flex-row gap-2">
+                <div className="flex flex-row gap-2">
+                  <span className="whitespace-nowrap font-bold">Status:</span>
+                  <span
+                    className={cn('font-bold', {
+                      'text-green-500': pilotInfo?.pilotStatus !== PilotStatusEnum.HOLD,
+                      'text-red-500': pilotInfo?.pilotStatus === PilotStatusEnum.HOLD,
+                    })}
+                  >
+                    {pilotInfo?.pilotStatus || ''}
+                  </span>
+                </div>
+                <div className="flex flex-row gap-2">
+                  <span className="whitespace-nowrap font-bold">Version:</span>
+                  <span className={cn('font-bold')}>{extensionsInfo?.version}</span>
+                </div>
+              </div>
+            </div>
             <div className="flex flex-row gap-2">
-              <span className="whitespace-nowrap font-bold">Status:</span>
-              <span
-                className={cn('font-bold', {
-                  'text-green-500': pilotInfo?.pilotStatus !== PilotStatusEnum.HOLD,
-                  'text-red-500': pilotInfo?.pilotStatus === PilotStatusEnum.HOLD,
-                })}
+              <Button
+                variant="default"
+                disabled={!extensionsInfo?.version}
+                onClick={handleBtnStartClick}
               >
-                {pilotInfo?.pilotStatus || ''}
-              </span>
-            </div>
-            <div className="flex flex-row gap-2">
-              <span className="whitespace-nowrap font-bold">Version:</span>
-              <span className={cn('font-bold')}>{extensionsInfo?.version}</span>
-            </div>
-          </div>
-          <div className="flex flex-row gap-2">
-            <Button
-              variant="default"
-              disabled={!extensionsInfo?.version}
-              onClick={handleBtnStartClick}
-            >
-              <CirclePlay />
-            </Button>
-            <Button
-              variant="outline"
-              disabled={!extensionsInfo?.version}
-              onClick={handleBtnStopClick}
-            >
-              <CircleStop />
-            </Button>
+                <CirclePlay />
+              </Button>
+              <Button
+                variant="outline"
+                disabled={!extensionsInfo?.version}
+                onClick={handleBtnStopClick}
+              >
+                <CircleStop />
+              </Button>
 
-            {/* <Button
+              {/* <Button
               variant="outline"
               disabled={
                 !extensionsInfo?.version || !pilotInfo?.pdfUrl || !pilotInfo?.cookiesStr
@@ -275,24 +271,34 @@ function PurePanelPilot(props: PanelPanelPilotProps) {
               <Download />
             </Button> */}
 
-            <Button
-              variant="outline"
-              disabled={!extensionsInfo?.version || !pilotInfo?.tabInfo?.id}
-              onClick={handleBtnJumpClick}
-            >
-              <SquareArrowOutUpRight />
-            </Button>
+              <Button
+                variant="outline"
+                disabled={!extensionsInfo?.version || !pilotInfo?.tabInfo?.id}
+                onClick={handleBtnJumpClick}
+              >
+                <SquareArrowOutUpRight />
+              </Button>
 
-            <Button
-              variant="outline"
-              disabled={!extensionsInfo?.version || !pilotInfo?.tabInfo?.id}
-              onClick={handleBtnSidepanelOpenClick}
-            >
-              <PanelRight />
-            </Button>
+              <Button
+                variant="outline"
+                disabled={!extensionsInfo?.version || !pilotInfo?.tabInfo?.id}
+                onClick={handleBtnSidepanelOpenClick}
+              >
+                <PanelRight />
+              </Button>
+            </div>
           </div>
+        );
+      }}
+    >
+      <div className={cn('flex flex-col overflow-y-auto px-4 pb-4 box-border flex-1 h-0')}>
+        <div className="flex-[0_0_auto]">
+          <div className="whitespace-nowrap font-bold">Steps:</div>
         </div>
-      </>
+        <div className="flex flex-col gap-2 overflow-y-auto box-border flex-1 h-0">
+          <Steps direction="vertical" current={stepListCurrent} items={stepListItems} />
+        </div>
+      </div>
     </PanelContainer>
   );
 }

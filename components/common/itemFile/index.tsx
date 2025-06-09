@@ -12,7 +12,10 @@ import {
 } from '@/components/ui/icon';
 import { FileStatus, FileTypeEnum, IFileItemType } from '@/types/file';
 import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
 import { memo, ReactElement, useEffect, useState } from 'react';
+
+dayjs.extend(utc);
 
 const getFileTypeMap = (params: { size: number; type: FileTypeEnum }): ReactElement => {
   const { size = 40, type } = params || {};
@@ -72,30 +75,52 @@ function PureItemFile(props: ItemFileProps) {
     if (ocrFile) {
       fileNameTmp = ocrFile.title;
       fileTypeTmp = ocrFile.fileType;
-      dayjsUpdate = dayjs(ocrFile.updatedAt);
+      dayjsUpdate = dayjs.utc(ocrFile.updatedAt).local();
+      console.log('dayjsUpdate1', dayjsUpdate);
     } else if (cloudFile) {
       fileNameTmp = cloudFile.originalName;
       fileTypeTmp = cloudFile.fileType;
-      dayjsUpdate = dayjs(cloudFile.updatedAt);
+      dayjsUpdate = dayjs.utc(cloudFile.updatedAt).local();
+      console.log('dayjsUpdate2', dayjsUpdate);
     } else if (localFile) {
       fileNameTmp = localFile.name;
       fileTypeTmp = localFile.type as FileTypeEnum;
       dayjsUpdate = dayjs();
+      console.log('dayjsUpdate3', dayjsUpdate);
     }
 
     const now = dayjs();
+    const diffSeconds = now.diff(dayjsUpdate, 'second');
     const diffMinutes = now.diff(dayjsUpdate, 'minute');
     const diffHours = now.diff(dayjsUpdate, 'hour');
     const diffDays = now.diff(dayjsUpdate, 'day');
+    const isYesterday = dayjsUpdate.isSame(now.subtract(1, 'day'), 'day');
+    const isCurrentYear = dayjsUpdate.year() === now.year();
+    const isFuture = dayjsUpdate.isAfter(now);
 
-    if (diffDays > 0) {
-      fileUpdateTmp = `Uploaded ${diffDays} days ago`;
-    } else if (diffHours > 0) {
-      fileUpdateTmp = `Uploaded ${diffHours} hours ago`;
-    } else if (diffMinutes > 0) {
-      fileUpdateTmp = `Uploaded ${diffMinutes} minutes ago`;
+    if (isFuture) {
+      // fileUpdateTmp = dayjsUpdate.format('MMMM D [at] h:mm A');
+      fileUpdateTmp = 'Just now';
+    } else if (diffSeconds < 10) {
+      fileUpdateTmp = 'Just now';
+    } else if (diffSeconds < 60) {
+      fileUpdateTmp = `${diffSeconds} seconds ago`;
+    } else if (diffMinutes < 2) {
+      fileUpdateTmp = 'A minute ago';
+    } else if (diffMinutes < 60) {
+      fileUpdateTmp = `${diffMinutes} minutes ago`;
+    } else if (diffHours < 2) {
+      fileUpdateTmp = 'An hour ago';
+    } else if (diffHours < 24) {
+      fileUpdateTmp = `${diffHours} hours ago`;
+    } else if (isYesterday) {
+      fileUpdateTmp = `Yesterday at ${dayjsUpdate.format('h:mm A')}`;
+    } else if (diffDays < 7) {
+      fileUpdateTmp = `${diffDays} days ago`;
+    } else if (isCurrentYear) {
+      fileUpdateTmp = dayjsUpdate.format('MMM D');
     } else {
-      fileUpdateTmp = 'Uploaded just now';
+      fileUpdateTmp = dayjsUpdate.format('MMM D, YYYY');
     }
 
     setFileName(fileNameTmp);
