@@ -6,10 +6,11 @@ import { memo, useEffect } from 'react';
 
 interface PanelProfileVaultProps {
   caseInfo: ICaseItemType | null;
+  isFold: boolean;
 }
 
 function PurePanelProfileVault(props: PanelProfileVaultProps) {
-  const { caseInfo = null } = props;
+  const { caseInfo = null, isFold } = props;
 
   useEffect(() => {
     // TODO: something...

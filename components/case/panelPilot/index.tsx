@@ -2,6 +2,7 @@ import { PanelContainer } from '@/components/case/panelContainer';
 import { PilotNotInstall } from '@/components/case/pilotNotInstall';
 import { PilotPreparing } from '@/components/case/pilotPreparing';
 import { PilotReady } from '@/components/case/pilotReady';
+import { PilotRunning } from '@/components/case/pilotRunning';
 import { Button } from '@/components/ui/button';
 import { IconFoldRight } from '@/components/ui/icon';
 import { useEventManager } from '@/hooks/useEventManager';
@@ -310,6 +311,8 @@ function PurePanelPilot(props: PanelPanelPilotProps) {
         <PilotPreparing />
 
         <PilotReady onBtnClick={handleBtnPilotStartClick} />
+
+        <PilotRunning />
       </div>
     </PanelContainer>
   );

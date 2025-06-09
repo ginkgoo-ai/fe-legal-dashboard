@@ -165,7 +165,7 @@ function PurePanelReference(props: PanelReferenceProps) {
         <div className="flex flex-col gap-8">
           {fileList.map((itemFile, indexFile) => (
             <ItemFile
-              key={`reference-item-${indexFile}-${Math.random()}`}
+              key={`reference-item-${indexFile}`}
               file={itemFile}
               isFold={isFold}
             />

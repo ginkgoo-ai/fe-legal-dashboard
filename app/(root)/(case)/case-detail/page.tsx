@@ -49,6 +49,10 @@ function CaseDetailContent() {
     return sizeReference <= PANEL_SIZE_LIMIT;
   }, [sizeReference]);
 
+  const isFoldProfileVault = useMemo(() => {
+    return sizeProfileVault <= PANEL_SIZE_LIMIT;
+  }, []);
+
   const isFoldPilot = useMemo(() => {
     return sizePilot <= PANEL_SIZE_LIMIT;
   }, [sizePilot]);
@@ -130,7 +134,7 @@ function CaseDetailContent() {
   }, [caseInfo]);
 
   const handleSplitterResize = (sizes: number[]) => {
-    console.log('handleSplitterResize', sizes);
+    // console.log('handleSplitterResize', sizes);
     const [left, mid, right] = sizes || [];
 
     setSizeReference(left);
@@ -228,7 +232,7 @@ function CaseDetailContent() {
                 'transition-all': false,
               })}
             >
-              <PanelProfileVault caseInfo={caseInfo} />
+              <PanelProfileVault caseInfo={caseInfo} isFold={isFoldProfileVault} />
             </Splitter.Panel>
             {/* Pilot */}
             <Splitter.Panel
