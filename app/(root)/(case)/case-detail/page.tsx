@@ -62,7 +62,7 @@ function CaseDetailContent() {
           // setRequestController({ cancel: () => controller.abort() });
         },
         res => {
-          console.log('🚀 ~ res:', res);
+          // console.log('🚀 ~ res:', res);
           // originalMessageLogRef.current = res;
 
           try {

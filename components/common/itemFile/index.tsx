@@ -76,17 +76,14 @@ function PureItemFile(props: ItemFileProps) {
       fileNameTmp = ocrFile.title;
       fileTypeTmp = ocrFile.fileType;
       dayjsUpdate = dayjs.utc(ocrFile.updatedAt).local();
-      console.log('dayjsUpdate1', dayjsUpdate);
     } else if (cloudFile) {
       fileNameTmp = cloudFile.originalName;
       fileTypeTmp = cloudFile.fileType;
       dayjsUpdate = dayjs.utc(cloudFile.updatedAt).local();
-      console.log('dayjsUpdate2', dayjsUpdate);
     } else if (localFile) {
       fileNameTmp = localFile.name;
       fileTypeTmp = localFile.type as FileTypeEnum;
       dayjsUpdate = dayjs();
-      console.log('dayjsUpdate3', dayjsUpdate);
     }
 
     const now = dayjs();
