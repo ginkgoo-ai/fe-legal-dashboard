@@ -1,5 +1,6 @@
 import { PanelContainer } from '@/components/case/panelContainer';
 import { Button } from '@/components/ui/button';
+import { IconFoldRight } from '@/components/ui/icon';
 import { useEventManager } from '@/hooks/useEventManager';
 import { cn } from '@/lib/utils';
 import { useExtensionsStore } from '@/store/extensionsStore';
@@ -16,12 +17,12 @@ import { memo, useEffect, useState } from 'react';
 
 interface PanelPanelPilotProps {
   caseInfo: ICaseItemType | null;
-  showTitle: boolean;
+  isFold: boolean;
   onBtnPanelRightClick: () => void;
 }
 
 function PurePanelPilot(props: PanelPanelPilotProps) {
-  const { caseInfo, showTitle, onBtnPanelRightClick } = props;
+  const { caseInfo, isFold, onBtnPanelRightClick } = props;
 
   const [pilotInfo, setPilotInfo] = useState<IPilotType | null>(null);
   const [stepListCurrent, setStepListCurrent] = useState<number>(0);
@@ -214,11 +215,11 @@ function PurePanelPilot(props: PanelPanelPilotProps) {
   return (
     <PanelContainer
       title="Pilot"
-      showTitle={showTitle}
+      showTitle={!isFold}
       renderHeaderExtend={() => {
         return (
           <Button variant="ghost" onClick={onBtnPanelRightClick}>
-            <PanelRight />
+            <IconFoldRight size={24} />
           </Button>
         );
       }}

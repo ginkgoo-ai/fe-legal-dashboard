@@ -11,7 +11,7 @@ import { ICaseItemType } from '@/types/case';
 import { Breadcrumb, Splitter } from 'antd';
 import { ItemType } from 'antd/es/breadcrumb/Breadcrumb';
 import { useSearchParams } from 'next/navigation';
-import { Suspense, useEffect, useRef, useState } from 'react';
+import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import './index.css';
 
 const breadcrumbItemsCasePortal = {
@@ -32,6 +32,9 @@ function CaseDetailContent() {
   const SIZE_PROFILEVAULT_DEFAULT = useRef(0);
   const SIZE_PILOT_DEFAULT = useRef(0);
 
+  const sizeReferenceRef = useRef(0);
+  const sizePilotRef = useRef(0);
+
   const [breadcrumbItems, setBreadcrumbItems] = useState<ItemType[]>([
     breadcrumbItemsCasePortal,
   ]);
@@ -41,6 +44,14 @@ function CaseDetailContent() {
   const [sizePilot, setSizePilot] = useState<number>(0);
 
   const [caseInfo, setCaseInfo] = useState<ICaseItemType | null>(null);
+
+  const isFoldReference = useMemo(() => {
+    return sizeReference <= PANEL_SIZE_LIMIT;
+  }, [sizeReference]);
+
+  const isFoldPilot = useMemo(() => {
+    return sizePilot <= PANEL_SIZE_LIMIT;
+  }, [sizePilot]);
 
   const registerCaseStream = async () => {
     try {
@@ -89,7 +100,21 @@ function CaseDetailContent() {
     setSizePilot(SIZE_PILOT_DEFAULT.current);
 
     registerCaseStream();
+
+    window.addEventListener('resize', handleWindowResize);
+
+    return () => {
+      window.removeEventListener('resize', handleWindowResize);
+    };
   }, []);
+
+  useEffect(() => {
+    sizeReferenceRef.current = sizeReference;
+  }, [sizeReference]);
+
+  useEffect(() => {
+    sizePilotRef.current = sizePilot;
+  }, [sizePilot]);
 
   useEffect(() => {
     if (!caseInfo?.title) {
@@ -114,19 +139,33 @@ function CaseDetailContent() {
   };
 
   const handleBtnPanelLeftClick = () => {
+    let sizeReferenceTmp = 0;
     if (sizeReference > SIZE_REFERENCE_MIN) {
-      setSizeReference(SIZE_REFERENCE_MIN);
+      sizeReferenceTmp = SIZE_REFERENCE_MIN;
     } else {
-      setSizeReference(SIZE_REFERENCE_DEFAULT.current);
+      sizeReferenceTmp = SIZE_REFERENCE_DEFAULT.current;
     }
+
+    setSizeReference(sizeReferenceTmp);
+    setSizeProfileVault(window.innerWidth - sizeReferenceTmp - sizePilotRef.current);
   };
 
   const handleBtnPanelRightClick = () => {
+    let sizePilotTmp = 0;
     if (sizePilot > SIZE_PILOT_MIN) {
-      setSizePilot(SIZE_PILOT_MIN);
+      sizePilotTmp = SIZE_PILOT_MIN;
     } else {
-      setSizePilot(SIZE_PILOT_DEFAULT.current);
+      sizePilotTmp = SIZE_PILOT_DEFAULT.current;
     }
+
+    setSizePilot(sizePilotTmp);
+    setSizeProfileVault(window.innerWidth - sizeReferenceRef.current - sizePilotTmp);
+  };
+
+  const handleWindowResize = () => {
+    setSizeProfileVault(
+      window.innerWidth - sizeReferenceRef.current - sizePilotRef.current
+    );
   };
 
   if (!caseId) {
@@ -172,12 +211,12 @@ function CaseDetailContent() {
               min={SIZE_REFERENCE_MIN}
               size={sizeReference}
               className={cn('bg-white relative rounded-2xl flex-col flex h-full', {
-                'transition-all': true,
+                'transition-all': false,
               })}
             >
               <PanelReference
                 caseInfo={caseInfo}
-                showTitle={sizeReference > PANEL_SIZE_LIMIT}
+                isFold={isFoldReference}
                 onBtnPanelLeftClick={handleBtnPanelLeftClick}
               />
             </Splitter.Panel>
@@ -186,7 +225,7 @@ function CaseDetailContent() {
               min={SIZE_PROFILEVAULT_MIN}
               size={sizeProfileVault}
               className={cn('bg-white relative rounded-2xl flex-col flex h-full', {
-                'transition-all': true,
+                'transition-all': false,
               })}
             >
               <PanelProfileVault caseInfo={caseInfo} />
@@ -196,12 +235,12 @@ function CaseDetailContent() {
               min={SIZE_PILOT_MIN}
               size={sizePilot}
               className={cn('bg-white relative rounded-2xl flex-col flex h-full', {
-                'transition-all': true,
+                'transition-all': false,
               })}
             >
               <PanelPilot
                 caseInfo={caseInfo}
-                showTitle={sizePilot > PANEL_SIZE_LIMIT}
+                isFold={isFoldPilot}
                 onBtnPanelRightClick={handleBtnPanelRightClick}
               />
             </Splitter.Panel>

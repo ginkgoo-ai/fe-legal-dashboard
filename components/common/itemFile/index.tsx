@@ -11,25 +11,29 @@ import {
   IconFileTypeTXT,
 } from '@/components/ui/icon';
 import { FileStatus, FileTypeEnum, IFileItemType } from '@/types/file';
+import dayjs from 'dayjs';
 import { memo, ReactElement, useEffect, useState } from 'react';
 
-const fileTypeMap: Record<FileTypeEnum, ReactElement> = {
-  [FileTypeEnum.DOC]: <IconFileTypeDoc size={40} />,
-  [FileTypeEnum.DOCX]: <IconFileTypeDoc size={40} />,
-  [FileTypeEnum.XLS]: <IconFileTypeExcel size={40} />,
-  [FileTypeEnum.XLSX]: <IconFileTypeExcel size={40} />,
-  [FileTypeEnum.PPT]: <IconFileTypePPT size={40} />,
-  [FileTypeEnum.PPTX]: <IconFileTypePPT size={40} />,
-  [FileTypeEnum.PDF]: <IconFileTypePDF size={40} />,
-  [FileTypeEnum.JSON]: <IconFile size={40} />,
-  [FileTypeEnum.JPEG]: <IconFileTypeImage size={40} />,
-  [FileTypeEnum.PNG]: <IconFileTypeImage size={40} />,
-  [FileTypeEnum.GIF]: <IconFileTypeImage size={40} />,
-  [FileTypeEnum.WEBP]: <IconFileTypeImage size={40} />,
-  [FileTypeEnum.BMP]: <IconFileTypeImage size={40} />,
-  [FileTypeEnum.ICO]: <IconFileTypeImage size={40} />,
-  [FileTypeEnum.TXT]: <IconFileTypeTXT size={40} />,
-  [FileTypeEnum.UNKNOW]: <IconFile size={40} />,
+const getFileTypeMap = (params: { size: number; type: FileTypeEnum }): ReactElement => {
+  const { size = 40, type } = params || {};
+  return {
+    [FileTypeEnum.DOC]: <IconFileTypeDoc size={size} />,
+    [FileTypeEnum.DOCX]: <IconFileTypeDoc size={size} />,
+    [FileTypeEnum.XLS]: <IconFileTypeExcel size={size} />,
+    [FileTypeEnum.XLSX]: <IconFileTypeExcel size={size} />,
+    [FileTypeEnum.PPT]: <IconFileTypePPT size={size} />,
+    [FileTypeEnum.PPTX]: <IconFileTypePPT size={size} />,
+    [FileTypeEnum.PDF]: <IconFileTypePDF size={size} />,
+    [FileTypeEnum.JSON]: <IconFile size={size} />,
+    [FileTypeEnum.JPEG]: <IconFileTypeImage size={size} />,
+    [FileTypeEnum.PNG]: <IconFileTypeImage size={size} />,
+    [FileTypeEnum.GIF]: <IconFileTypeImage size={size} />,
+    [FileTypeEnum.WEBP]: <IconFileTypeImage size={size} />,
+    [FileTypeEnum.BMP]: <IconFileTypeImage size={size} />,
+    [FileTypeEnum.ICO]: <IconFileTypeImage size={size} />,
+    [FileTypeEnum.TXT]: <IconFileTypeTXT size={size} />,
+    [FileTypeEnum.UNKNOW]: <IconFile size={size} />,
+  }[type];
 };
 
 const fileStatusMap: Record<FileStatus, ReactElement> = {
@@ -39,12 +43,20 @@ const fileStatusMap: Record<FileStatus, ReactElement> = {
   [FileStatus.ERROR]: <IconFileStatusError size={20} />,
 };
 
+const fileStatusColorMap: Record<FileStatus, string> = {
+  [FileStatus.UPLOADING]: '#0061FD',
+  [FileStatus.ANALYSIS]: '#0061FD',
+  [FileStatus.DONE]: '#27CA40',
+  [FileStatus.ERROR]: '#FF0C00',
+};
+
 interface ItemFileProps {
   file: IFileItemType;
+  isFold?: boolean;
 }
 
 function PureItemFile(props: ItemFileProps) {
-  const { file } = props;
+  const { file, isFold } = props;
 
   const [fileName, setFileName] = useState<string>('');
   const [fileType, setFileType] = useState<FileTypeEnum>(FileTypeEnum.UNKNOW);
@@ -52,8 +64,7 @@ function PureItemFile(props: ItemFileProps) {
 
   useEffect(() => {
     const { localFile, cloudFile, ocrFile } = file || {};
-
-    console.log('PureItemFile', file);
+    let dayjsUpdate = dayjs();
     let fileNameTmp = '';
     let fileTypeTmp = FileTypeEnum.UNKNOW;
     let fileUpdateTmp = '';
@@ -61,12 +72,30 @@ function PureItemFile(props: ItemFileProps) {
     if (ocrFile) {
       fileNameTmp = ocrFile.title;
       fileTypeTmp = ocrFile.fileType;
+      dayjsUpdate = dayjs(ocrFile.updatedAt);
     } else if (cloudFile) {
       fileNameTmp = cloudFile.originalName;
       fileTypeTmp = cloudFile.fileType;
+      dayjsUpdate = dayjs(cloudFile.updatedAt);
     } else if (localFile) {
       fileNameTmp = localFile.name;
       fileTypeTmp = localFile.type as FileTypeEnum;
+      dayjsUpdate = dayjs();
+    }
+
+    const now = dayjs();
+    const diffMinutes = now.diff(dayjsUpdate, 'minute');
+    const diffHours = now.diff(dayjsUpdate, 'hour');
+    const diffDays = now.diff(dayjsUpdate, 'day');
+
+    if (diffDays > 0) {
+      fileUpdateTmp = `Uploaded ${diffDays} days ago`;
+    } else if (diffHours > 0) {
+      fileUpdateTmp = `Uploaded ${diffHours} hours ago`;
+    } else if (diffMinutes > 0) {
+      fileUpdateTmp = `Uploaded ${diffMinutes} minutes ago`;
+    } else {
+      fileUpdateTmp = 'Uploaded just now';
     }
 
     setFileName(fileNameTmp);
@@ -75,23 +104,38 @@ function PureItemFile(props: ItemFileProps) {
   }, [file]);
 
   const renderIconFileType = (): ReactElement => {
-    return fileTypeMap[fileType] || fileTypeMap[FileTypeEnum.UNKNOW];
+    return (
+      <div className="relative">
+        {getFileTypeMap({ size: isFold ? 22 : 40, type: fileType })}
+        {isFold && (
+          <div
+            className="absolute -right-1 -bottom-2 rounded-full w-2 h-2"
+            style={{
+              backgroundColor: fileStatusColorMap[file?.status],
+            }}
+          ></div>
+        )}
+      </div>
+    );
   };
 
   const renderIconFileStatus = () => {
     return fileStatusMap[file?.status] || null;
   };
 
-  return (
+  return isFold ? (
+    <div className="flex flex-row justify-center items-center h-10">
+      {renderIconFileType()}
+    </div>
+  ) : (
     <div className="flex flex-row justify-between items-center h-10">
-      {/*  */}
       <div className="flex flex-row gap-2">
-        {/*  */}
+        {/* Icon */}
         {renderIconFileType()}
-        {/*  */}
+        {/* Name */}
         <div className="flex flex-col">
           <div className="font-normal text-[0.9375rem]">{fileName}</div>
-          <div className="font-semibold text-xs">{fileUpdate || ' '}</div>
+          <div className="font-semibold text-xs text-[#B4B3B3]">{fileUpdate || ' '}</div>
         </div>
       </div>
       {/* Status */}
