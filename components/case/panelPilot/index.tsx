@@ -2,14 +2,23 @@ import { PanelContainer } from '@/components/case/panelContainer';
 import { PilotNotInstall } from '@/components/case/pilotNotInstall';
 import { PilotPreparing } from '@/components/case/pilotPreparing';
 import { PilotReady } from '@/components/case/pilotReady';
-import { PilotRunning } from '@/components/case/pilotRunning';
+import { PilotRunningHeader } from '@/components/case/pilotRunningHeader';
+import { PilotRunningStep } from '@/components/case/pilotRunningStep';
 import { Button } from '@/components/ui/button';
 import { IconFoldRight } from '@/components/ui/icon';
 import { useEventManager } from '@/hooks/useEventManager';
 import { cn } from '@/lib/utils';
 import { useExtensionsStore } from '@/store/extensionsStore';
-import { IActionItemType, ICaseItemType, IPilotType, IStepItemType } from '@/types/case';
+import {
+  IActionItemType,
+  ICaseItemType,
+  IPilotType,
+  IStepItemType,
+  PilotModeEnum,
+  PilotStatusEnum,
+} from '@/types/case';
 import { StepProps, Steps, Tag, Tooltip } from 'antd';
+import { CirclePlay, CircleStop, PanelRight, SquareArrowOutUpRight } from 'lucide-react';
 import { memo, useEffect, useState } from 'react';
 
 interface PanelPanelPilotProps {
@@ -21,6 +30,7 @@ interface PanelPanelPilotProps {
 function PurePanelPilot(props: PanelPanelPilotProps) {
   const { caseInfo, isFold, onBtnPanelRightClick } = props;
 
+  const [pilotMode, setPilotMode] = useState<PilotModeEnum | null>(null);
   const [pilotInfo, setPilotInfo] = useState<IPilotType | null>(null);
   const [stepListCurrent, setStepListCurrent] = useState<number>(0);
   const [stepListItems, setStepListItems] = useState<StepProps[]>([]);
@@ -131,13 +141,22 @@ function PurePanelPilot(props: PanelPanelPilotProps) {
   };
 
   useEffect(() => {
-    if (!!extensionsInfo?.version) {
-      window.postMessage({
-        type: 'ginkgo-page-background-case-query',
-        caseId: caseInfo?.id,
-      });
+    if (!extensionsInfo?.version) {
+      setPilotMode(PilotModeEnum.NOT_INSTALL);
+      return;
     }
-  }, [extensionsInfo?.version, caseInfo?.id]);
+
+    window.postMessage({
+      type: 'ginkgo-page-background-case-query',
+      caseId: caseInfo?.id,
+    });
+
+    if (Math.random() > 0.5) {
+      setPilotMode(PilotModeEnum.PREPARING);
+    } else {
+      setPilotMode(PilotModeEnum.READY);
+    }
+  }, [extensionsInfo?.version, caseInfo?.timestamp]);
 
   const handleBtnStartClick = () => {
     // 只发送消息给本页面
@@ -215,6 +234,7 @@ function PurePanelPilot(props: PanelPanelPilotProps) {
 
   const handleBtnPilotStartClick = () => {
     console.log('handleBtnStartClick');
+    setPilotMode(PilotModeEnum.RUNNING);
   };
 
   return (
@@ -228,77 +248,78 @@ function PurePanelPilot(props: PanelPanelPilotProps) {
           </Button>
         );
       }}
-      // renderFooter={() => {
-      //   return (
-      //     <div className="flex flex-col w-full">
-      //       <div className="flex flex-col flex-[0_0_auto]">
-      //         <div className="flex flex-row gap-2">
-      //           <div className="flex flex-row gap-2">
-      //             <span className="whitespace-nowrap font-bold">Status:</span>
-      //             <span
-      //               className={cn('font-bold', {
-      //                 'text-green-500': pilotInfo?.pilotStatus !== PilotStatusEnum.HOLD,
-      //                 'text-red-500': pilotInfo?.pilotStatus === PilotStatusEnum.HOLD,
-      //               })}
-      //             >
-      //               {pilotInfo?.pilotStatus || ''}
-      //             </span>
-      //           </div>
-      //           <div className="flex flex-row gap-2">
-      //             <span className="whitespace-nowrap font-bold">Version:</span>
-      //             <span className={cn('font-bold')}>{extensionsInfo?.version}</span>
-      //           </div>
-      //         </div>
-      //       </div>
-      //       <div className="flex flex-row gap-2">
-      //         <Button
-      //           variant="default"
-      //           disabled={!extensionsInfo?.version}
-      //           onClick={handleBtnStartClick}
-      //         >
-      //           <CirclePlay />
-      //         </Button>
-      //         <Button
-      //           variant="outline"
-      //           disabled={!extensionsInfo?.version}
-      //           onClick={handleBtnStopClick}
-      //         >
-      //           <CircleStop />
-      //         </Button>
+      renderHeader={() => {
+        return pilotMode === PilotModeEnum.RUNNING ? <PilotRunningHeader /> : null;
+      }}
+      renderFooter={() => {
+        return (
+          <div className="flex flex-col w-full">
+            <div className="flex flex-col flex-[0_0_auto]">
+              <div className="flex flex-row gap-2">
+                <div className="flex flex-row gap-2">
+                  <span className="whitespace-nowrap font-bold">Status:</span>
+                  <span
+                    className={cn('font-bold', {
+                      'text-green-500': pilotInfo?.pilotStatus !== PilotStatusEnum.HOLD,
+                      'text-red-500': pilotInfo?.pilotStatus === PilotStatusEnum.HOLD,
+                    })}
+                  >
+                    {pilotInfo?.pilotStatus || ''}
+                  </span>
+                </div>
+                <div className="flex flex-row gap-2">
+                  <span className="whitespace-nowrap font-bold">Version:</span>
+                  <span className={cn('font-bold')}>{extensionsInfo?.version}</span>
+                </div>
+              </div>
+            </div>
+            <div className="flex flex-row gap-2">
+              <Button
+                variant="default"
+                disabled={!extensionsInfo?.version}
+                onClick={handleBtnStartClick}
+              >
+                <CirclePlay />
+              </Button>
+              <Button
+                variant="outline"
+                disabled={!extensionsInfo?.version}
+                onClick={handleBtnStopClick}
+              >
+                <CircleStop />
+              </Button>
 
-      //         {/* <Button
-      //         variant="outline"
-      //         disabled={
-      //           !extensionsInfo?.version || !pilotInfo?.pdfUrl || !pilotInfo?.cookiesStr
-      //         }
-      //         onClick={handleBtnDownloadClick}
-      //       >
-      //         <Download />
-      //       </Button> */}
+              {/* <Button
+              variant="outline"
+              disabled={
+                !extensionsInfo?.version || !pilotInfo?.pdfUrl || !pilotInfo?.cookiesStr
+              }
+              onClick={handleBtnDownloadClick}
+            >
+              <Download />
+            </Button> */}
 
-      //         <Button
-      //           variant="outline"
-      //           disabled={!extensionsInfo?.version || !pilotInfo?.tabInfo?.id}
-      //           onClick={handleBtnJumpClick}
-      //         >
-      //           <SquareArrowOutUpRight />
-      //         </Button>
+              <Button
+                variant="outline"
+                disabled={!extensionsInfo?.version || !pilotInfo?.tabInfo?.id}
+                onClick={handleBtnJumpClick}
+              >
+                <SquareArrowOutUpRight />
+              </Button>
 
-      //         <Button
-      //           variant="outline"
-      //           disabled={!extensionsInfo?.version || !pilotInfo?.tabInfo?.id}
-      //           onClick={handleBtnSidepanelOpenClick}
-      //         >
-      //           <PanelRight />
-      //         </Button>
-      //       </div>
-      //     </div>
-      //   );
-      // }}
+              <Button
+                variant="outline"
+                disabled={!extensionsInfo?.version || !pilotInfo?.tabInfo?.id}
+                onClick={handleBtnSidepanelOpenClick}
+              >
+                <PanelRight />
+              </Button>
+            </div>
+          </div>
+        );
+      }}
     >
-      <div
-        className={cn('flex flex-col overflow-y-auto px-4 pb-4 box-border flex-1 h-0')}
-      >
+      <div className={cn('flex flex-col overflow-y-auto p-4 box-border flex-1 h-0')}>
         {/* <div className="flex-[0_0_auto]">
           <div className="whitespace-nowrap font-bold">Steps:</div>
         </div>
@@ -306,13 +327,17 @@ function PurePanelPilot(props: PanelPanelPilotProps) {
           <Steps direction="vertical" current={stepListCurrent} items={stepListItems} />
         </div> */}
 
-        <PilotNotInstall onBtnClick={handleBtnInstallExtensionClick} />
+        {pilotMode === PilotModeEnum.NOT_INSTALL ? (
+          <PilotNotInstall onBtnClick={handleBtnInstallExtensionClick} />
+        ) : null}
 
-        <PilotPreparing />
+        {pilotMode === PilotModeEnum.PREPARING ? <PilotPreparing /> : null}
 
-        <PilotReady onBtnClick={handleBtnPilotStartClick} />
+        {pilotMode === PilotModeEnum.READY ? (
+          <PilotReady onBtnClick={handleBtnPilotStartClick} />
+        ) : null}
 
-        <PilotRunning />
+        {pilotMode === PilotModeEnum.RUNNING ? <PilotRunningStep /> : null}
       </div>
     </PanelContainer>
   );

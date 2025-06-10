@@ -31,6 +31,13 @@ export enum PilotStatusEnum {
   COMING_SOON = 'COMING_SOON',
 }
 
+export enum PilotModeEnum {
+  NOT_INSTALL = 'NOT_INSTALL',
+  PREPARING = 'PREPARING',
+  READY = 'READY',
+  RUNNING = 'RUNNING',
+}
+
 export type ActionResultType = 'success' | 'notFound' | '';
 
 export interface IProfileVaultDocumentType extends IOcrFileType {

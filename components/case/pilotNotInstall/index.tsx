@@ -11,7 +11,7 @@ function PurePilotNotInstall(props: PilotNotInstallProps) {
 
   return (
     <div className="flex flex-col">
-      <div className="mt-[3.75rem] mb-4 w-full flex justify-center items-center">
+      <div className="mt-[2.75rem] mb-4 w-full flex justify-center items-center">
         Power Up Your Forms!⚡️
       </div>
       <div className="flex flex-col bg-[#EEF4FF] box-border p-2.5 rounded-lg w-full">

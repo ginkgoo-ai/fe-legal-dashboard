@@ -11,7 +11,7 @@ function PurePilotReady(props: PilotReadyProps) {
 
   return (
     <div className="flex flex-col">
-      <div className="mt-[3.75rem] mb-4 w-full flex justify-center items-center">
+      <div className="mt-[2.75rem] mb-4 w-full flex justify-center items-center">
         You're all set! 🎉️
       </div>
       <div className="flex flex-col box-border p-2.5 rounded-lg w-full">
