@@ -166,6 +166,7 @@ function PurePanelReference(props: PanelReferenceProps) {
           {fileList.map((itemFile, indexFile) => (
             <ItemFile
               key={`reference-item-${indexFile}`}
+              mode="Reference"
               file={itemFile}
               isFold={isFold}
             />

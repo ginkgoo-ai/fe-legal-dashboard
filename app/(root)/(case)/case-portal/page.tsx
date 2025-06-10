@@ -1,17 +1,17 @@
 'use client';
 
+import { ModalCreateCase } from '@/components/case/modalCreateCase';
 import { TagStatus } from '@/components/case/tagStatus';
 import { Button } from '@/components/ui/button';
 import UtilsManager from '@/customManager/UtilsManager';
 import { parseCaseInfo } from '@/lib';
 import { useUserStore } from '@/store/userStore';
 import { ICaseItemType } from '@/types';
-import { Card, Form, Input, Modal, Progress, Select } from 'antd';
+import { Card, Progress } from 'antd';
 import dayjs from 'dayjs';
-import { ChevronDown, FilePenLine, User } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { mockCaseList, mockLayerTypeOptions, mockVisaTypeOptions } from './mock';
+import { mockCaseList } from './mock';
 
 export default function CasePortalPage() {
   const router = useRouter();
@@ -20,25 +20,13 @@ export default function CasePortalPage() {
   const [caseList, setCaseList] = useState<ICaseItemType[]>([]);
   const [isModalCreateCaseOpen, setModalCreateCaseOpen] = useState<boolean>(false);
 
-  const [arrVisaTypeOptions, setArrVisaTypeOptions] =
-    useState<any[]>(mockLayerTypeOptions);
-  const [arrLayerTypeOptions, setArrLayerTypeOptions] =
-    useState<any[]>(mockVisaTypeOptions);
-
   useEffect(() => {
     setCaseList(
       mockCaseList.map(item => {
         return parseCaseInfo(item);
       })
     );
-
-    setArrVisaTypeOptions(mockVisaTypeOptions);
-    setArrLayerTypeOptions(mockLayerTypeOptions);
   }, []);
-
-  const handleBtnCreateCaseClick = () => {
-    setModalCreateCaseOpen(true);
-  };
 
   const handleCardClick = (itemCase: ICaseItemType) => {
     router.push(
@@ -46,18 +34,6 @@ export default function CasePortalPage() {
         caseId: itemCase.id,
       })
     );
-  };
-
-  const handleCreateCaseOk = () => {
-    setModalCreateCaseOpen(false);
-  };
-
-  const handleCreateCaseCancel = () => {
-    setModalCreateCaseOpen(false);
-  };
-
-  const handleFormFinish = (values: any) => {
-    console.log('handleFormFinish', values);
   };
 
   return (
@@ -70,7 +46,7 @@ export default function CasePortalPage() {
         <Button
           variant="default"
           className="!w-[106px] !h-[42px]"
-          onClick={handleBtnCreateCaseClick}
+          onClick={() => setModalCreateCaseOpen(true)}
         >
           New Case
         </Button>
@@ -117,74 +93,11 @@ export default function CasePortalPage() {
         ))}
       </div>
 
-      <Modal
-        title={<div className="text-2xl font-bold pb-6 box-border">Create New Case</div>}
-        closable={{ 'aria-label': 'Custom Close Button' }}
-        width={700}
-        footer={null}
-        open={isModalCreateCaseOpen}
-        onOk={handleCreateCaseOk}
-        onCancel={handleCreateCaseCancel}
-      >
-        <Form
-          name="basic"
-          layout="vertical"
-          labelCol={{ span: 24 }}
-          wrapperCol={{ span: 24 }}
-          initialValues={{}}
-          requiredMark={false}
-          onFinish={handleFormFinish}
-          autoComplete="off"
-        >
-          <Form.Item
-            label="Client Name"
-            name="clientName"
-            rules={[{ required: true, message: 'Please input client name' }]}
-          >
-            <Input
-              className="!px-5 mt-1"
-              prefix={<User className="mr-3" size={24} />}
-              placeholder="Type your client name"
-            />
-          </Form.Item>
-
-          <Form.Item
-            label="Visa Type"
-            name="visaType"
-            rules={[{ required: true, message: 'Please select visa type' }]}
-          >
-            <Select
-              className="mt-1"
-              prefix={<FilePenLine className="ml-2 mr-3 box-border" size={24} />}
-              suffixIcon={
-                <ChevronDown className="mr-2 box-border" size={24} color="#52525B" />
-              }
-              placeholder="Select visa type"
-              options={arrVisaTypeOptions}
-            />
-          </Form.Item>
-
-          <Form.Item
-            label="Layer"
-            name="layer"
-            rules={[{ required: true, message: 'Please select layer' }]}
-          >
-            <Select
-              className="mt-1"
-              prefix={<FilePenLine className="ml-2 mr-3 box-border" size={24} />}
-              suffixIcon={
-                <ChevronDown className="mr-2 box-border" size={24} color="#52525B" />
-              }
-              placeholder="Select layer type"
-              options={arrLayerTypeOptions}
-            />
-          </Form.Item>
-
-          <Button variant="default" className="w-full h-[44px]" type="submit">
-            Create Case
-          </Button>
-        </Form>
-      </Modal>
+      {/* Modal Create */}
+      <ModalCreateCase
+        isOpen={isModalCreateCaseOpen}
+        onOpenUpdate={setModalCreateCaseOpen}
+      />
     </div>
   );
 }

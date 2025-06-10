@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/button';
 import {
   IconFile,
   IconFileStatusError,
@@ -13,12 +14,14 @@ import {
 import { FileStatus, FileTypeEnum, IFileItemType } from '@/types/file';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
+import { X } from 'lucide-react';
 import { memo, ReactElement, useEffect, useState } from 'react';
 
 dayjs.extend(utc);
 
 const getFileTypeMap = (params: { size: number; type: FileTypeEnum }): ReactElement => {
   const { size = 40, type } = params || {};
+
   return {
     [FileTypeEnum.DOC]: <IconFileTypeDoc size={size} />,
     [FileTypeEnum.DOCX]: <IconFileTypeDoc size={size} />,
@@ -54,12 +57,14 @@ const fileStatusColorMap: Record<FileStatus, string> = {
 };
 
 interface ItemFileProps {
+  mode: 'CreateCase' | 'Reference';
   file: IFileItemType;
   isFold?: boolean;
+  onBtnDeleteClick?: () => void;
 }
 
 function PureItemFile(props: ItemFileProps) {
-  const { file, isFold } = props;
+  const { mode, file, isFold, onBtnDeleteClick } = props;
 
   const [fileName, setFileName] = useState<string>('');
   const [fileType, setFileType] = useState<FileTypeEnum>(FileTypeEnum.UNKNOW);
@@ -125,11 +130,20 @@ function PureItemFile(props: ItemFileProps) {
     setFileUpdate(fileUpdateTmp);
   }, [file]);
 
-  const renderIconFileType = (): ReactElement => {
+  const handleBtnDeleteClick = () => {
+    onBtnDeleteClick?.();
+  };
+
+  const renderIconFileType = (params: {
+    size: number;
+    isDot?: boolean;
+  }): ReactElement => {
+    const { size, isDot } = params || {};
+
     return (
       <div className="relative">
-        {getFileTypeMap({ size: isFold ? 22 : 40, type: fileType })}
-        {isFold && (
+        {getFileTypeMap({ size, type: fileType })}
+        {isDot && (
           <div
             className="absolute -right-1 -bottom-2 rounded-full w-2 h-2"
             style={{
@@ -145,26 +159,54 @@ function PureItemFile(props: ItemFileProps) {
     return fileStatusMap[file?.status] || null;
   };
 
-  return isFold ? (
-    <div className="flex flex-row justify-center items-center h-10">
-      {renderIconFileType()}
-    </div>
-  ) : (
-    <div className="flex flex-row justify-between items-center h-10">
-      <div className="flex flex-row gap-2">
+  const renderModeCreateCase = () => {
+    return (
+      <div className="flex flex-row justify-start items-center h-14 rounded-lg border border-solid border-[#E1E1E2] bg-[#FCFCFC] pl-6 pr-2 box-border gap-2">
         {/* Icon */}
-        {renderIconFileType()}
+        {renderIconFileType({ size: 16, isDot: false })}
         {/* Name */}
-        <div className="flex flex-col">
-          <div className="font-normal text-[0.9375rem]">{fileName}</div>
-          <div className="font-semibold text-xs text-[#B4B3B3]">{fileUpdate || ' '}</div>
+        <div className="flex flex-col flex-1 w-0">
+          <div className="font-normal text-base truncate">{fileName}</div>
+        </div>
+        {/* Status */}
+        <div className="flex justify-center items-center">
+          <Button variant="ghost" onClick={handleBtnDeleteClick}>
+            <X size={20} color="#A1A1AA" />
+          </Button>
         </div>
       </div>
-      {/* Status */}
-      <div className="flex justify-center items-center">
-        <div>{renderIconFileStatus()}</div>
+    );
+  };
+
+  const renderModeReference = () => {
+    return isFold ? (
+      <div className="flex flex-row justify-center items-center h-10">
+        {renderIconFileType({ size: 22, isDot: true })}
       </div>
-    </div>
+    ) : (
+      <div className="flex flex-row justify-start items-center h-10 gap-2">
+        {/* Icon */}
+        {renderIconFileType({ size: 40, isDot: false })}
+        {/* Name */}
+        <div className="flex flex-col flex-1 w-0">
+          <div className="font-normal text-[0.9375rem] truncate">{fileName}</div>
+          <div className="font-semibold text-xs text-[#B4B3B3] truncate">
+            {fileUpdate || ' '}
+          </div>
+        </div>
+        {/* Status */}
+        <div className="flex justify-center items-center">
+          <div>{renderIconFileStatus()}</div>
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    {
+      CreateCase: renderModeCreateCase(),
+      Reference: renderModeReference(),
+    }[mode] || null
   );
 }
 

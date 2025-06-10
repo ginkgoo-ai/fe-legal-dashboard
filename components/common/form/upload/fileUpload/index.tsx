@@ -108,7 +108,7 @@ export function FileUpload({
         accept={accept}
         multiple={multiple}
         onChange={handleChange}
-        className="hidden"
+        className="!hidden"
         id={id ?? 'file-upload'}
       />
       <label htmlFor={id ?? 'file-upload'}>
@@ -129,14 +129,20 @@ export function FileUpload({
             )}
             <p className="text-sm text-gray-500">
               {label}
-              {', or '}
-              <span className="text-primary hover:underline cursor-pointer">
-                {triggerText}
-              </span>
+              {!!triggerText ? (
+                <>
+                  <span>{', or '}</span>
+                  <span className="text-primary hover:underline cursor-pointer">
+                    {triggerText}
+                  </span>
+                </>
+              ) : null}
             </p>
-            <p className="text-xs text-muted-foreground italic">
-              {subLabel}({maxSize}MB)
-            </p>
+            {!!subLabel ? (
+              <p className="text-xs text-muted-foreground italic">
+                {subLabel}({maxSize}MB)
+              </p>
+            ) : null}
           </div>
         </div>
       </label>
