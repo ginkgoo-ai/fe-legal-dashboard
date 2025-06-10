@@ -17,6 +17,23 @@ import utc from 'dayjs/plugin/utc';
 import { X } from 'lucide-react';
 import { memo, ReactElement, useEffect, useState } from 'react';
 
+/**
+| **Time Difference (Δt)**          | **Display Text (English)** | **Example (Current Time: ~Jun 9, 2025, 04:28 AM)** |
+| --------------------------------- | -------------------------- | -------------------------------------------------- |
+| `0s ≤ Δt < 10s`                   | `Just now`                 | `Just now`                                         |
+| `10s ≤ Δt < 60s`                  | `X seconds ago`            | `35 seconds ago`                                   |
+| `1 min ≤ Δt < 2 mins`             | `A minute ago`             | `A minute ago`                                     |
+| `2 mins ≤ Δt < 60 mins`           | `X minutes ago`            | `45 minutes ago`                                   |
+| `1 hr ≤ Δt < 2 hrs`               | `An hour ago`              | `An hour ago`                                      |
+| `2 hrs ≤ Δt < 24 hrs`             | `X hours ago`              | `18 hours ago`                                     |
+| Falls on **yesterday**'s date     | `Yesterday at HH:mm`       | `Yesterday at 2:30 PM`                             |
+| `2 days ≤ Δt < 7 days`            | `X days ago`               | `3 days ago`                                       |
+| `Δt ≥ 7 days` **(Current Year)**  | `MMM D`                    | `Jun 2`                                            |
+| `Δt ≥ 7 days` **(Previous Year)** | `MMM D, YYYY`              | `Dec 25, 2024`                                     |
+| **Future Timestamp**              | `Month D at HH:mm`         | `June 15 at 10:00 AM`                              |
+| **On Hover/Click**                | `YYYY-MM-DD HH:mm:ss`      | `2025-06-08 10:15:30`                              |
+*/
+
 dayjs.extend(utc);
 
 const getFileTypeMap = (params: { size: number; type: FileTypeEnum }): ReactElement => {

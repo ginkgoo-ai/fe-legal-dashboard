@@ -47,15 +47,19 @@ function PurePilotRunningHeader(props: PilotRunningHeaderProps) {
               <div className="text-xs text-[#1AC654]">33%</div>
             </div>
           </div>
-          <div className="flex flex-row justify-start items-center -ml-4">
-            <Button variant="ghost" onClick={handleBtnPauseClick}>
+          <div className="flex flex-row justify-start items-center -ml-4 overflow-hidden">
+            <Button
+              variant="ghost"
+              className="flex-[1_1_auto] w-0 max-w-fit"
+              onClick={handleBtnPauseClick}
+            >
               <IconPause size={20} />
               <span className="text-primary truncate">Pause Automation</span>
             </Button>
 
             <div className="w-0.5 h-3.5 flex-[0_0_auto] bg-[#CDA4F7]"></div>
 
-            <Button variant="ghost">
+            <Button variant="ghost" className="flex-[1_1_auto] w-0 max-w-fit">
               <IconView size={20} />
               <span className="text-primary truncate">Inspect Current Step</span>
             </Button>

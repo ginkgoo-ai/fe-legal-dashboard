@@ -15,10 +15,8 @@ import {
   IPilotType,
   IStepItemType,
   PilotModeEnum,
-  PilotStatusEnum,
 } from '@/types/case';
 import { StepProps, Steps, Tag, Tooltip } from 'antd';
-import { CirclePlay, CircleStop, PanelRight, SquareArrowOutUpRight } from 'lucide-react';
 import { memo, useEffect, useState } from 'react';
 
 interface PanelPanelPilotProps {
@@ -251,73 +249,63 @@ function PurePanelPilot(props: PanelPanelPilotProps) {
       renderHeader={() => {
         return pilotMode === PilotModeEnum.RUNNING ? <PilotRunningHeader /> : null;
       }}
-      renderFooter={() => {
-        return (
-          <div className="flex flex-col w-full">
-            <div className="flex flex-col flex-[0_0_auto]">
-              <div className="flex flex-row gap-2">
-                <div className="flex flex-row gap-2">
-                  <span className="whitespace-nowrap font-bold">Status:</span>
-                  <span
-                    className={cn('font-bold', {
-                      'text-green-500': pilotInfo?.pilotStatus !== PilotStatusEnum.HOLD,
-                      'text-red-500': pilotInfo?.pilotStatus === PilotStatusEnum.HOLD,
-                    })}
-                  >
-                    {pilotInfo?.pilotStatus || ''}
-                  </span>
-                </div>
-                <div className="flex flex-row gap-2">
-                  <span className="whitespace-nowrap font-bold">Version:</span>
-                  <span className={cn('font-bold')}>{extensionsInfo?.version}</span>
-                </div>
-              </div>
-            </div>
-            <div className="flex flex-row gap-2">
-              <Button
-                variant="default"
-                disabled={!extensionsInfo?.version}
-                onClick={handleBtnStartClick}
-              >
-                <CirclePlay />
-              </Button>
-              <Button
-                variant="outline"
-                disabled={!extensionsInfo?.version}
-                onClick={handleBtnStopClick}
-              >
-                <CircleStop />
-              </Button>
+      // renderFooter={() => {
+      //   return (
+      //     <div className="flex flex-col w-full">
+      //       <div className="flex flex-col flex-[0_0_auto]">
+      //         <div className="flex flex-row gap-2">
+      //           <div className="flex flex-row gap-2">
+      //             <span className="whitespace-nowrap font-bold">Status:</span>
+      //             <span
+      //               className={cn('font-bold', {
+      //                 'text-green-500': pilotInfo?.pilotStatus !== PilotStatusEnum.HOLD,
+      //                 'text-red-500': pilotInfo?.pilotStatus === PilotStatusEnum.HOLD,
+      //               })}
+      //             >
+      //               {pilotInfo?.pilotStatus || ''}
+      //             </span>
+      //           </div>
+      //           <div className="flex flex-row gap-2">
+      //             <span className="whitespace-nowrap font-bold">Version:</span>
+      //             <span className={cn('font-bold')}>{extensionsInfo?.version}</span>
+      //           </div>
+      //         </div>
+      //       </div>
+      //       <div className="flex flex-row gap-2">
+      //         <Button
+      //           variant="default"
+      //           disabled={!extensionsInfo?.version}
+      //           onClick={handleBtnStartClick}
+      //         >
+      //           <CirclePlay />
+      //         </Button>
+      //         <Button
+      //           variant="outline"
+      //           disabled={!extensionsInfo?.version}
+      //           onClick={handleBtnStopClick}
+      //         >
+      //           <CircleStop />
+      //         </Button>
 
-              {/* <Button
-              variant="outline"
-              disabled={
-                !extensionsInfo?.version || !pilotInfo?.pdfUrl || !pilotInfo?.cookiesStr
-              }
-              onClick={handleBtnDownloadClick}
-            >
-              <Download />
-            </Button> */}
+      //         <Button
+      //           variant="outline"
+      //           disabled={!extensionsInfo?.version || !pilotInfo?.tabInfo?.id}
+      //           onClick={handleBtnJumpClick}
+      //         >
+      //           <SquareArrowOutUpRight />
+      //         </Button>
 
-              <Button
-                variant="outline"
-                disabled={!extensionsInfo?.version || !pilotInfo?.tabInfo?.id}
-                onClick={handleBtnJumpClick}
-              >
-                <SquareArrowOutUpRight />
-              </Button>
-
-              <Button
-                variant="outline"
-                disabled={!extensionsInfo?.version || !pilotInfo?.tabInfo?.id}
-                onClick={handleBtnSidepanelOpenClick}
-              >
-                <PanelRight />
-              </Button>
-            </div>
-          </div>
-        );
-      }}
+      //         <Button
+      //           variant="outline"
+      //           disabled={!extensionsInfo?.version || !pilotInfo?.tabInfo?.id}
+      //           onClick={handleBtnSidepanelOpenClick}
+      //         >
+      //           <PanelRight />
+      //         </Button>
+      //       </div>
+      //     </div>
+      //   );
+      // }}
     >
       <div className={cn('flex flex-col overflow-y-auto p-4 box-border flex-1 h-0')}>
         {/* <div className="flex-[0_0_auto]">
