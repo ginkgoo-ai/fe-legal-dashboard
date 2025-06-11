@@ -9,15 +9,9 @@ import { IconFoldRight } from '@/components/ui/icon';
 import { useEventManager } from '@/hooks/useEventManager';
 import { cn } from '@/lib/utils';
 import { useExtensionsStore } from '@/store/extensionsStore';
-import {
-  IActionItemType,
-  ICaseItemType,
-  IPilotType,
-  IStepItemType,
-  PilotModeEnum,
-} from '@/types/case';
-import { StepProps, Steps, Tag, Tooltip } from 'antd';
-import { memo, useEffect, useState } from 'react';
+import { ICaseItemType, IPilotType, IStepItemType, PilotModeEnum } from '@/types/case';
+import { IOcrFileType } from '@/types/file';
+import { memo, useEffect, useRef, useState } from 'react';
 
 interface PanelPanelPilotProps {
   caseInfo: ICaseItemType | null;
@@ -28,15 +22,17 @@ interface PanelPanelPilotProps {
 function PurePanelPilot(props: PanelPanelPilotProps) {
   const { caseInfo, isFold, onBtnPanelRightClick } = props;
 
+  const fillDataRef = useRef<Record<string, unknown>>({});
+
   const [pilotMode, setPilotMode] = useState<PilotModeEnum | null>(null);
   const [pilotInfo, setPilotInfo] = useState<IPilotType | null>(null);
   const [stepListCurrent, setStepListCurrent] = useState<number>(0);
-  const [stepListItems, setStepListItems] = useState<StepProps[]>([]);
+  const [stepListItems, setStepListItems] = useState<IStepItemType[]>([]);
 
   const { extensionsInfo } = useExtensionsStore();
 
   const { emit } = useEventManager('ginkgo-message', message => {
-    // console.log('🚀 ~ useEventManager ~ data:', message);
+    console.log('🚀 ~ useEventManager ~ data:', message);
 
     const { type: typeMsg, pilotInfo: pilotInfoMsg } = message;
     if (typeMsg === 'ginkgo-background-all-case-update') {
@@ -48,7 +44,7 @@ function PurePanelPilot(props: PanelPanelPilotProps) {
 
       setPilotInfo(pilotInfoMsg);
       setStepListCurrent(stepListCurrentMsg);
-      setStepListItems(calcStepListCurrent(stepListItemsMsg));
+      setStepListItems(stepListItemsMsg);
 
       if (
         stepListCurrentMsg >= 0 &&
@@ -72,72 +68,6 @@ function PurePanelPilot(props: PanelPanelPilotProps) {
     }
   });
 
-  const calcActionItem = (
-    item: IActionItemType,
-    indexStep: number,
-    indexAction: number
-  ) => {
-    const { type, selector, value, actionresult, actiontimestamp } = item || {};
-
-    return {
-      title: (
-        <div
-          id={`action-item-${indexStep}-${indexAction}`}
-          className="flex flex-row items-center gap-1"
-        >
-          <Tag className="flex-0 whitespace-nowrap" color="success">
-            {type}
-          </Tag>
-          <Tooltip placement="top" title={selector} mouseEnterDelay={1}>
-            <div className="flex-1 truncate">{selector}</div>
-          </Tooltip>
-          {actionresult && (
-            <Tag
-              className="flex-0 whitespace-nowrap"
-              color={actionresult === 'success' ? 'success' : 'error'}
-            >
-              {actionresult}
-            </Tag>
-          )}
-        </div>
-      ),
-      description: (
-        <div className="flex w-full flex-col">
-          {value && (
-            <div className="flex flex-row gap-1 text-gray-400">value: {value}</div>
-          )}
-          <div className="flex flex-row gap-1 text-gray-400">{actiontimestamp}</div>
-        </div>
-      ),
-    };
-  };
-
-  const calcStepListCurrent = (source: IStepItemType[] = []) => {
-    const result = source.map((itemStep, indexStep) => {
-      return {
-        title: (
-          <div id={`step-item-${indexStep}`} className="font-bold">
-            {itemStep.title}
-          </div>
-        ),
-        description: (
-          <div className="box-border pl-2">
-            <Steps
-              progressDot
-              direction="vertical"
-              current={itemStep.actioncurrent}
-              items={itemStep.actionlist.map((itemAction, indexAction) =>
-                calcActionItem(itemAction, indexStep, indexAction)
-              )}
-            />
-          </div>
-        ),
-      };
-    });
-
-    return result;
-  };
-
   useEffect(() => {
     if (!extensionsInfo?.version) {
       setPilotMode(PilotModeEnum.NOT_INSTALL);
@@ -149,32 +79,42 @@ function PurePanelPilot(props: PanelPanelPilotProps) {
       caseId: caseInfo?.id,
     });
 
-    if (Math.random() > 0.5) {
+    if (false && Math.random() > 0.5) {
       setPilotMode(PilotModeEnum.PREPARING);
     } else {
       setPilotMode(PilotModeEnum.READY);
     }
+
+    // gen fill_data
+    fillDataRef.current = {};
+    caseInfo?.documents?.forEach((item: IOcrFileType, index: number) => {
+      fillDataRef.current[item.documentType] = item.metadataJson
+        ? JSON.parse(item.metadataJson)
+        : {};
+    });
   }, [extensionsInfo?.version, caseInfo?.timestamp]);
 
   const handleBtnStartClick = () => {
-    // 只发送消息给本页面
     const message = {
       type: 'ginkgo-page-all-case-start',
       caseId: caseInfo?.id,
-      fill_data: caseInfo?.fillDataForFront,
+      fill_data: fillDataRef.current,
     };
 
     window.postMessage(message, window.location.origin);
+
+    setPilotMode(PilotModeEnum.RUNNING);
   };
 
-  const handleBtnStopClick = () => {
-    // 只发送消息给本页面
+  const handleBtnPauseClick = () => {
     const message = {
       type: 'ginkgo-page-all-case-stop',
       caseId: caseInfo?.id,
     };
 
     window.postMessage(message, window.location.origin);
+
+    setPilotMode(PilotModeEnum.READY);
   };
 
   // const handleBtnDownloadClick = async () => {
@@ -230,11 +170,6 @@ function PurePanelPilot(props: PanelPanelPilotProps) {
     console.log('handleBtnInstallExtensionClick');
   };
 
-  const handleBtnPilotStartClick = () => {
-    console.log('handleBtnStartClick');
-    setPilotMode(PilotModeEnum.RUNNING);
-  };
-
   return (
     <PanelContainer
       title="Pilot"
@@ -247,7 +182,9 @@ function PurePanelPilot(props: PanelPanelPilotProps) {
         );
       }}
       renderHeader={() => {
-        return pilotMode === PilotModeEnum.RUNNING ? <PilotRunningHeader /> : null;
+        return pilotMode === PilotModeEnum.RUNNING ? (
+          <PilotRunningHeader onBtnPauseClick={handleBtnPauseClick} />
+        ) : null;
       }}
       // renderFooter={() => {
       //   return (
@@ -316,16 +253,31 @@ function PurePanelPilot(props: PanelPanelPilotProps) {
         </div> */}
 
         {pilotMode === PilotModeEnum.NOT_INSTALL ? (
-          <PilotNotInstall onBtnClick={handleBtnInstallExtensionClick} />
+          <PilotNotInstall onBtnInstallClick={handleBtnInstallExtensionClick} />
         ) : null}
 
         {pilotMode === PilotModeEnum.PREPARING ? <PilotPreparing /> : null}
 
         {pilotMode === PilotModeEnum.READY ? (
-          <PilotReady onBtnClick={handleBtnPilotStartClick} />
+          <PilotReady onBtnStartClick={handleBtnStartClick} />
         ) : null}
 
-        {pilotMode === PilotModeEnum.RUNNING ? <PilotRunningStep /> : null}
+        {/* {pilotMode === PilotModeEnum.RUNNING ? (
+          <PilotRunningStep
+            caseInfo={caseInfo}
+            stepListCurrent={stepListCurrent}
+            stepListItems={stepListItems}
+          />
+        ) : null} */}
+
+        {pilotMode === PilotModeEnum.RUNNING ? (
+          <PilotRunningStep
+            caseInfo={caseInfo}
+            pilotInfo={pilotInfo}
+            stepListCurrent={stepListCurrent}
+            stepListItems={stepListItems}
+          />
+        ) : null}
       </div>
     </PanelContainer>
   );

@@ -1,16 +1,18 @@
 import { Button } from '@/components/ui/button';
 import { IconAutoFill, IconPause, IconView } from '@/components/ui/icon';
 import { cn } from '@/lib/utils';
-import { memo, useState } from 'react';
+import { memo, MouseEventHandler, useState } from 'react';
 
-interface PilotRunningHeaderProps {}
+interface PilotRunningHeaderProps {
+  onBtnPauseClick: MouseEventHandler<HTMLButtonElement> | undefined;
+}
 
 function PurePilotRunningHeader(props: PilotRunningHeaderProps) {
-  const {} = props;
+  const { onBtnPauseClick } = props;
 
   const [isRunning, setRunning] = useState<boolean>(true);
 
-  const handleBtnPauseClick = () => {
+  const handleBtnViewClick = () => {
     setRunning(prev => {
       return !prev;
     });
@@ -51,7 +53,7 @@ function PurePilotRunningHeader(props: PilotRunningHeaderProps) {
             <Button
               variant="ghost"
               className="flex-[1_1_auto] w-0 max-w-fit"
-              onClick={handleBtnPauseClick}
+              onClick={onBtnPauseClick}
             >
               <IconPause size={20} />
               <span className="text-primary truncate">Pause Automation</span>
@@ -59,7 +61,11 @@ function PurePilotRunningHeader(props: PilotRunningHeaderProps) {
 
             <div className="w-0.5 h-3.5 flex-[0_0_auto] bg-[#CDA4F7]"></div>
 
-            <Button variant="ghost" className="flex-[1_1_auto] w-0 max-w-fit">
+            <Button
+              variant="ghost"
+              className="flex-[1_1_auto] w-0 max-w-fit"
+              onClick={handleBtnViewClick}
+            >
               <IconView size={20} />
               <span className="text-primary truncate">Inspect Current Step</span>
             </Button>

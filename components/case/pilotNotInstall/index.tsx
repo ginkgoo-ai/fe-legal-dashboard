@@ -3,15 +3,15 @@ import { IconExtension, IconInfo } from '@/components/ui/icon';
 import { memo, MouseEventHandler } from 'react';
 
 interface PilotNotInstallProps {
-  onBtnClick: MouseEventHandler<HTMLButtonElement> | undefined;
+  onBtnInstallClick: MouseEventHandler<HTMLButtonElement> | undefined;
 }
 
 function PurePilotNotInstall(props: PilotNotInstallProps) {
-  const { onBtnClick } = props;
+  const { onBtnInstallClick } = props;
 
   return (
     <div className="flex flex-col">
-      <div className="mt-[2.75rem] mb-4 w-full flex justify-center items-center">
+      <div className="mt-[2.75rem] mb-4 w-full flex justify-center items-center font-bold">
         Power Up Your Forms!⚡️
       </div>
       <div className="flex flex-col bg-[#EEF4FF] box-border p-2.5 rounded-lg w-full">
@@ -26,7 +26,7 @@ function PurePilotNotInstall(props: PilotNotInstallProps) {
         <Button
           variant="ghost"
           className="border border-[#D8DFF5] border-dashed h-11 bg-white"
-          onClick={onBtnClick}
+          onClick={onBtnInstallClick}
         >
           <IconExtension size={24} />
           <span className="text-[var(--color-primary)] font-semibold">

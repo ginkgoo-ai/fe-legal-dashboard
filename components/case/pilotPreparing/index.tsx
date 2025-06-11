@@ -9,7 +9,7 @@ function PurePilotPreparing(props: PilotPreparingProps) {
 
   return (
     <div className="flex flex-col">
-      <div className="mt-[2.75rem] mb-4 w-full flex justify-center items-center">
+      <div className="mt-[2.75rem] mb-4 w-full flex justify-center items-center font-bold">
         Preparing for Auto-Fill 🤖️
       </div>
       <div className="flex flex-col bg-[#EEF4FF] box-border p-2.5 rounded-lg w-full items-center">

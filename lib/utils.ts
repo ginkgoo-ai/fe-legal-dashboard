@@ -98,39 +98,10 @@ export const parseMessageContent = (content: string): ChatMessagePart[] => {
 };
 
 export const parseCaseInfo = (caseInfo: ICaseItemType): ICaseItemType => {
-  const profileVaultDocumentList =
-    caseInfo?.documents?.map((itemDocument: any) => {
-      const metadataForFrontObject = itemDocument.metadataJson
-        ? JSON.parse(itemDocument.metadataJson)
-        : {};
-      return {
-        ...itemDocument,
-        metadataForFrontObject,
-        metadataForFrontList: metadataForFrontObject
-          ? Object.keys(metadataForFrontObject).map((key: any) => {
-              return {
-                key,
-                value: JSON.stringify(metadataForFrontObject[key]),
-              };
-            })
-          : [],
-        timestamp: +dayjs(),
-      };
-    }) || [];
-
-  // gen fill_data
-  const fill_data: Record<string, unknown> = {};
-  profileVaultDocumentList.forEach(
-    (item: { documentType: string; metadataForFrontObject: any }, index: number) => {
-      fill_data[item.documentType] = item.metadataForFrontObject;
-    }
-  );
-
   return {
     ...caseInfo,
-    fillDataForFront: fill_data,
-    profileVaultDocumentListForFront: profileVaultDocumentList,
     caseStatusForFront:
       CASE_STATUS_MAP[caseInfo.status] || CASE_STATUS_MAP[CaseStatusEnum.DEFAULT],
+    timestamp: +dayjs(),
   };
 };

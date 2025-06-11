@@ -38,7 +38,14 @@ export enum PilotModeEnum {
   RUNNING = 'RUNNING',
 }
 
-export type ActionResultType = 'success' | 'notFound' | '';
+export enum StepModeEnum {
+  ACTION = 'ACTION',
+  MANUAL = 'MANUAL',
+  FORM = 'FORM',
+  DECLARATION = 'DECLARATION',
+}
+
+export type ActionResultType = 'success' | 'notFound' | 'manual';
 
 export interface IProfileVaultDocumentType extends IOcrFileType {
   metadataForFrontList: Record<string, string>[];
@@ -57,8 +64,6 @@ export interface ICaseItemType {
     colorText: string;
     text: string;
   };
-  fillDataForFront?: Record<string, unknown>;
-  profileVaultDocumentListForFront?: IProfileVaultDocumentType[];
   timestamp: number;
   [key: string]: unknown;
 }
@@ -95,6 +100,7 @@ export interface IStepActionType {
 }
 
 export interface IStepItemType extends StepProps {
+  mode: StepModeEnum;
   descriptionText: string;
   actioncurrent: number;
   actionlist: IActionItemType[];
