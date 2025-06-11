@@ -9,7 +9,13 @@ import { IconFoldRight } from '@/components/ui/icon';
 import { useEventManager } from '@/hooks/useEventManager';
 import { cn } from '@/lib/utils';
 import { useExtensionsStore } from '@/store/extensionsStore';
-import { ICaseItemType, IPilotType, IStepItemType, PilotModeEnum } from '@/types/case';
+import {
+  ICaseItemType,
+  IPilotType,
+  IStepItemType,
+  PilotModeEnum,
+  PilotStatusEnum,
+} from '@/types/case';
 import { IOcrFileType } from '@/types/file';
 import { memo, useEffect, useRef, useState } from 'react';
 
@@ -41,6 +47,8 @@ function PurePanelPilot(props: PanelPanelPilotProps) {
         stepListCurrent: stepListCurrentMsg,
         stepListItems: stepListItemsMsg,
       } = pilotInfoMsg || {};
+
+      pilotInfoMsg.pilotStatus = PilotStatusEnum.COMPLETED;
 
       setPilotInfo(pilotInfoMsg);
       setStepListCurrent(stepListCurrentMsg);
@@ -183,7 +191,10 @@ function PurePanelPilot(props: PanelPanelPilotProps) {
       }}
       renderHeader={() => {
         return pilotMode === PilotModeEnum.RUNNING ? (
-          <PilotRunningHeader onBtnPauseClick={handleBtnPauseClick} />
+          <PilotRunningHeader
+            pilotInfo={pilotInfo}
+            onBtnPauseClick={handleBtnPauseClick}
+          />
         ) : null;
       }}
       // renderFooter={() => {

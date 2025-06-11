@@ -32,7 +32,7 @@ function PurePilotRunningStep(props: PilotRunningStepProps) {
   const { caseInfo, pilotInfo, stepListCurrent, stepListItems } = props;
 
   const [stepListActiveKeyRunning, setStepListActiveKeyRunning] = useState<string[]>([]);
-  const [stepListCurrentRunning, setStepListCurrentRunning] = useState<number>(0);
+  const [stepListCurrentRunning, setStepListCurrentRunning] = useState<number>(3);
   const [stepListItemsRunning, setStepListItemsRunning] = useState<
     CollapseProps['items']
   >([]);
@@ -98,13 +98,13 @@ function PurePilotRunningStep(props: PilotRunningStepProps) {
           className="flex flex-row items-center gap-1"
         >
           <Tooltip placement="top" title={selector} mouseEnterDelay={1}>
-            <div className="flex-1 truncate text-[#B4B3B3]">{selector}</div>
+            <div className="flex-1 text-sm truncate text-[#B4B3B3]">{selector}</div>
           </Tooltip>
         </div>
       ),
       description: (
         <div className="flex w-full flex-col">
-          <div className="flex flex-row gap-1 text-[#464E5F]">{type}</div>
+          <div className="flex flex-row text-sm gap-1 text-[#464E5F]">{type}</div>
         </div>
       ),
     };
@@ -186,7 +186,7 @@ function PurePilotRunningStep(props: PilotRunningStepProps) {
         : [...prevArray, strStepListCurrent];
     });
 
-    setStepListCurrentRunning(stepListCurrent);
+    // setStepListCurrentRunning(stepListCurrent);
   }, [stepListCurrent]);
 
   const handleBtnJumpClick = async () => {

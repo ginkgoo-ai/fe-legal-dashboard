@@ -29,6 +29,8 @@ export enum PilotStatusEnum {
   MANUAL = 'MANUAL',
   NOT_SUPPORT = 'NOT_SUPPORT',
   COMING_SOON = 'COMING_SOON',
+  PAUSE = 'PAUSE',
+  COMPLETED = 'COMPLETED',
 }
 
 export enum PilotModeEnum {
