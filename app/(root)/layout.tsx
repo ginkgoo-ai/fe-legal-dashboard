@@ -11,7 +11,7 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const { theme: nextTheme, setTheme } = useTheme();
+  const { theme: nextTheme } = useTheme();
   const [systemTheme, setSystemTheme] = useState<'light' | 'dark'>('light');
 
   useEffect(() => {
@@ -42,21 +42,21 @@ export default function RootLayout({
             borderRadius: 12,
           },
           Input: {
-            controlHeight: 58,
+            controlHeight: 36,
             borderRadius: 12,
             colorBorder: '#E1E1E2',
-            fontSize: 18,
+            fontSize: 14,
           },
           Select: {
-            controlHeight: 58,
+            controlHeight: 36,
             borderRadius: 12,
             colorBorder: '#E1E1E2',
-            fontSize: 18,
-            padding: 16,
+            fontSize: 14,
+            padding: 12,
           },
           Form: {
             labelColor: '#1A1A1AB2',
-            labelFontSize: 18,
+            labelFontSize: 14,
           },
         },
       }}

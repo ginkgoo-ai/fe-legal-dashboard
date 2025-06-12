@@ -20,17 +20,3 @@ export const mockCaseList: ICaseItemType[] = [
     timestamp: 1749205388167,
   },
 ];
-
-export const mockVisaTypeOptions = [
-  { value: 'Skilled Worker Visa', label: 'Skilled Worker Visa' },
-  { value: 'Skilled Worker Visa', label: 'Skilled Worker Visa' },
-  { value: 'Skilled Worker Visa', label: 'Skilled Worker Visa' },
-  { value: 'Skilled Worker Visa', label: 'Skilled Worker Visa' },
-];
-
-export const mockLayerTypeOptions = [
-  { value: 'Skilled Worker Visa', label: 'Skilled Worker Visa' },
-  { value: 'Skilled Worker Visa', label: 'Skilled Worker Visa' },
-  { value: 'Skilled Worker Visa', label: 'Skilled Worker Visa' },
-  { value: 'Skilled Worker Visa', label: 'Skilled Worker Visa' },
-];

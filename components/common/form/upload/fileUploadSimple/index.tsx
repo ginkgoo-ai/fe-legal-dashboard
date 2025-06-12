@@ -54,7 +54,7 @@ export function FileUploadSimple({
         onError?.(error instanceof Error ? error.message : 'Unknown error');
       }
     },
-    [onError, validateFiles]
+    [validateFiles, onChange, onError]
   );
 
   const handleChange = useCallback(
@@ -83,7 +83,7 @@ export function FileUploadSimple({
       <label htmlFor={id ?? 'file-upload'}>
         <div className="w-full border border-[#D8DFF5] cursor-pointer hover:bg-[var(--color-primary-foreground)] border-dashed rounded-lg h-11 flex flex-row justify-center items-center gap-2">
           <IconFileUpload size={24} />
-          <span className="text-[var(--color-primary)]">Add files</span>
+          <span className="text-[var(--color-primary)] font-semibold">Add files</span>
         </div>
       </label>
     </div>

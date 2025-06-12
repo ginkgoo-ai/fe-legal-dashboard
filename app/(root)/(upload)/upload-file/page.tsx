@@ -88,7 +88,7 @@ export default function UploadFilePage() {
     const data = await uploadFiles(
       newFiles.map(file => file.localFile!),
       {
-        onUploadeProgress: (percentCompleted: number) => {
+        onUploadeProgress: () => {
           // console.log('percentCompleted', percentCompleted);
         },
       }

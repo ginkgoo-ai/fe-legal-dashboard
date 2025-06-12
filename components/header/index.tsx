@@ -27,25 +27,25 @@ import {
 
 const defaultAvatar = '/default.png';
 
-const ThemeOptions = [
-  {
-    label: 'System',
-    value: 'system',
-  },
-  {
-    label: 'Light',
-    value: 'light',
-  },
-  {
-    label: 'Dark',
-    value: 'dark',
-  },
-];
+// const ThemeOptions = [
+//   {
+//     label: 'System',
+//     value: 'system',
+//   },
+//   {
+//     label: 'Light',
+//     value: 'light',
+//   },
+//   {
+//     label: 'Dark',
+//     value: 'dark',
+//   },
+// ];
 
 const User = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { theme, setTheme } = useTheme();
-  const [_theme, _setTheme] = useState<any>(theme);
+  const [_theme] = useState<any>(theme);
   const { userInfo } = useUserStore();
   const handleOpenChange = (open: boolean) => {
     setIsOpen(open);

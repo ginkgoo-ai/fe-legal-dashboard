@@ -2,25 +2,26 @@ import { PanelContainer } from '@/components/case/panelContainer';
 import { FileUploadSimple } from '@/components/common/form/upload/fileUploadSimple';
 import { ItemFile } from '@/components/common/itemFile';
 import { Button } from '@/components/ui/button';
+import { IconFoldLeft } from '@/components/ui/icon';
+import { cn } from '@/lib/utils';
 import { ocrDocuments } from '@/service/api';
 import { uploadFiles } from '@/service/api/file';
 import { ICaseItemType } from '@/types/case';
 import { FileStatus, ICloudFileType, IFileItemType } from '@/types/file';
 import { produce } from 'immer';
-import { PanelLeft } from 'lucide-react';
 import { memo, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { v4 as uuid } from 'uuid';
 
 interface PanelReferenceProps {
   caseInfo: ICaseItemType | null;
-  showTitle: boolean;
+  isFold: boolean;
   // onFileListUpdate: Dispatch<SetStateAction<IFileItemType[]>>;
   onBtnPanelLeftClick: () => void;
 }
 
 function PurePanelReference(props: PanelReferenceProps) {
-  const { caseInfo, showTitle, onBtnPanelLeftClick } = props;
+  const { caseInfo, isFold, onBtnPanelLeftClick } = props;
 
   const [fileList, setFileList] = useState<IFileItemType[]>([]);
 
@@ -54,7 +55,7 @@ function PurePanelReference(props: PanelReferenceProps) {
     const data = await uploadFiles(
       newFiles.map(file => file.localFile!),
       {
-        onUploadeProgress: (percentCompleted: number) => {
+        onUploadeProgress: () => {
           // console.log('percentCompleted', percentCompleted);
         },
       }
@@ -98,7 +99,7 @@ function PurePanelReference(props: PanelReferenceProps) {
         })) || []
       );
     });
-  }, [caseInfo?.timestamp]);
+  }, [caseInfo?.timestamp, caseInfo?.documents]);
 
   const handleFileChange = async (files: File[]) => {
     console.log('handleFileChange', files);
@@ -121,41 +122,54 @@ function PurePanelReference(props: PanelReferenceProps) {
     toast.error(error);
   };
 
-  const handleFileRetry = async (indexFile: number) => {
-    setFileList(prev =>
-      produce(prev, draft => {
-        draft[indexFile].status = FileStatus.UPLOADING;
-      })
-    );
+  // const handleFileRetry = async (indexFile: number) => {
+  //   setFileList(prev =>
+  //     produce(prev, draft => {
+  //       draft[indexFile].status = FileStatus.UPLOADING;
+  //     })
+  //   );
 
-    await actionUploadFile([fileList[indexFile]]);
-  };
+  //   await actionUploadFile([fileList[indexFile]]);
+  // };
 
   return (
     <PanelContainer
       title="Reference"
-      showTitle={showTitle}
-      renderHeaderExtend={() => {
+      showTitle={!isFold}
+      renderTitleExtend={() => {
         return (
           <Button variant="ghost" onClick={onBtnPanelLeftClick}>
-            <PanelLeft />
+            <IconFoldLeft size={24} />
           </Button>
         );
       }}
+      renderHeader={() => {
+        return !isFold ? (
+          <div className="flex flex-col py-4 w-full">
+            <FileUploadSimple
+              accept="application/pdf,image/jpeg,image/png,image/gif,image/webp,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/plain"
+              multiple
+              maxSize={50}
+              onChange={handleFileChange}
+              onError={handleFileError}
+            />
+          </div>
+        ) : null;
+      }}
     >
-      <div className="flex flex-col overflow-y-auto box-border flex-1 h-0">
-        <div className="flex flex-col">
-          <FileUploadSimple
-            accept="application/pdf,image/jpeg,image/png,image/gif,image/webp,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/plain"
-            multiple
-            maxSize={50}
-            onChange={handleFileChange}
-            onError={handleFileError}
-          />
-        </div>
-        <div className="flex flex-col gap-8 mt-8">
+      <div
+        className={cn('flex flex-col overflow-y-auto px-4 pb-4 box-border flex-1 h-0', {
+          'pt-4': true,
+        })}
+      >
+        <div className="flex flex-col gap-8">
           {fileList.map((itemFile, indexFile) => (
-            <ItemFile key={`reference-item-${indexFile}`} file={itemFile} />
+            <ItemFile
+              key={`reference-item-${indexFile}`}
+              mode="Reference"
+              file={itemFile}
+              isFold={isFold}
+            />
           ))}
         </div>
       </div>

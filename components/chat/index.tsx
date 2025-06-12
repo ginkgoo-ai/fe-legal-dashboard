@@ -91,11 +91,7 @@ export function Chat({ chatId }: ChatProps) {
       // 立即设置取消函数
       setRequestController({ cancel });
 
-      try {
-        await request;
-      } catch (error: any) {
-        throw error;
-      }
+      await request;
     } catch (err: any) {
       if (err.name === 'AbortError' || err.name === 'CanceledError') {
         setMessages(prev => {
