@@ -21,24 +21,22 @@ import { memo, useEffect, useState } from 'react';
 import './index.css';
 import { mockStepListItems } from './mock';
 
-interface PilotRunningStepProps {
+interface PilotStepBodyProps {
   caseInfo: ICaseItemType | null;
   pilotInfo: IPilotType | null;
   stepListCurrent: number;
   stepListItems: IStepItemType[];
 }
 
-function PurePilotRunningStep(props: PilotRunningStepProps) {
+function PurePilotStepBody(props: PilotStepBodyProps) {
   const { caseInfo, pilotInfo, stepListCurrent, stepListItems } = props;
 
-  const [stepListActiveKeyRunning, setStepListActiveKeyRunning] = useState<string[]>([]);
-  const [stepListCurrentRunning, setStepListCurrentRunning] = useState<number>(3);
-  const [stepListItemsRunning, setStepListItemsRunning] = useState<
-    CollapseProps['items']
-  >([]);
+  const [stepListActiveKeyBody, setStepListActiveKeyBody] = useState<string[]>([]);
+  const [stepListCurrentBody, setStepListCurrentBody] = useState<number>(3);
+  const [stepListItemsBody, setStepListItemsBody] = useState<CollapseProps['items']>([]);
 
   const calcStepLabel = (itemStep: IStepItemType, indexStep: number) => {
-    const isSelect = stepListActiveKeyRunning.includes(String(indexStep));
+    const isSelect = stepListActiveKeyBody.includes(String(indexStep));
     return (
       <div
         id={`step-item-${indexStep}`}
@@ -52,13 +50,13 @@ function PurePilotRunningStep(props: PilotRunningStepProps) {
               <IconStepDeclaration size={16} />
             ) : (
               <>
-                {indexStep < stepListCurrentRunning ? (
+                {indexStep < stepListCurrentBody ? (
                   <Check size={16} color="#00ff00" />
                 ) : null}
-                {indexStep === stepListCurrentRunning ? (
+                {indexStep === stepListCurrentBody ? (
                   <IconLoading size={16} className="animate-spin" />
                 ) : null}
-                {indexStep > stepListCurrentRunning ? <IconStepDot size={16} /> : null}
+                {indexStep > stepListCurrentBody ? <IconStepDot size={16} /> : null}
               </>
             )}
           </div>
@@ -159,12 +157,11 @@ function PurePilotRunningStep(props: PilotRunningStepProps) {
   };
 
   const handleCollapseChange = (key: string[]) => {
-    setStepListActiveKeyRunning(key);
+    setStepListActiveKeyBody(key);
   };
 
   useEffect(() => {
-    console.log('mockStepListItems', mockStepListItems);
-    setStepListItemsRunning(
+    setStepListItemsBody(
       mockStepListItems.map((item, index) => {
         return {
           key: index,
@@ -174,10 +171,10 @@ function PurePilotRunningStep(props: PilotRunningStepProps) {
         };
       })
     );
-  }, [caseInfo?.timestamp, stepListActiveKeyRunning, stepListItems]);
+  }, [caseInfo?.timestamp, stepListActiveKeyBody, stepListItems]);
 
   useEffect(() => {
-    setStepListActiveKeyRunning(prev => {
+    setStepListActiveKeyBody(prev => {
       const prevArray = Array.isArray(prev) ? prev : [prev];
       const strStepListCurrent = String(stepListCurrent);
 
@@ -186,7 +183,7 @@ function PurePilotRunningStep(props: PilotRunningStepProps) {
         : [...prevArray, strStepListCurrent];
     });
 
-    // setStepListCurrentRunning(stepListCurrent);
+    setStepListCurrentBody(stepListCurrent);
   }, [stepListCurrent]);
 
   const handleBtnJumpClick = async () => {
@@ -212,13 +209,13 @@ function PurePilotRunningStep(props: PilotRunningStepProps) {
     <div className="relative w-full flex justify-start items-center rounded-lg border border-[#D8DFF5] box-border p-2">
       <Collapse
         className="w-full"
-        activeKey={stepListActiveKeyRunning}
+        activeKey={stepListActiveKeyBody}
         ghost
-        items={stepListItemsRunning}
+        items={stepListItemsBody}
         onChange={handleCollapseChange}
       />
     </div>
   );
 }
 
-export const PilotRunningStep = memo(PurePilotRunningStep);
+export const PilotStepBody = memo(PurePilotStepBody);

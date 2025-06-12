@@ -2,17 +2,17 @@ import { IActionItemType, ICaseItemType, IStepItemType } from '@/types/case';
 import { StepProps, Steps, Tag, Tooltip } from 'antd';
 import { memo, useEffect, useState } from 'react';
 
-interface PilotRunningStepOldProps {
+interface PurePilotStepBodyOldProps {
   caseInfo: ICaseItemType | null;
   stepListCurrent: number;
   stepListItems: IStepItemType[];
 }
 
-function PurePilotRunningStepOld(props: PilotRunningStepOldProps) {
+function PurePilotStepBodyOld(props: PurePilotStepBodyOldProps) {
   const { caseInfo, stepListCurrent, stepListItems } = props;
 
-  const [stepListCurrentRunning, setStepListCurrentRunning] = useState<number>(0);
-  const [stepListItemsRunning, setStepListItemsRunning] = useState<StepProps[]>([]);
+  const [stepListCurrentBody, setStepListCurrentBody] = useState<number>(0);
+  const [stepListItemsBody, setStepListItemsBody] = useState<StepProps[]>([]);
 
   const calcActionItem = (
     item: IActionItemType,
@@ -81,19 +81,19 @@ function PurePilotRunningStepOld(props: PilotRunningStepOldProps) {
   };
 
   useEffect(() => {
-    setStepListCurrentRunning(stepListCurrent);
-    setStepListItemsRunning(calcStepList(stepListItems));
+    setStepListCurrentBody(stepListCurrent);
+    setStepListItemsBody(calcStepList(stepListItems));
   }, [caseInfo?.timestamp, stepListCurrent, stepListItems]);
 
   return (
     <div className="relative w-full flex justify-start items-center rounded-lg border border-[#D8DFF5] box-border p-2">
       <Steps
         direction="vertical"
-        current={stepListCurrentRunning}
-        items={stepListItemsRunning}
+        current={stepListCurrentBody}
+        items={stepListItemsBody}
       />
     </div>
   );
 }
 
-export const PilotRunningStepOld = memo(PurePilotRunningStepOld);
+export const PilotStepBodyOld = memo(PurePilotStepBodyOld);

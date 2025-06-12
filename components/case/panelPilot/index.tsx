@@ -2,8 +2,8 @@ import { PanelContainer } from '@/components/case/panelContainer';
 import { PilotNotInstall } from '@/components/case/pilotNotInstall';
 import { PilotPreparing } from '@/components/case/pilotPreparing';
 import { PilotReady } from '@/components/case/pilotReady';
-import { PilotRunningHeader } from '@/components/case/pilotRunningHeader';
-import { PilotRunningStep } from '@/components/case/pilotRunningStep';
+import { PilotStepBody } from '@/components/case/pilotStepBody';
+import { PilotStepHeader } from '@/components/case/pilotStepHeader';
 import { Button } from '@/components/ui/button';
 import { IconFoldRight } from '@/components/ui/icon';
 import { useEventManager } from '@/hooks/useEventManager';
@@ -38,7 +38,7 @@ function PurePanelPilot(props: PanelPanelPilotProps) {
   const { extensionsInfo } = useExtensionsStore();
 
   const { emit } = useEventManager('ginkgo-message', message => {
-    console.log('🚀 ~ useEventManager ~ data:', message);
+    // console.log('🚀 ~ useEventManager ~ data:', message);
 
     const { type: typeMsg, pilotInfo: pilotInfoMsg } = message;
     if (typeMsg === 'ginkgo-background-all-case-update') {
@@ -48,7 +48,7 @@ function PurePanelPilot(props: PanelPanelPilotProps) {
         stepListItems: stepListItemsMsg,
       } = pilotInfoMsg || {};
 
-      pilotInfoMsg.pilotStatus = PilotStatusEnum.COMPLETED;
+      pilotInfoMsg && (pilotInfoMsg.pilotStatus = PilotStatusEnum.COMPLETED);
 
       setPilotInfo(pilotInfoMsg);
       setStepListCurrent(stepListCurrentMsg);
@@ -191,10 +191,7 @@ function PurePanelPilot(props: PanelPanelPilotProps) {
       }}
       renderHeader={() => {
         return pilotMode === PilotModeEnum.RUNNING ? (
-          <PilotRunningHeader
-            pilotInfo={pilotInfo}
-            onBtnPauseClick={handleBtnPauseClick}
-          />
+          <PilotStepHeader pilotInfo={pilotInfo} onBtnPauseClick={handleBtnPauseClick} />
         ) : null;
       }}
       // renderFooter={() => {
@@ -274,7 +271,7 @@ function PurePanelPilot(props: PanelPanelPilotProps) {
         ) : null}
 
         {/* {pilotMode === PilotModeEnum.RUNNING ? (
-          <PilotRunningStep
+          <PilotStepBodyOld
             caseInfo={caseInfo}
             stepListCurrent={stepListCurrent}
             stepListItems={stepListItems}
@@ -282,7 +279,7 @@ function PurePanelPilot(props: PanelPanelPilotProps) {
         ) : null} */}
 
         {pilotMode === PilotModeEnum.RUNNING ? (
-          <PilotRunningStep
+          <PilotStepBody
             caseInfo={caseInfo}
             pilotInfo={pilotInfo}
             stepListCurrent={stepListCurrent}
