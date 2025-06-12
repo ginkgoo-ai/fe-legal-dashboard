@@ -5,7 +5,9 @@ import {
   IconStepDot,
   IconStepDown,
 } from '@/components/ui/icon';
+import { useInit } from '@/hooks/useInit';
 import { cn } from '@/lib/utils';
+import { getWorkflowList } from '@/service/api/case';
 import {
   IActionItemType,
   ICaseItemType,
@@ -24,12 +26,13 @@ import { mockStepListItems } from './mock';
 interface PilotStepBodyProps {
   caseInfo: ICaseItemType | null;
   pilotInfo: IPilotType | null;
+  workflowId: string;
   stepListCurrent: number;
   stepListItems: IStepItemType[];
 }
 
 function PurePilotStepBody(props: PilotStepBodyProps) {
-  const { caseInfo, pilotInfo, stepListCurrent, stepListItems } = props;
+  const { caseInfo, pilotInfo, workflowId, stepListCurrent, stepListItems } = props;
 
   const [stepListActiveKeyBody, setStepListActiveKeyBody] = useState<string[]>([]);
   const [stepListCurrentBody, setStepListCurrentBody] = useState<number>(3);
@@ -57,6 +60,19 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
       window.postMessage(messageOpenSidepanel, window.location.origin);
     }
   }, [pilotInfo?.tabInfo?.url, pilotInfo?.tabInfo?.id]);
+
+  const init = async () => {
+    console.log('PurePilotStepBody init');
+    const res = await getWorkflowList({
+      workflowId,
+    });
+
+    console.log('PurePilotStepBody', res);
+  };
+
+  useInit(() => {
+    init();
+  }, []);
 
   useEffect(() => {
     const calcStepLabel = (itemStep: IStepItemType, indexStep: number) => {
@@ -141,7 +157,7 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
               progressDot
               direction="vertical"
               current={itemStep.actioncurrent}
-              items={itemStep.actionlist.map((itemAction, indexAction) =>
+              items={itemStep.actionlist?.map((itemAction, indexAction) =>
                 calcActionItem(itemAction, indexStep, indexAction)
               )}
             />
@@ -208,7 +224,7 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
         : [...prevArray, strStepListCurrent];
     });
 
-    setStepListCurrentBody(stepListCurrent);
+    // setStepListCurrentBody(stepListCurrent);
   }, [stepListCurrent]);
 
   // const handleBtnDownloadClick = async () => {

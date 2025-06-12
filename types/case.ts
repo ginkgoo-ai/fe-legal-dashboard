@@ -94,6 +94,17 @@ export interface IActionItemType {
   actiontimestamp?: string;
 }
 
+export interface IFormItemType {
+  name: string;
+  label: string;
+  value: string;
+  type: 'input' | 'radio' | 'checkbox';
+  options?: {
+    label: string;
+    value: string;
+  };
+}
+
 export interface IStepActionType {
   actioncurrent?: number;
   actionresult?: 'success' | 'error';
@@ -104,8 +115,9 @@ export interface IStepActionType {
 export interface IStepItemType extends StepProps {
   mode: StepModeEnum;
   descriptionText: string;
-  actioncurrent: number;
-  actionlist: IActionItemType[];
+  actioncurrent?: number;
+  actionlist?: IActionItemType[];
+  formList?: IFormItemType[];
 }
 
 export interface IPilotType {

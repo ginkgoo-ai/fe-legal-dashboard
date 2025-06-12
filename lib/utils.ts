@@ -1,4 +1,5 @@
-import { CaseStatusEnum, ChatMessagePart, ICaseItemType } from '@/types';
+import { CaseStatusEnum, ICaseItemType } from '@/types/case';
+import { ChatMessagePart } from '@/types/chat';
 import { type ClassValue, clsx } from 'clsx';
 import dayjs from 'dayjs';
 import { twMerge } from 'tailwind-merge';

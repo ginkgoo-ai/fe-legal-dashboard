@@ -97,6 +97,24 @@ class UtilsManager {
     }
     window.history.back();
   };
+
+  clickTagA = (params: { url: string; fileName?: string; target?: string }) => {
+    const { url, fileName, target } = params || {};
+    const a = document.createElement('a');
+
+    a.href = url;
+    if (fileName) {
+      a.download = fileName;
+    }
+    if (target) {
+      a.target = target;
+    }
+
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+  };
 }
 
 export default UtilsManager.getInstance();

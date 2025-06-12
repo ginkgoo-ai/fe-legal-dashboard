@@ -7,9 +7,10 @@ export const FileApi = {
   files: '/storage/v2/files',
 };
 
-const baseUrl = process.env.LOCAL_BASE_URL
-  ? `${process.env.LOCAL_BASE_URL}:8080/api`
-  : `${process.env.NEXT_PUBLIC_API_URL}/api`;
+// const baseUrl = process.env.LOCAL_BASE_URL
+//   ? `${process.env.LOCAL_BASE_URL}:8080/api`
+//   : `${process.env.NEXT_PUBLIC_API_URL}/api`;
+const baseUrl = `${process.env.NEXT_PUBLIC_API_URL}/api`;
 
 const uploadFile = async (
   file: File,

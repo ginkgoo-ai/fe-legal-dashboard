@@ -1,13 +1,14 @@
 import { Button } from '@/components/ui/button';
 import { IconExtension, IconInfo } from '@/components/ui/icon';
-import { memo, MouseEventHandler } from 'react';
+import UtilsManager from '@/customManager/UtilsManager';
+import { memo } from 'react';
 
-interface PilotNotInstallProps {
-  onBtnInstallClick: MouseEventHandler<HTMLButtonElement> | undefined;
-}
-
-function PurePilotNotInstall(props: PilotNotInstallProps) {
-  const { onBtnInstallClick } = props;
+function PurePilotNotInstall() {
+  const handleBtnInstallClick = () => {
+    UtilsManager.clickTagA({
+      url: 'https://github.com/ginkgoo-ai/fe-chrome-extensions/releases/download/v0.0.1/fe-chrome-extensions-v20250612_150648.zip',
+    });
+  };
 
   return (
     <div className="flex flex-col">
@@ -26,7 +27,7 @@ function PurePilotNotInstall(props: PilotNotInstallProps) {
         <Button
           variant="ghost"
           className="border border-[#D8DFF5] border-dashed h-11 bg-white"
-          onClick={onBtnInstallClick}
+          onClick={handleBtnInstallClick}
         >
           <IconExtension size={24} />
           <span className="text-[var(--color-primary)] font-semibold">

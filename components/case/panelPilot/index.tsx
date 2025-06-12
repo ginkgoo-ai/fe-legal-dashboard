@@ -79,7 +79,8 @@ function PurePanelPilot(props: PanelPanelPilotProps) {
     });
 
     // setPilotMode(PilotModeEnum.PREPARING);
-    setPilotMode(PilotModeEnum.READY);
+    // setPilotMode(PilotModeEnum.READY);
+    setPilotMode(PilotModeEnum.RUNNING);
 
     // gen fill_data
     fillDataRef.current = {};
@@ -192,16 +193,7 @@ function PurePanelPilot(props: PanelPanelPilotProps) {
       // }}
     >
       <div className={cn('flex flex-col overflow-y-auto p-4 box-border flex-1 h-0')}>
-        {/* <div className="flex-[0_0_auto]">
-          <div className="whitespace-nowrap font-bold">Steps:</div>
-        </div>
-        <div className="flex flex-col gap-2 overflow-y-auto box-border flex-1 h-0">
-          <Steps direction="vertical" current={stepListCurrent} items={stepListItems} />
-        </div> */}
-
-        {pilotMode === PilotModeEnum.NOT_INSTALL ? (
-          <PilotNotInstall onBtnInstallClick={handleBtnInstallExtensionClick} />
-        ) : null}
+        {pilotMode === PilotModeEnum.NOT_INSTALL ? <PilotNotInstall /> : null}
 
         {pilotMode === PilotModeEnum.PREPARING ? <PilotPreparing /> : null}
 
@@ -221,6 +213,7 @@ function PurePanelPilot(props: PanelPanelPilotProps) {
           <PilotStepBody
             caseInfo={caseInfo}
             pilotInfo={pilotInfo}
+            workflowId="1221f2f4-5311-4e15-b7dd-aecd4f8d9401"
             stepListCurrent={stepListCurrent}
             stepListItems={stepListItems}
           />

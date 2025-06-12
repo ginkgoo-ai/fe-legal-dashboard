@@ -6,7 +6,7 @@ import { PanelReference } from '@/components/case/panelReference';
 import { TagStatus } from '@/components/case/tagStatus';
 import UtilsManager from '@/customManager/UtilsManager';
 import { cn, parseCaseInfo } from '@/lib/utils';
-import { caseStream } from '@/service/api';
+import { caseStream } from '@/service/api/case';
 import { ICaseItemType } from '@/types/case';
 import { Breadcrumb, Splitter } from 'antd';
 import { ItemType } from 'antd/es/breadcrumb/Breadcrumb';
@@ -39,6 +39,7 @@ function CaseDetailContent() {
     breadcrumbItemsCasePortal,
   ]);
 
+  const [isTransitionAll, setTransitionAll] = useState<boolean>(false);
   const [sizeReference, setSizeReference] = useState<number>(0);
   const [sizeProfileVault, setSizeProfileVault] = useState<number>(0);
   const [sizePilot, setSizePilot] = useState<number>(0);
@@ -147,8 +148,15 @@ function CaseDetailContent() {
       sizeReferenceTmp = SIZE_REFERENCE_DEFAULT.current;
     }
 
-    setSizeReference(sizeReferenceTmp);
-    setSizeProfileVault(window.innerWidth - sizeReferenceTmp - sizePilotRef.current);
+    setTransitionAll(true);
+    setTimeout(() => {
+      setSizeReference(sizeReferenceTmp);
+      setSizeProfileVault(window.innerWidth - sizeReferenceTmp - sizePilotRef.current);
+
+      setTimeout(() => {
+        setTransitionAll(false);
+      }, 200);
+    }, 60);
   };
 
   const handleBtnPanelRightClick = () => {
@@ -159,8 +167,15 @@ function CaseDetailContent() {
       sizePilotTmp = SIZE_PILOT_DEFAULT.current;
     }
 
-    setSizePilot(sizePilotTmp);
-    setSizeProfileVault(window.innerWidth - sizeReferenceRef.current - sizePilotTmp);
+    setTransitionAll(true);
+    setTimeout(() => {
+      setSizePilot(sizePilotTmp);
+      setSizeProfileVault(window.innerWidth - sizeReferenceRef.current - sizePilotTmp);
+
+      setTimeout(() => {
+        setTransitionAll(false);
+      }, 200);
+    }, 60);
   };
 
   const handleWindowResize = () => {
@@ -212,7 +227,7 @@ function CaseDetailContent() {
               min={SIZE_REFERENCE_MIN}
               size={sizeReference}
               className={cn('bg-white relative rounded-2xl flex-col flex h-full', {
-                'transition-all': false,
+                'transition-all': isTransitionAll,
               })}
             >
               <PanelReference
@@ -226,7 +241,7 @@ function CaseDetailContent() {
               min={SIZE_PROFILEVAULT_MIN}
               size={sizeProfileVault}
               className={cn('bg-white relative rounded-2xl flex-col flex h-full', {
-                'transition-all': false,
+                'transition-all': isTransitionAll,
               })}
             >
               <PanelProfileVault caseInfo={caseInfo} isFold={isFoldProfileVault} />
@@ -236,7 +251,7 @@ function CaseDetailContent() {
               min={SIZE_PILOT_MIN}
               size={sizePilot}
               className={cn('bg-white relative rounded-2xl flex-col flex h-full', {
-                'transition-all': false,
+                'transition-all': isTransitionAll,
               })}
             >
               <PanelPilot

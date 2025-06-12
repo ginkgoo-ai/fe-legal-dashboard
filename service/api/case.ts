@@ -1,3 +1,4 @@
+import { IGetWorkflowListType, IWorkflowType } from '@/types/casePilot';
 import ApiRequest from '../axios';
 interface ICaseStreamParamsType {
   caseId: string;
@@ -11,10 +12,14 @@ interface IOcrDocumentsParamsType {
 export const PilotApi = {
   caseStream: '/legalcase/cases/:caseId/stream',
   documents: '/legalcase/cases/:caseId/documents',
+  workflows: '/workflows/:workflowId',
 };
 
+// const baseUrl = process.env.LOCAL_BASE_URL
+//   ? `${process.env.LOCAL_BASE_URL}:7878`
+//   : `${process.env.NEXT_PUBLIC_API_URL}/api`;
 const baseUrl = process.env.LOCAL_BASE_URL
-  ? `${process.env.LOCAL_BASE_URL}:7878`
+  ? `${process.env.LOCAL_BASE_URL}:6011`
   : `${process.env.NEXT_PUBLIC_API_URL}/api`;
 
 const IS_MOCK = true;
@@ -109,19 +114,23 @@ const caseStream = async (
   };
 };
 
-const ocrDocuments = async (params: IOcrDocumentsParamsType): Promise<string[]> => {
-  const { caseId, storageIds = [] } = params;
-  return ApiRequest.post(
-    `${baseUrl}${PilotApi.documents}`.replace(':caseId', caseId),
-    {
-      storageIds,
-    },
-    {
-      headers: {
-        Accept: 'application/json',
-      },
-    }
+// 获取工作流状态和详细信息
+const getWorkflowList = async (
+  params: IGetWorkflowListType
+): Promise<IWorkflowType[]> => {
+  const { workflowId = '' } = params;
+
+  return ApiRequest.get(
+    `${baseUrl}${PilotApi.workflows}`.replace(':workflowId', workflowId)
   );
 };
 
-export { caseStream, ocrDocuments };
+const ocrDocuments = async (params: IOcrDocumentsParamsType): Promise<string[]> => {
+  const { caseId, storageIds = [] } = params;
+
+  return ApiRequest.post(`${baseUrl}${PilotApi.documents}`.replace(':caseId', caseId), {
+    storageIds,
+  });
+};
+
+export { caseStream, getWorkflowList, ocrDocuments };
