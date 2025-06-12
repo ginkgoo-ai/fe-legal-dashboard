@@ -1,5 +1,3 @@
-import defaultWorkspaceImage from '@/assets/default-workspace.png';
-import defaultImage from '@/assets/default.png';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 // import { Loading } from '@/components/ui/loading';
@@ -16,10 +14,10 @@ export interface AvatarUploadProps {
   description?: string;
   uploadText?: string;
   loading?: boolean;
-  scenario?: 'user' | 'workspace';
+  // scenario?: 'user' | 'workspace';
 }
 
-export default React.forwardRef<HTMLInputElement, AvatarUploadProps>(
+const AvatarUpload = React.forwardRef<HTMLInputElement, AvatarUploadProps>(
   ({
     url,
     onChange,
@@ -30,12 +28,12 @@ export default React.forwardRef<HTMLInputElement, AvatarUploadProps>(
     description,
     loading,
     uploadText,
-    scenario,
+    // scenario,
   }) => {
-    const [previewUrl, setPreviewUrl] = useState<string | undefined>(url);
+    const [, setPreviewUrl] = useState<string | undefined>(url);
     const inputRef = useRef<HTMLInputElement>(null);
-    const workspaceImage =
-      scenario === 'workspace' ? defaultWorkspaceImage : defaultImage;
+    // const workspaceImage =
+    //   scenario === 'workspace' ? defaultWorkspaceImage : defaultImage;
 
     // React.useEffect(() => {
     //   if (url && url !== workspaceImage) {
@@ -130,3 +128,7 @@ export default React.forwardRef<HTMLInputElement, AvatarUploadProps>(
     );
   }
 );
+
+AvatarUpload.displayName = 'AvatarUpload';
+
+export default AvatarUpload;

@@ -54,7 +54,7 @@ export function FileUploadSimple({
         onError?.(error instanceof Error ? error.message : 'Unknown error');
       }
     },
-    [onError, validateFiles]
+    [validateFiles, onChange, onError]
   );
 
   const handleChange = useCallback(

@@ -55,7 +55,7 @@ function PurePanelReference(props: PanelReferenceProps) {
     const data = await uploadFiles(
       newFiles.map(file => file.localFile!),
       {
-        onUploadeProgress: (percentCompleted: number) => {
+        onUploadeProgress: () => {
           // console.log('percentCompleted', percentCompleted);
         },
       }
@@ -99,7 +99,7 @@ function PurePanelReference(props: PanelReferenceProps) {
         })) || []
       );
     });
-  }, [caseInfo?.timestamp]);
+  }, [caseInfo?.timestamp, caseInfo?.documents]);
 
   const handleFileChange = async (files: File[]) => {
     console.log('handleFileChange', files);
@@ -122,15 +122,15 @@ function PurePanelReference(props: PanelReferenceProps) {
     toast.error(error);
   };
 
-  const handleFileRetry = async (indexFile: number) => {
-    setFileList(prev =>
-      produce(prev, draft => {
-        draft[indexFile].status = FileStatus.UPLOADING;
-      })
-    );
+  // const handleFileRetry = async (indexFile: number) => {
+  //   setFileList(prev =>
+  //     produce(prev, draft => {
+  //       draft[indexFile].status = FileStatus.UPLOADING;
+  //     })
+  //   );
 
-    await actionUploadFile([fileList[indexFile]]);
-  };
+  //   await actionUploadFile([fileList[indexFile]]);
+  // };
 
   return (
     <PanelContainer

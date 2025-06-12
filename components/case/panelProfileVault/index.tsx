@@ -25,7 +25,9 @@ function PurePanelProfileVault(props: PanelProfileVaultProps) {
           metadataForFrontObject = itemDocument.metadataJson
             ? JSON.parse(itemDocument.metadataJson)
             : {};
-        } catch (error) {}
+        } catch (error) {
+          console.error('PurePanelProfileVault parse', error);
+        }
 
         return {
           ...itemDocument,
@@ -39,10 +41,10 @@ function PurePanelProfileVault(props: PanelProfileVaultProps) {
       }) || [];
 
     setProfileVaultDocumentList(profileVaultDocumentListTmp);
-  }, [caseInfo?.timestamp]);
+  }, [caseInfo?.timestamp, caseInfo?.documents]);
 
   return (
-    <PanelContainer title="Profile vault" showTitle={true}>
+    <PanelContainer title="Profile vault" showTitle={!isFold}>
       <div
         className={cn('flex flex-col overflow-y-auto px-4 pb-4 box-border flex-1 h-0')}
       >

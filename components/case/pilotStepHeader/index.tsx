@@ -17,9 +17,9 @@ interface PilotStepHeaderProps {
 function PurePilotStepHeader(props: PilotStepHeaderProps) {
   const { pilotInfo, onBtnPauseClick } = props;
 
-  const isRunning =
-    !!pilotInfo &&
-    [PilotStatusEnum.PAUSE, PilotStatusEnum.COMPLETED].includes(pilotInfo.pilotStatus);
+  // const isRunning =
+  //   !!pilotInfo &&
+  //   [PilotStatusEnum.PAUSE, PilotStatusEnum.COMPLETED].includes(pilotInfo.pilotStatus);
 
   const handleBtnDownloadPdfClick = () => {
     console.log('handleBtnDownloadPdfClick');

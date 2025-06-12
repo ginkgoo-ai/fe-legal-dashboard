@@ -2,11 +2,7 @@ import { Button } from '@/components/ui/button';
 import { IconInfo, IconMagic } from '@/components/ui/icon';
 import { memo } from 'react';
 
-interface PilotPreparingProps {}
-
-function PurePilotPreparing(props: PilotPreparingProps) {
-  const {} = props;
-
+function PurePilotPreparing() {
   return (
     <div className="flex flex-col">
       <div className="mt-[2.75rem] mb-4 w-full flex justify-center items-center font-bold">

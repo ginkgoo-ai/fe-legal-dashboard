@@ -8,10 +8,17 @@ import { useUserStore } from '@/store';
 import { useExtensionsStore } from '@/store/extensionsStore';
 import '@/style/global.css';
 import { ExtensionsInfo } from '@/types/extensions';
+import { Poppins } from 'next/font/google';
 import { usePathname, useRouter } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 const whiteListForNotNeetAuth = ['/403'];
+
+const poppins = Poppins({
+  weight: ['300', '400', '500', '700'],
+  subsets: ['latin'],
+  display: 'swap',
+});
 
 export default function RootLayout({
   children,
@@ -52,30 +59,33 @@ export default function RootLayout({
     },
   });
 
-  const handleMessage = (event: MessageEvent) => {
-    const { origin, data } = event;
-    const { type } = data;
+  const handleMessage = useCallback(
+    (event: MessageEvent) => {
+      const { origin, data } = event;
+      const { type } = data;
 
-    if (type.startsWith('ginkgo-page-')) {
-      // 如果是来源自身的消息，则不会处理
-      return;
-    }
-
-    // 确保消息来源是当前页面 且 目标为 all 或者 page
-    if (
-      origin === window.location.origin &&
-      (/^ginkgo-[^-]+-all-.*$/.test(type) || /^ginkgo-[^-]+-page-.*$/.test(type))
-    ) {
-      emit(data);
-
-      if (
-        type === 'ginkgo-background-page-register' &&
-        extensionsInfoRef.current?.version !== data?.version
-      ) {
-        setExtensionsInfo(data);
+      if (type.startsWith('ginkgo-page-')) {
+        // 如果是来源自身的消息，则不会处理
+        return;
       }
-    }
-  };
+
+      // 确保消息来源是当前页面 且 目标为 all 或者 page
+      if (
+        origin === window.location.origin &&
+        (/^ginkgo-[^-]+-all-.*$/.test(type) || /^ginkgo-[^-]+-page-.*$/.test(type))
+      ) {
+        emit(data);
+
+        if (
+          type === 'ginkgo-background-page-register' &&
+          extensionsInfoRef.current?.version !== data?.version
+        ) {
+          setExtensionsInfo(data);
+        }
+      }
+    },
+    [emit, setExtensionsInfo]
+  );
 
   const postHeartRegister = () => {
     window.postMessage(
@@ -113,24 +123,18 @@ export default function RootLayout({
         clearTimeout(timerRegister.current);
       }
     };
-  }, []);
+  }, [handleMessage]);
 
   useEffect(() => {
     extensionsInfoRef.current = extensionsInfo;
   }, [extensionsInfo]);
 
   return (
-    <html suppressHydrationWarning lang="en">
+    <html suppressHydrationWarning lang="en" className={poppins.className}>
       <head>
         <meta
           name="viewport"
           content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
-        />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;700&display=swap"
-          rel="stylesheet"
         />
       </head>
 

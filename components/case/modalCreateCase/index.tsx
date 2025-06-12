@@ -36,7 +36,7 @@ function PureModalCreateCase(props: ModalCreateCaseProps) {
       setArrVisaTypeOptions(mockVisaTypeOptions);
       setArrLayerTypeOptions(mockLayerTypeOptions);
     }
-  }, [isOpen, mockVisaTypeOptions, mockLayerTypeOptions]);
+  }, [isOpen]);
 
   const handleCreateCaseCancel = () => {
     onOpenUpdate?.(false);
@@ -160,6 +160,7 @@ function PureModalCreateCase(props: ModalCreateCaseProps) {
               className="!px-3"
               prefix={<IconFormItemPassword className="mr-1" size={20} />}
               placeholder="Password"
+              autoComplete="current-password"
             />
           </Form.Item>
         </div>

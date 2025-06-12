@@ -11,7 +11,7 @@ import { ICaseItemType } from '@/types/case';
 import { Breadcrumb, Splitter } from 'antd';
 import { ItemType } from 'antd/es/breadcrumb/Breadcrumb';
 import { useSearchParams } from 'next/navigation';
-import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import './index.css';
 
 const breadcrumbItemsCasePortal = {
@@ -51,17 +51,17 @@ function CaseDetailContent() {
 
   const isFoldProfileVault = useMemo(() => {
     return sizeProfileVault <= PANEL_SIZE_LIMIT;
-  }, []);
+  }, [sizeProfileVault]);
 
   const isFoldPilot = useMemo(() => {
     return sizePilot <= PANEL_SIZE_LIMIT;
   }, [sizePilot]);
 
-  const registerCaseStream = async () => {
+  const registerCaseStream = useCallback(async () => {
     try {
-      const { cancel, request } = await caseStream(
+      const { request } = await caseStream(
         { caseId },
-        (controller: any) => {
+        () => {
           // 可以立即获取到 controller
           // setRequestController({ cancel: () => controller.abort() });
         },
@@ -79,11 +79,7 @@ function CaseDetailContent() {
         }
       );
 
-      try {
-        await request;
-      } catch (error: any) {
-        throw error;
-      }
+      await request;
     } catch (err: any) {
       if (err.name === 'AbortError' || err.name === 'CanceledError') {
         // Common Error
@@ -91,8 +87,9 @@ function CaseDetailContent() {
         // Cancel Error
       }
     } finally {
+      //
     }
-  };
+  }, [caseId, setCaseInfo]);
 
   useEffect(() => {
     SIZE_REFERENCE_DEFAULT.current = window.innerWidth * 0.3;
@@ -110,7 +107,7 @@ function CaseDetailContent() {
     return () => {
       window.removeEventListener('resize', handleWindowResize);
     };
-  }, []);
+  }, [registerCaseStream]);
 
   useEffect(() => {
     sizeReferenceRef.current = sizeReference;

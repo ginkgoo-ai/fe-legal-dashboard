@@ -159,9 +159,12 @@ function PureInputMultimodal(props: InputMultimodalProps) {
     [attachments, onAttachmentsChange]
   );
 
-  const handleSubContractors = useCallback((mode: boolean) => {
-    onSubContractors?.(mode);
-  }, []);
+  const handleSubContractors = useCallback(
+    (mode: boolean) => {
+      onSubContractors?.(mode);
+    },
+    [onSubContractors]
+  );
 
   return (
     <div className="relative flex w-full flex-col gap-4">

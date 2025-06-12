@@ -54,33 +54,33 @@ function PurePilotStepBodyOld(props: PurePilotStepBodyOldProps) {
     };
   };
 
-  const calcStepList = (source: IStepItemType[] = []) => {
-    const result = source.map((itemStep, indexStep) => {
-      return {
-        title: (
-          <div id={`step-item-${indexStep}`} className="font-bold">
-            {itemStep.title}
-          </div>
-        ),
-        description: (
-          <div className="box-border pl-2">
-            <Steps
-              progressDot
-              direction="vertical"
-              current={itemStep.actioncurrent}
-              items={itemStep.actionlist.map((itemAction, indexAction) =>
-                calcActionItem(itemAction, indexStep, indexAction)
-              )}
-            />
-          </div>
-        ),
-      };
-    });
-
-    return result;
-  };
-
   useEffect(() => {
+    const calcStepList = (source: IStepItemType[] = []) => {
+      const result = source.map((itemStep, indexStep) => {
+        return {
+          title: (
+            <div id={`step-item-${indexStep}`} className="font-bold">
+              {itemStep.title}
+            </div>
+          ),
+          description: (
+            <div className="box-border pl-2">
+              <Steps
+                progressDot
+                direction="vertical"
+                current={itemStep.actioncurrent}
+                items={itemStep.actionlist.map((itemAction, indexAction) =>
+                  calcActionItem(itemAction, indexStep, indexAction)
+                )}
+              />
+            </div>
+          ),
+        };
+      });
+
+      return result;
+    };
+
     setStepListCurrentBody(stepListCurrent);
     setStepListItemsBody(calcStepList(stepListItems));
   }, [caseInfo?.timestamp, stepListCurrent, stepListItems]);

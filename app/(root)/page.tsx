@@ -8,7 +8,7 @@ export default function RootPage() {
 
   useEffect(() => {
     router.push('/case-portal');
-  }, []);
+  }, [router]);
 
   return (
     <div className="w-full h-full relative">

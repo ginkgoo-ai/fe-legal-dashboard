@@ -75,7 +75,7 @@ export function FileUpload({
         onError?.(error instanceof Error ? error.message : 'Unknown error');
       }
     },
-    [onError, validateFiles]
+    [onChange, onError, validateFiles]
   );
 
   const handleDrop = useCallback(

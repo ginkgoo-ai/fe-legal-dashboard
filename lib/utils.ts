@@ -93,6 +93,7 @@ export const parseMessageContent = (content: string): ChatMessagePart[] => {
       })
       .filter(Boolean);
   } catch (error) {
+    console.log('parseMessageContent error', error);
     return [];
   }
 };

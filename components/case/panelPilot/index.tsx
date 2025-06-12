@@ -9,13 +9,7 @@ import { IconFoldRight } from '@/components/ui/icon';
 import { useEventManager } from '@/hooks/useEventManager';
 import { cn } from '@/lib/utils';
 import { useExtensionsStore } from '@/store/extensionsStore';
-import {
-  ICaseItemType,
-  IPilotType,
-  IStepItemType,
-  PilotModeEnum,
-  PilotStatusEnum,
-} from '@/types/case';
+import { ICaseItemType, IPilotType, IStepItemType, PilotModeEnum } from '@/types/case';
 import { IOcrFileType } from '@/types/file';
 import { memo, useEffect, useRef, useState } from 'react';
 
@@ -37,18 +31,15 @@ function PurePanelPilot(props: PanelPanelPilotProps) {
 
   const { extensionsInfo } = useExtensionsStore();
 
-  const { emit } = useEventManager('ginkgo-message', message => {
+  useEventManager('ginkgo-message', message => {
     // console.log('🚀 ~ useEventManager ~ data:', message);
 
     const { type: typeMsg, pilotInfo: pilotInfoMsg } = message;
     if (typeMsg === 'ginkgo-background-all-case-update') {
-      const {
-        caseId: caseIdMsg,
-        stepListCurrent: stepListCurrentMsg,
-        stepListItems: stepListItemsMsg,
-      } = pilotInfoMsg || {};
+      const { stepListCurrent: stepListCurrentMsg, stepListItems: stepListItemsMsg } =
+        pilotInfoMsg || {};
 
-      pilotInfoMsg && (pilotInfoMsg.pilotStatus = PilotStatusEnum.COMPLETED);
+      // pilotInfoMsg && (pilotInfoMsg.pilotStatus = PilotStatusEnum.COMPLETED);
 
       setPilotInfo(pilotInfoMsg);
       setStepListCurrent(stepListCurrentMsg);
@@ -87,20 +78,17 @@ function PurePanelPilot(props: PanelPanelPilotProps) {
       caseId: caseInfo?.id,
     });
 
-    if (false && Math.random() > 0.5) {
-      setPilotMode(PilotModeEnum.PREPARING);
-    } else {
-      setPilotMode(PilotModeEnum.READY);
-    }
+    // setPilotMode(PilotModeEnum.PREPARING);
+    setPilotMode(PilotModeEnum.READY);
 
     // gen fill_data
     fillDataRef.current = {};
-    caseInfo?.documents?.forEach((item: IOcrFileType, index: number) => {
+    caseInfo?.documents?.forEach((item: IOcrFileType) => {
       fillDataRef.current[item.documentType] = item.metadataJson
         ? JSON.parse(item.metadataJson)
         : {};
     });
-  }, [extensionsInfo?.version, caseInfo?.timestamp]);
+  }, [extensionsInfo?.version, caseInfo?.timestamp, caseInfo?.documents, caseInfo?.id]);
 
   const handleBtnStartClick = () => {
     const message = {
@@ -123,55 +111,6 @@ function PurePanelPilot(props: PanelPanelPilotProps) {
     window.postMessage(message, window.location.origin);
 
     setPilotMode(PilotModeEnum.READY);
-  };
-
-  // const handleBtnDownloadClick = async () => {
-  //   console.log('handleBtnDownloadClick', pilotInfo);
-  //   if (pilotInfo?.pdfUrl && pilotInfo?.cookiesStr) {
-  //     const headers = new AxiosHeaders();
-  //     // headers.set('Accept', 'application/octet-stream');
-  //     headers.set('withCredentials', true);
-  //     headers.set('Cookie', pilotInfo.cookiesStr);
-
-  //     const resDownloadCustomFile = await downloadCustomFile({
-  //       url: pilotInfo.pdfUrl,
-  //       headers,
-  //     });
-
-  //     // await saveBlob({ blobPart: resDownloadCustomFile });
-  //   }
-  // };
-
-  const handleBtnJumpClick = async () => {
-    if (!!pilotInfo?.tabInfo?.url) {
-      const messageJump = {
-        type: 'ginkgo-page-background-tab-update',
-        tabId: pilotInfo?.tabInfo?.id,
-        updateProperties: { active: true },
-      };
-      window.postMessage(messageJump, window.location.origin);
-
-      const messageOpenSidepanel = {
-        type: 'ginkgo-page-background-sidepanel-open',
-        options: {
-          tabId: pilotInfo?.tabInfo?.id,
-        },
-      };
-      window.postMessage(messageOpenSidepanel, window.location.origin);
-
-      // console.log('handleBtnJumpClick', messageJump, messageOpenSidepanel);
-    }
-  };
-
-  const handleBtnSidepanelOpenClick = async () => {
-    const messageOpenSidepanel = {
-      type: 'ginkgo-page-background-sidepanel-open',
-      options: {
-        tabId: pilotInfo?.tabInfo?.id,
-      },
-    };
-
-    window.postMessage(messageOpenSidepanel, window.location.origin);
   };
 
   const handleBtnInstallExtensionClick = () => {
