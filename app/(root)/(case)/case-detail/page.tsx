@@ -225,9 +225,12 @@ function CaseDetailContent() {
             <Splitter.Panel
               min={SIZE_PROFILEVAULT_MIN}
               size={sizeProfileVault}
-              className={cn('bg-white relative rounded-2xl flex-col flex h-full', {
-                'transition-all': false,
-              })}
+              className={cn(
+                'bg-white relative rounded-2xl flex-col flex h-full min-w-[680px]',
+                {
+                  'transition-all': false,
+                }
+              )}
             >
               <PanelProfileVault caseInfo={caseInfo} isFold={isFoldProfileVault} />
             </Splitter.Panel>

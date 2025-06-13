@@ -1,8 +1,9 @@
 import { PanelContainer } from '@/components/case/panelContainer';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { ICaseItemType, IProfileVaultDocumentType } from '@/types';
-import { Card } from 'antd';
-import { memo, useEffect, useState } from 'react';
+import { memo, useEffect, useRef, useState } from 'react';
+import { PanelProfileVaultOverview } from '../panelProfileVaultOverview';
 
 interface PanelProfileVaultProps {
   caseInfo: ICaseItemType | null;
@@ -12,11 +13,35 @@ interface PanelProfileVaultProps {
 function PurePanelProfileVault(props: PanelProfileVaultProps) {
   const { caseInfo = null, isFold } = props;
 
+  const tabList = useRef([
+    {
+      value: 'overview',
+      label: 'Overview',
+    },
+    {
+      value: 'applicantProfile',
+      label: 'Applicant Profile',
+    },
+    {
+      value: 'sponsorDetails',
+      label: 'Sponsor Details',
+    },
+    {
+      value: 'lawyer',
+      label: 'Lawyer',
+    },
+    {
+      value: 'caseSettings',
+      label: 'Case Settings',
+    },
+  ]);
+
   const [profileVaultDocumentList, setProfileVaultDocumentList] = useState<
     IProfileVaultDocumentType[]
   >([]);
 
   useEffect(() => {
+    console.log(caseInfo);
     const profileVaultDocumentListTmp =
       caseInfo?.documents?.map((itemDocument: any) => {
         let metadataForFrontObject: Record<string, unknown> = {};
@@ -48,34 +73,28 @@ function PurePanelProfileVault(props: PanelProfileVaultProps) {
       <div
         className={cn('flex flex-col overflow-y-auto px-4 pb-4 box-border flex-1 h-0')}
       >
-        {profileVaultDocumentList?.map((itemDocument, indexDocument) => {
-          return (
-            <Card key={`case-stream-document-${indexDocument}`}>
-              <div>
-                <span className="font-bold">{indexDocument + 1}.</span>
-                <span className="">{itemDocument.title}</span>
-              </div>
-              <div className="font-bold">{itemDocument.documentType}</div>
-              {itemDocument.metadataForFrontList?.map(
-                (itemMetadata: any, indexMetadata: any) => {
-                  return (
-                    <div
-                      key={`case-stream-document-metadata-${indexMetadata}`}
-                      className="flex flex-row gap-2"
-                    >
-                      <div className="flex-[0_0_auto] max-w-[50%] text-xs font-semibold whitespace-pre-wrap">
-                        {itemMetadata.key}:
-                      </div>
-                      <div className="flex-1 text-xs whitespace-pre-wrap">
-                        {itemMetadata.value}
-                      </div>
-                    </div>
-                  );
-                }
-              )}
-            </Card>
-          );
-        })}
+        <Tabs defaultValue="overview">
+          <TabsList className="rounded-full gap-x-2 bg-[#F1F1F4] mb-2">
+            {tabList.current.map(({ label, value }) => (
+              <TabsTrigger
+                value={value}
+                key={value}
+                className={cn(
+                  'rounded-full px-4 text-[#6B7280] data-[state="active"]:!text-white cursor-pointer'
+                )}
+              >
+                {label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+          <TabsContent value="overview">
+            <PanelProfileVaultOverview documents={profileVaultDocumentList} />
+          </TabsContent>
+          <TabsContent value="applicantProfile">UNDER CONSTRUCTION</TabsContent>
+          <TabsContent value="sponsorDetails">UNDER CONSTRUCTION</TabsContent>
+          <TabsContent value="lawyer">UNDER CONSTRUCTION</TabsContent>
+          <TabsContent value="caseSettings">UNDER CONSTRUCTION</TabsContent>
+        </Tabs>
       </div>
     </PanelContainer>
   );
