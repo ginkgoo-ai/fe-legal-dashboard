@@ -6,11 +6,16 @@ import { PilotStepBody } from '@/components/case/pilotStepBody';
 import { PilotStepHeader } from '@/components/case/pilotStepHeader';
 import { Button } from '@/components/ui/button';
 import { IconFoldRight } from '@/components/ui/icon';
+import { useEffectStrictMode } from '@/hooks/useEffectStrictMode';
 import { useEventManager } from '@/hooks/useEventManager';
 import { cn } from '@/lib/utils';
+import { getWorkflowList, getWorkflowStepData } from '@/service/api/case';
 import { useExtensionsStore } from '@/store/extensionsStore';
-import { ICaseItemType, IPilotType, IStepItemType, PilotModeEnum } from '@/types/case';
+import { ICaseItemType, IPilotType, PilotModeEnum } from '@/types/case';
+import { IWorkflowStepType } from '@/types/casePilot';
 import { IOcrFileType } from '@/types/file';
+import { produce } from 'immer';
+import { cloneDeep } from 'lodash';
 import { memo, useEffect, useRef, useState } from 'react';
 
 interface PanelPanelPilotProps {
@@ -22,12 +27,16 @@ interface PanelPanelPilotProps {
 function PurePanelPilot(props: PanelPanelPilotProps) {
   const { caseInfo, isFold, onBtnPanelRightClick } = props;
 
-  const fillDataRef = useRef<Record<string, unknown>>({});
+  const refFillData = useRef<Record<string, unknown>>({});
+
+  const [workflowId, setWorkflowId] = useState<string>(
+    '1221f2f4-5311-4e15-b7dd-aecd4f8d9401'
+  );
 
   const [pilotMode, setPilotMode] = useState<PilotModeEnum | null>(null);
   const [pilotInfo, setPilotInfo] = useState<IPilotType | null>(null);
   const [stepListCurrent, setStepListCurrent] = useState<number>(0);
-  const [stepListItems, setStepListItems] = useState<IStepItemType[]>([]);
+  const [stepListItems, setStepListItems] = useState<IWorkflowStepType[]>([]);
 
   const { extensionsInfo } = useExtensionsStore();
 
@@ -42,8 +51,8 @@ function PurePanelPilot(props: PanelPanelPilotProps) {
       // pilotInfoMsg && (pilotInfoMsg.pilotStatus = PilotStatusEnum.COMPLETED);
 
       setPilotInfo(pilotInfoMsg);
-      setStepListCurrent(stepListCurrentMsg);
-      setStepListItems(stepListItemsMsg);
+      // setStepListCurrent(stepListCurrentMsg);
+      // setStepListItems(stepListItemsMsg);
 
       if (
         stepListCurrentMsg >= 0 &&
@@ -67,6 +76,20 @@ function PurePanelPilot(props: PanelPanelPilotProps) {
     }
   });
 
+  const init = async () => {
+    const res = await getWorkflowList({
+      workflowId,
+    });
+
+    if (res) {
+      setStepListItems(res.steps);
+    }
+  };
+
+  useEffectStrictMode(() => {
+    init();
+  }, [workflowId]);
+
   useEffect(() => {
     if (!extensionsInfo?.version) {
       setPilotMode(PilotModeEnum.NOT_INSTALL);
@@ -83,9 +106,9 @@ function PurePanelPilot(props: PanelPanelPilotProps) {
     setPilotMode(PilotModeEnum.RUNNING);
 
     // gen fill_data
-    fillDataRef.current = {};
+    refFillData.current = {};
     caseInfo?.documents?.forEach((item: IOcrFileType) => {
-      fillDataRef.current[item.documentType] = item.metadataJson
+      refFillData.current[item.documentType] = item.metadataJson
         ? JSON.parse(item.metadataJson)
         : {};
     });
@@ -95,7 +118,7 @@ function PurePanelPilot(props: PanelPanelPilotProps) {
     const message = {
       type: 'ginkgo-page-all-case-start',
       caseId: caseInfo?.id,
-      fill_data: fillDataRef.current,
+      fill_data: refFillData.current,
     };
 
     window.postMessage(message, window.location.origin);
@@ -114,8 +137,26 @@ function PurePanelPilot(props: PanelPanelPilotProps) {
     setPilotMode(PilotModeEnum.READY);
   };
 
-  const handleBtnInstallExtensionClick = () => {
-    console.log('handleBtnInstallExtensionClick');
+  const handleStepCollapseChange = async (stepKey: string) => {
+    console.log('handleStepCollapseChange', stepKey);
+
+    const res = await getWorkflowStepData({
+      workflowId,
+      stepKey,
+    });
+
+    setStepListItems(prev =>
+      cloneDeep(
+        produce(prev, draft => {
+          const index = draft.findIndex(item => {
+            return item.step_key === stepKey;
+          });
+          if (index >= 0) {
+            draft[index].data = res;
+          }
+        })
+      )
+    );
   };
 
   return (
@@ -134,63 +175,6 @@ function PurePanelPilot(props: PanelPanelPilotProps) {
           <PilotStepHeader pilotInfo={pilotInfo} onBtnPauseClick={handleBtnPauseClick} />
         ) : null;
       }}
-      // renderFooter={() => {
-      //   return (
-      //     <div className="flex flex-col w-full">
-      //       <div className="flex flex-col flex-[0_0_auto]">
-      //         <div className="flex flex-row gap-2">
-      //           <div className="flex flex-row gap-2">
-      //             <span className="whitespace-nowrap font-bold">Status:</span>
-      //             <span
-      //               className={cn('font-bold', {
-      //                 'text-green-500': pilotInfo?.pilotStatus !== PilotStatusEnum.HOLD,
-      //                 'text-red-500': pilotInfo?.pilotStatus === PilotStatusEnum.HOLD,
-      //               })}
-      //             >
-      //               {pilotInfo?.pilotStatus || ''}
-      //             </span>
-      //           </div>
-      //           <div className="flex flex-row gap-2">
-      //             <span className="whitespace-nowrap font-bold">Version:</span>
-      //             <span className={cn('font-bold')}>{extensionsInfo?.version}</span>
-      //           </div>
-      //         </div>
-      //       </div>
-      //       <div className="flex flex-row gap-2">
-      //         <Button
-      //           variant="default"
-      //           disabled={!extensionsInfo?.version}
-      //           onClick={handleBtnStartClick}
-      //         >
-      //           <CirclePlay />
-      //         </Button>
-      //         <Button
-      //           variant="outline"
-      //           disabled={!extensionsInfo?.version}
-      //           onClick={handleBtnStopClick}
-      //         >
-      //           <CircleStop />
-      //         </Button>
-
-      //         <Button
-      //           variant="outline"
-      //           disabled={!extensionsInfo?.version || !pilotInfo?.tabInfo?.id}
-      //           onClick={handleBtnJumpClick}
-      //         >
-      //           <SquareArrowOutUpRight />
-      //         </Button>
-
-      //         <Button
-      //           variant="outline"
-      //           disabled={!extensionsInfo?.version || !pilotInfo?.tabInfo?.id}
-      //           onClick={handleBtnSidepanelOpenClick}
-      //         >
-      //           <PanelRight />
-      //         </Button>
-      //       </div>
-      //     </div>
-      //   );
-      // }}
     >
       <div className={cn('flex flex-col overflow-y-auto p-4 box-border flex-1 h-0')}>
         {pilotMode === PilotModeEnum.NOT_INSTALL ? <PilotNotInstall /> : null}
@@ -211,11 +195,9 @@ function PurePanelPilot(props: PanelPanelPilotProps) {
 
         {pilotMode === PilotModeEnum.RUNNING ? (
           <PilotStepBody
-            caseInfo={caseInfo}
             pilotInfo={pilotInfo}
-            workflowId="1221f2f4-5311-4e15-b7dd-aecd4f8d9401"
-            stepListCurrent={stepListCurrent}
             stepListItems={stepListItems}
+            onCollapseChange={handleStepCollapseChange}
           />
         ) : null}
       </div>

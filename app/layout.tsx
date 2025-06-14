@@ -8,6 +8,7 @@ import { useUserStore } from '@/store';
 import { useExtensionsStore } from '@/store/extensionsStore';
 import '@/style/global.css';
 import { ExtensionsInfo } from '@/types/extensions';
+import '@ant-design/v5-patch-for-react-19';
 import { Poppins } from 'next/font/google';
 import { usePathname, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
