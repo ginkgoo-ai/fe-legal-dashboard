@@ -49,7 +49,7 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
     }
 
     const renderStepLabel = (itemStep: IWorkflowStepType, indexStep: number) => {
-      const isSelect = stepListActiveKeyBody.includes(String(indexStep));
+      const isSelect = stepListActiveKeyBody.includes(itemStep.step_key);
       return (
         <div
           id={`step-item-${indexStep}`}
@@ -96,7 +96,7 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
     };
 
     const renderStepChildren = (itemStep: IWorkflowStepType, indexStep: number) => {
-      if (!itemStep?.data) {
+      if (itemStep.step_key !== 'Declaration' && !itemStep?.data) {
         return null;
       }
 
