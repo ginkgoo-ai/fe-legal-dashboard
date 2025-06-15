@@ -1,3 +1,5 @@
+'use client';
+
 import { Button } from '@/components/ui/button';
 import { IPilotType } from '@/types/case';
 import Image from 'next/image';

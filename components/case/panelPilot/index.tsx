@@ -1,3 +1,5 @@
+'use client';
+
 import { PanelContainer } from '@/components/case/panelContainer';
 import { PilotNotInstall } from '@/components/case/pilotNotInstall';
 import { PilotPreparing } from '@/components/case/pilotPreparing';

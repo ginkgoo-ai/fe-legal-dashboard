@@ -1,3 +1,5 @@
+'use client';
+
 import { IWorkflowStepDataFormDataType, IWorkflowStepType } from '@/types/casePilot';
 import { Steps, Tooltip } from 'antd';
 import { memo } from 'react';

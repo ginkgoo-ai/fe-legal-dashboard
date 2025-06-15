@@ -1,3 +1,5 @@
+'use client';
+
 import { PanelContainer } from '@/components/case/panelContainer';
 import { FileUploadSimple } from '@/components/common/form/upload/fileUploadSimple';
 import { ItemFile } from '@/components/common/itemFile';

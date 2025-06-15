@@ -1,6 +1,8 @@
+'use client';
+
 import { PanelContainer } from '@/components/case/panelContainer';
 import { cn } from '@/lib/utils';
-import { ICaseItemType, IProfileVaultDocumentType } from '@/types';
+import { ICaseItemType, IProfileVaultDocumentType } from '@/types/case';
 import { Card } from 'antd';
 import { memo, useEffect, useState } from 'react';
 

@@ -1,3 +1,5 @@
+'use client';
+
 import { IActionItemType, ICaseItemType, IStepItemType } from '@/types/case';
 import { StepProps, Steps, Tag, Tooltip } from 'antd';
 import { memo, useEffect, useState } from 'react';
@@ -69,7 +71,7 @@ function PurePilotStepBodyOld(props: PurePilotStepBodyOldProps) {
                 progressDot
                 direction="vertical"
                 current={itemStep.actioncurrent}
-                items={itemStep.actionlist.map((itemAction, indexAction) =>
+                items={itemStep.actionlist?.map((itemAction, indexAction) =>
                   calcActionItem(itemAction, indexStep, indexAction)
                 )}
               />

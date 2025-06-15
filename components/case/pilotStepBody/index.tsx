@@ -1,3 +1,5 @@
+'use client';
+
 import { PilotStepBodyDeclaration } from '@/components/case/pilotStepBodyDeclaration';
 import { PilotStepBodyForm } from '@/components/case/pilotStepBodyForm';
 import { PilotStepBodyStep } from '@/components/case/pilotStepBodyStep';

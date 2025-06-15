@@ -1,3 +1,5 @@
+'use client';
+
 import { Button } from '@/components/ui/button';
 import { IconExtension, IconInfo } from '@/components/ui/icon';
 import UtilsManager from '@/customManager/UtilsManager';

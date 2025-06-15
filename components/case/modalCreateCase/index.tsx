@@ -1,3 +1,5 @@
+'use client';
+
 import { FileUpload } from '@/components/common/form/upload/fileUpload';
 import { ItemFile } from '@/components/common/itemFile';
 import { Button } from '@/components/ui/button';

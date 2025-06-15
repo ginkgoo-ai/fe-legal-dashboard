@@ -1,3 +1,5 @@
+'use client';
+
 import { Tag } from 'antd';
 import { memo } from 'react';
 
@@ -19,7 +21,7 @@ function PureTagStatus(props: TagStatusProps) {
         borderRadius: '6px',
         padding: '6px 11.5px',
         fontSize: '12px',
-        fontWeight: 700,
+        // fontWeight: 700,
       }}
     >
       {children ? <>{children}</> : <span style={{ color: colorText }}>{text}</span>}
