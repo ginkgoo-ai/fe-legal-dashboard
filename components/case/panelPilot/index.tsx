@@ -11,14 +11,13 @@ import { IconFoldRight } from '@/components/ui/icon';
 import { useEffectStrictMode } from '@/hooks/useEffectStrictMode';
 import { useEventManager } from '@/hooks/useEventManager';
 import { cn } from '@/lib/utils';
-import { getWorkflowList, getWorkflowStepData } from '@/service/api/case';
 import { useExtensionsStore } from '@/store/extensionsStore';
 import { ICaseItemType, IPilotType, PilotModeEnum } from '@/types/case';
 import { IWorkflowStepType } from '@/types/casePilot';
 import { IOcrFileType } from '@/types/file';
-import { produce } from 'immer';
-import { cloneDeep } from 'lodash';
+import { message as messageAntd } from 'antd';
 import { memo, useEffect, useRef, useState } from 'react';
+import { stepListItemsDeclaration } from './config';
 
 interface PanelPanelPilotProps {
   caseInfo: ICaseItemType | null;
@@ -34,10 +33,8 @@ function PurePanelPilot(props: PanelPanelPilotProps) {
   const [workflowId, setWorkflowId] = useState<string>(
     '1221f2f4-5311-4e15-b7dd-aecd4f8d9401'
   );
-
   const [pilotMode, setPilotMode] = useState<PilotModeEnum | null>(null);
   const [pilotInfo, setPilotInfo] = useState<IPilotType | null>(null);
-  const [stepListCurrent, setStepListCurrent] = useState<number>(0);
   const [stepListItems, setStepListItems] = useState<IWorkflowStepType[]>([]);
 
   const { extensionsInfo } = useExtensionsStore();
@@ -46,51 +43,74 @@ function PurePanelPilot(props: PanelPanelPilotProps) {
     // console.log('🚀 ~ useEventManager ~ data:', message);
 
     const { type: typeMsg, pilotInfo: pilotInfoMsg } = message;
-    if (typeMsg === 'ginkgo-background-all-case-update') {
-      const { stepListCurrent: stepListCurrentMsg, stepListItems: stepListItemsMsg } =
-        pilotInfoMsg || {};
 
-      // pilotInfoMsg && (pilotInfoMsg.pilotStatus = PilotStatusEnum.COMPLETED);
+    switch (typeMsg) {
+      case 'ginkgo-background-all-case-update': {
+        const { steps: stepsMsg } = pilotInfoMsg || {};
 
-      setPilotInfo(pilotInfoMsg);
-      // setStepListCurrent(stepListCurrentMsg);
-      // setStepListItems(stepListItemsMsg);
+        setPilotInfo(pilotInfoMsg);
+        if (stepsMsg?.length > 0) {
+          setStepListItems(stepsMsg.concat(stepListItemsDeclaration));
+        }
 
-      if (
-        stepListCurrentMsg >= 0 &&
-        stepListItemsMsg?.length > 0 &&
-        !!stepListItemsMsg[stepListCurrentMsg]
-      ) {
-        setTimeout(() => {
-          const { actioncurrent, actionlist } =
-            stepListItemsMsg[stepListCurrentMsg] || {};
-          if (actioncurrent >= 0 && actionlist?.length > 0) {
-            document
-              .getElementById(`action-item-${stepListCurrentMsg}-${actioncurrent}`)
-              ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          } else {
-            document
-              .getElementById(`step-item-${stepListCurrentMsg}`)
-              ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          }
-        }, 40);
+        // if (
+        //   stepListCurrentMsg >= 0 &&
+        //   stepListItemsMsg?.length > 0 &&
+        //   !!stepListItemsMsg[stepListCurrentMsg]
+        // ) {
+        //   setTimeout(() => {
+        //     const { actioncurrent, actionlist } =
+        //       stepListItemsMsg[stepListCurrentMsg] || {};
+        //     if (actioncurrent >= 0 && actionlist?.length > 0) {
+        //       document
+        //         .getElementById(`action-item-${stepListCurrentMsg}-${actioncurrent}`)
+        //         ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        //     } else {
+        //       document
+        //         .getElementById(`step-item-${stepListCurrentMsg}`)
+        //         ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        //     }
+        //   }, 40);
+        // }
+        break;
+      }
+      case 'ginkgo-background-all-toast': {
+        const { content } = message || {};
+        messageAntd.open({
+          content,
+          type: 'info',
+        });
+        console.log('ginkgo-background-all-toast', content);
+        break;
+      }
+      case 'ginkgo-background-all-case-error': {
+        const { content } = message || {};
+        messageAntd.open({
+          content,
+          type: 'error',
+        });
+        setPilotMode(PilotModeEnum.READY);
+      }
+      default: {
+        break;
       }
     }
   });
 
-  const init = async () => {
-    const res = await getWorkflowList({
-      workflowId,
-    });
-
-    if (res) {
-      setStepListItems(res.steps);
-    }
-  };
-
   useEffectStrictMode(() => {
-    init();
-  }, [workflowId]);
+    if (!workflowId) {
+      return;
+    }
+
+    const message = {
+      type: 'ginkgo-page-background-case-query',
+      caseId: caseInfo?.id,
+      workflowId,
+      fill_data: refFillData.current,
+    };
+
+    window.postMessage(message, window.location.origin);
+  }, [caseInfo?.id, workflowId]);
 
   useEffect(() => {
     if (!extensionsInfo?.version) {
@@ -104,8 +124,8 @@ function PurePanelPilot(props: PanelPanelPilotProps) {
     });
 
     // setPilotMode(PilotModeEnum.PREPARING);
-    // setPilotMode(PilotModeEnum.READY);
-    setPilotMode(PilotModeEnum.RUNNING);
+    setPilotMode(PilotModeEnum.READY);
+    // setPilotMode(PilotModeEnum.RUNNING);
 
     // gen fill_data
     refFillData.current = {};
@@ -117,21 +137,27 @@ function PurePanelPilot(props: PanelPanelPilotProps) {
   }, [extensionsInfo?.version, caseInfo?.timestamp, caseInfo?.documents, caseInfo?.id]);
 
   const handleBtnStartClick = () => {
+    const workflowIdTmp = '1221f2f4-5311-4e15-b7dd-aecd4f8d9401';
+    const url = 'https://www.baidu.com/';
+    //'https://apply-to-visit-or-stay-in-the-uk.homeoffice.gov.uk/SKILLED_WORK/3434-4632-5724-0670/';
     const message = {
       type: 'ginkgo-page-all-case-start',
+      url,
       caseId: caseInfo?.id,
+      workflowId: workflowIdTmp,
       fill_data: refFillData.current,
     };
 
     window.postMessage(message, window.location.origin);
 
     setPilotMode(PilotModeEnum.RUNNING);
+    setWorkflowId(workflowIdTmp);
   };
 
   const handleBtnPauseClick = () => {
     const message = {
       type: 'ginkgo-page-all-case-stop',
-      caseId: caseInfo?.id,
+      workflowId,
     };
 
     window.postMessage(message, window.location.origin);
@@ -140,25 +166,13 @@ function PurePanelPilot(props: PanelPanelPilotProps) {
   };
 
   const handleStepCollapseChange = async (stepKey: string) => {
-    console.log('handleStepCollapseChange', stepKey);
-
-    const res = await getWorkflowStepData({
+    const message = {
+      type: 'ginkgo-page-background-polit-step-query',
       workflowId,
       stepKey,
-    });
+    };
 
-    setStepListItems(prev =>
-      cloneDeep(
-        produce(prev, draft => {
-          const index = draft.findIndex(item => {
-            return item.step_key === stepKey;
-          });
-          if (index >= 0) {
-            draft[index].data = res;
-          }
-        })
-      )
-    );
+    window.postMessage(message, window.location.origin);
   };
 
   return (

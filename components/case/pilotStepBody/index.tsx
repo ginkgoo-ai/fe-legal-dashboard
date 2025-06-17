@@ -16,7 +16,6 @@ import type { CollapseProps } from 'antd';
 import { Collapse } from 'antd';
 import { Check } from 'lucide-react';
 import { memo, useEffect, useState } from 'react';
-import { stepListItemsDeclaration } from './config';
 import './index.css';
 
 interface PilotStepBodyProps {
@@ -38,6 +37,7 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
       // 如果有新增的 key，则调用 onCollapseChange
       onCollapseChange?.(newKeys[0]);
     }
+    console.log('handleCollapseChange', key);
     setStepListActiveKeyBody(key);
   };
 
@@ -53,17 +53,17 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
       return (
         <div
           id={`step-item-${indexStep}`}
-          className={cn('flex flex-row justify-between items-center gap-3 w-full', {
+          className={cn('flex w-full flex-row items-center justify-between gap-3', {
             'border-bottom': !isSelect,
           })}
         >
-          <div className="flex flex-row gap-3.5 flex-1 w-0">
-            <div className="flex flex-row w-4 h-6 flex-[0_0_auto] justify-center items-center">
+          <div className="flex w-0 flex-1 flex-row gap-3.5">
+            <div className="flex h-6 w-4 flex-[0_0_auto] flex-row items-center justify-center">
               {itemStep.step_key === 'Declaration' ? (
                 <IconStepDeclaration size={16} />
               ) : (
                 <>
-                  {itemStep.status === 'DONE' ? (
+                  {itemStep.status === 'COMPLETED_SUCCESS' ? (
                     <Check size={16} color="#00ff00" />
                   ) : null}
                   {itemStep.status === 'ACTIVE' ? (
@@ -73,10 +73,10 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
                 </>
               )}
             </div>
-            <div className="flex-1 w-0 flex justify-start items-center gap-3">
+            <div className="flex w-0 flex-1 items-center justify-start gap-3">
               <div className="truncate">{itemStep.name}</div>
               {itemStep.step_key === 'Declaration' ? (
-                <div className="flex-[0_0_auto] h-full text-xs mt-0.5 text-[#FF55CB] flex justify-center items-center">
+                <div className="mt-0.5 flex h-full flex-[0_0_auto] items-center justify-center text-xs text-[#FF55CB]">
                   Confirm Declaration
                 </div>
               ) : null}
@@ -125,7 +125,7 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
     };
 
     setStepListItemsBody(
-      stepListItems.concat(stepListItemsDeclaration).map((item, index) => {
+      stepListItems.map((item, index) => {
         return {
           key: item.step_key,
           label: renderStepLabel(item, index),
@@ -135,36 +135,6 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
       })
     );
   }, [stepListItems]);
-
-  // useEffect(() => {
-  //   setStepListActiveKeyBody(prev => {
-  //     const prevArray = Array.isArray(prev) ? prev : [prev];
-  //     const strStepListCurrent = String(stepListCurrent);
-
-  //     return prevArray.includes(strStepListCurrent)
-  //       ? prevArray
-  //       : [...prevArray, strStepListCurrent];
-  //   });
-
-  //   // setStepListCurrentBody(stepListCurrent);
-  // }, [stepListCurrent]);
-
-  // const handleBtnDownloadClick = async () => {
-  //   console.log('handleBtnDownloadClick', pilotInfo);
-  //   if (pilotInfo?.pdfUrl && pilotInfo?.cookiesStr) {
-  //     const headers = new AxiosHeaders();
-  //     // headers.set('Accept', 'application/octet-stream');
-  //     headers.set('withCredentials', true);
-  //     headers.set('Cookie', pilotInfo.cookiesStr);
-
-  //     const resDownloadCustomFile = await downloadCustomFile({
-  //       url: pilotInfo.pdfUrl,
-  //       headers,
-  //     });
-
-  //     // await saveBlob({ blobPart: resDownloadCustomFile });
-  //   }
-  // };
 
   return stepListItemsBody && stepListItemsBody.length > 0 ? (
     <div className="relative w-full flex justify-start items-center rounded-lg border border-[#D8DFF5] box-border p-2">

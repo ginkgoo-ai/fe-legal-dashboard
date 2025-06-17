@@ -1,15 +1,5 @@
-import {
-  IGetWorkflowListType,
-  IGetWorkflowStepDataType,
-  IWorkflowStepDataType,
-  IWorkflowType,
-} from '@/types/casePilot';
 import ApiRequest from '../axios';
-import {
-  mockCaseStream,
-  mockGetWorkflowList,
-  mockGetWorkflowStepData,
-} from '../mock/case';
+import { mockCaseStream } from '../mock/case';
 
 interface ICaseStreamParamsType {
   caseId: string;
@@ -23,8 +13,8 @@ interface IOcrDocumentsParamsType {
 export const PilotApi = {
   caseStream: '/legalcase/cases/:caseId/stream',
   documents: '/legalcase/cases/:caseId/documents',
-  workflows: '/workflows/:workflowId',
-  workflowsStep: '/workflows/:workflowId/steps/:stepKey',
+  // workflows: '/workflows/:workflowId',
+  // workflowsStep: '/workflows/:workflowId/steps/:stepKey',
 };
 
 // const baseUrl = process.env.LOCAL_BASE_URL
@@ -124,39 +114,39 @@ export const caseStream = async (
   };
 };
 
-export const getWorkflowList = async (
-  params: IGetWorkflowListType
-): Promise<IWorkflowType> => {
-  const { workflowId = '' } = params;
+// export const getWorkflowList = async (
+//   params: IGetWorkflowListType
+// ): Promise<IWorkflowType> => {
+//   const { workflowId = '' } = params;
 
-  if (IS_MOCK) {
-    return new Promise(resolve => {
-      resolve(mockGetWorkflowList);
-    });
-  }
+//   if (IS_MOCK) {
+//     return new Promise(resolve => {
+//       resolve(mockGetWorkflowList);
+//     });
+//   }
 
-  return ApiRequest.get(
-    `${baseUrl}${PilotApi.workflows}`.replace(':workflowId', workflowId)
-  );
-};
+//   return ApiRequest.get(
+//     `${baseUrl}${PilotApi.workflows}`.replace(':workflowId', workflowId)
+//   );
+// };
 
-export const getWorkflowStepData = async (
-  params: IGetWorkflowStepDataType
-): Promise<IWorkflowStepDataType> => {
-  const { workflowId = '', stepKey = '' } = params;
+// export const getWorkflowStepData = async (
+//   params: IGetWorkflowStepDataType
+// ): Promise<IWorkflowStepDataType> => {
+//   const { workflowId = '', stepKey = '' } = params;
 
-  if (IS_MOCK) {
-    return new Promise(resolve => {
-      resolve(mockGetWorkflowStepData);
-    });
-  }
+//   if (IS_MOCK) {
+//     return new Promise(resolve => {
+//       resolve(mockGetWorkflowStepData);
+//     });
+//   }
 
-  return ApiRequest.get(
-    `${baseUrl}${PilotApi.workflowsStep}`
-      .replace(':workflowId', workflowId)
-      .replace(':stepKey', stepKey)
-  );
-};
+//   return ApiRequest.get(
+//     `${baseUrl}${PilotApi.workflowsStep}`
+//       .replace(':workflowId', workflowId)
+//       .replace(':stepKey', stepKey)
+//   );
+// };
 
 export const ocrDocuments = async (
   params: IOcrDocumentsParamsType
