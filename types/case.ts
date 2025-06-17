@@ -41,8 +41,7 @@ export enum PilotModeEnum {
 }
 
 export enum StepModeEnum {
-  ACTION = 'ACTION',
-  FORM = 'FORM',
+  NORMAL = 'NORMAL',
   DECLARATION = 'DECLARATION',
 }
 

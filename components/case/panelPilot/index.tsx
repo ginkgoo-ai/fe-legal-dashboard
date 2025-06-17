@@ -12,7 +12,7 @@ import { useEffectStrictMode } from '@/hooks/useEffectStrictMode';
 import { useEventManager } from '@/hooks/useEventManager';
 import { cn } from '@/lib/utils';
 import { useExtensionsStore } from '@/store/extensionsStore';
-import { ICaseItemType, IPilotType, PilotModeEnum } from '@/types/case';
+import { IActionItemType, ICaseItemType, IPilotType, PilotModeEnum } from '@/types/case';
 import { IWorkflowStepType } from '@/types/casePilot';
 import { IOcrFileType } from '@/types/file';
 import { message as messageAntd } from 'antd';
@@ -85,11 +85,14 @@ function PurePanelPilot(props: PanelPanelPilotProps) {
       }
       case 'ginkgo-background-all-case-error': {
         const { content } = message || {};
-        messageAntd.open({
-          content,
-          type: 'error',
-        });
+        if (content) {
+          messageAntd.open({
+            content,
+            type: 'error',
+          });
+        }
         setPilotMode(PilotModeEnum.READY);
+        break;
       }
       default: {
         break;
@@ -138,7 +141,7 @@ function PurePanelPilot(props: PanelPanelPilotProps) {
 
   const handleBtnStartClick = () => {
     const workflowIdTmp = '1221f2f4-5311-4e15-b7dd-aecd4f8d9401';
-    const url = 'https://www.baidu.com/';
+    const url = 'https://visas-immigration.service.gov.uk/next'; // test
     //'https://apply-to-visit-or-stay-in-the-uk.homeoffice.gov.uk/SKILLED_WORK/3434-4632-5724-0670/';
     const message = {
       type: 'ginkgo-page-all-case-start',
@@ -173,6 +176,24 @@ function PurePanelPilot(props: PanelPanelPilotProps) {
     };
 
     window.postMessage(message, window.location.origin);
+  };
+
+  const handleStepContinueFilling = (params: { actionlistPre: IActionItemType[] }) => {
+    const { actionlistPre } = params || {};
+    const url = 'https://visas-immigration.service.gov.uk/next'; // test
+
+    try {
+      window.postMessage({
+        type: 'ginkgo-page-all-case-start',
+        url,
+        caseId: caseInfo?.id,
+        workflowId,
+        fill_data: refFillData.current,
+        actionlistPre,
+      });
+    } catch (error) {
+      console.error('[Ginkgo] Sidepanel handleContinueFilling error', error);
+    }
   };
 
   return (
@@ -214,6 +235,7 @@ function PurePanelPilot(props: PanelPanelPilotProps) {
             pilotInfo={pilotInfo}
             stepListItems={stepListItems}
             onCollapseChange={handleStepCollapseChange}
+            onContinueFilling={handleStepContinueFilling}
           />
         ) : null}
       </div>

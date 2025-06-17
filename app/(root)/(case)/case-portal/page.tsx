@@ -34,9 +34,9 @@ export default function CasePortalPage() {
     );
   };
 
-  const handleCardEditClick = (itemCase: ICaseItemType) => {
-    console.log('handleCardEditClick', itemCase);
-  };
+  // const handleCardEditClick = (itemCase: ICaseItemType) => {
+  //   console.log('handleCardEditClick', itemCase);
+  // };
 
   return (
     <div className="flex h-0 w-full max-w-[var(--width-max)] flex-1 flex-col px-[var(--width-padding)]">

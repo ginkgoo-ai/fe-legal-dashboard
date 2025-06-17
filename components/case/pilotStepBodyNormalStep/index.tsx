@@ -1,16 +1,16 @@
 'use client';
 
-import { IWorkflowStepDataFormDataType, IWorkflowStepType } from '@/types/casePilot';
+import { IWorkflowStepDataFormDataType } from '@/types/casePilot';
 import { Steps, Tooltip } from 'antd';
 import { memo } from 'react';
 
-interface PilotStepBodyStepProps {
-  itemStep: IWorkflowStepType;
+interface PilotStepBodyNormalStepProps {
+  formDataNormal: IWorkflowStepDataFormDataType[];
   indexStep: number;
 }
 
-function PurePilotStepBodyStep(props: PilotStepBodyStepProps) {
-  const { itemStep, indexStep } = props;
+function PurePilotStepBodyNormalStep(props: PilotStepBodyNormalStepProps) {
+  const { formDataNormal, indexStep } = props;
 
   const calcActionItem = (
     item: IWorkflowStepDataFormDataType,
@@ -34,12 +34,12 @@ function PurePilotStepBodyStep(props: PilotStepBodyStepProps) {
           className="flex flex-row items-center gap-1"
         >
           <Tooltip placement="top" title={label} mouseEnterDelay={1}>
-            <div className="flex-1 text-sm truncate text-[#B4B3B3]">{label}</div>
+            <div className="flex-1 truncate text-sm text-[#B4B3B3]">{label}</div>
           </Tooltip>
         </div>
       ),
       description: (
-        <div className="flex w-full flex-row text-sm gap-1 text-[#464E5F]">{value}</div>
+        <div className="flex w-full flex-row gap-1 text-sm text-[#464E5F]">{value}</div>
       ),
     };
   };
@@ -50,7 +50,7 @@ function PurePilotStepBodyStep(props: PilotStepBodyStepProps) {
       progressDot
       direction="vertical"
       current={0}
-      items={itemStep?.data?.form_data?.map(
+      items={formDataNormal?.map(
         (itemFormData: IWorkflowStepDataFormDataType, indexFormData: number) => {
           return calcActionItem(itemFormData, indexStep, indexFormData);
         }
@@ -59,4 +59,4 @@ function PurePilotStepBodyStep(props: PilotStepBodyStepProps) {
   );
 }
 
-export const PilotStepBodyStep = memo(PurePilotStepBodyStep);
+export const PilotStepBodyNormalStep = memo(PurePilotStepBodyNormalStep);
