@@ -1,4 +1,4 @@
-import { IFilesPDFHighlightType } from '@/types/file';
+import { IFilesPDFHighlightParamsType } from '@/types/file';
 import ApiRequest from '../axios';
 import { mockCaseStream } from '../mock/case';
 
@@ -165,7 +165,7 @@ export const ocrDocuments = async (
 };
 
 export const postFilesPDFHighlight = async (
-  params: IFilesPDFHighlightType
+  params: IFilesPDFHighlightParamsType
 ): Promise<BlobPart> => {
   // const { fileId, highlightData } = params;
 

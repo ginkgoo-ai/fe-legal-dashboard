@@ -47,22 +47,26 @@ export interface ISelectorResult {
   [key: string]: unknown;
 }
 
-export interface IGetWorkflowListType {
+export interface IGetWorkflowDetailParamsType {
   workflowId: string;
 }
 
-export interface IGetWorkflowStepDataType {
+export interface IGetWorkflowListParamsType {
+  userId: string;
+}
+
+export interface IGetWorkflowStepDataParamsType {
   workflowId: string;
   stepKey: string;
 }
 
-export interface IWorkflowsProcessFormType {
+export interface IWorkflowsProcessFormParamsType {
   workflowId: string;
   message: string;
   fill_data: Record<string, unknown>;
 }
 
-export interface IWorkflowsUploadProgressFileType {
+export interface IWorkflowsUploadProgressFileParamsType {
   workflowId: string;
   fileId: string;
 }

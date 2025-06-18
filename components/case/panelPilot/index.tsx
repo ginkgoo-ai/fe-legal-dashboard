@@ -75,12 +75,13 @@ function PurePanelPilot(props: PanelPanelPilotProps) {
         break;
       }
       case 'ginkgo-background-all-toast': {
-        const { content } = message || {};
+        const { typeToast, contentToast } = message || {};
         messageAntd.open({
-          content,
-          type: 'info',
+          type: typeToast,
+          content: contentToast,
         });
-        console.log('ginkgo-background-all-toast', content);
+        console.log('ginkgo-background-all-toast', typeToast, contentToast);
+
         break;
       }
       case 'ginkgo-background-all-case-error': {
