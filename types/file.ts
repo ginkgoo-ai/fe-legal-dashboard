@@ -1,3 +1,5 @@
+import { IWorkflowDummyDataType } from '@/types/casePilot';
+
 export enum FileStatus {
   UPLOADING = 'UPLOADING',
   ANALYSIS = 'ANALYSIS',
@@ -28,15 +30,15 @@ export interface ICloudFileType {
   id: string;
   originalName: string;
   storageName: string;
-  fileType: FileTypeEnum;
+  fileType: FileTypeEnum | string;
   fileSize: number;
   storagePath: string;
-  videoDuration?: number;
-  videoThumbnailId?: string;
-  videoThumbnailUrl?: string;
-  videoResolution?: string;
-  createdAt: string;
-  updatedAt: string;
+  videoDuration?: number | null;
+  videoThumbnailId?: string | null;
+  videoThumbnailUrl?: string | null;
+  videoResolution?: string | null;
+  createdAt: string | null;
+  updatedAt: string | null;
 }
 
 export interface IOcrFileType {
@@ -64,4 +66,14 @@ export interface IFileItemType {
   cloudFile?: ICloudFileType;
   ocrFile?: IOcrFileType;
   ocrResult?: Record<string, string>[];
+}
+
+export interface IFilesThirdPartType {
+  thirdPartUrl: string;
+  cookie: string;
+}
+
+export interface IFilesPDFHighlightType {
+  fileId: string;
+  highlightData: IWorkflowDummyDataType[];
 }

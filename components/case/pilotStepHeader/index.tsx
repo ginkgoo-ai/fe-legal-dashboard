@@ -8,7 +8,9 @@ import {
   IconPause,
   IconView,
 } from '@/components/ui/icon';
-import { IPilotType, PilotStatusEnum } from '@/types/case';
+import UtilsManager from '@/customManager/UtilsManager';
+import { postFilesPDFHighlight } from '@/service/api/case';
+import { IPilotType, PilotStatusEnum } from '@/types/casePilot';
 import { memo, MouseEventHandler } from 'react';
 
 interface PilotStepHeaderProps {
@@ -23,16 +25,37 @@ function PurePilotStepHeader(props: PilotStepHeaderProps) {
   //   !!pilotInfo &&
   //   [PilotStatusEnum.PAUSE, PilotStatusEnum.COMPLETED].includes(pilotInfo.pilotStatus);
 
-  const handleBtnDownloadPdfClick = () => {
+  const handleBtnDownloadPdfClick = async () => {
     console.log('handleBtnDownloadPdfClick');
+    if (!pilotInfo?.progress_file_id) {
+      return;
+    }
+    const resFilesPDFHighlight = await postFilesPDFHighlight({
+      fileId: pilotInfo?.progress_file_id,
+      highlightData: pilotInfo?.dummy_data_usage,
+    });
+    console.log('handleBtnDownloadPdfClick', resFilesPDFHighlight);
+    if (resFilesPDFHighlight) {
+      UtilsManager.saveBlob({
+        blobPart: resFilesPDFHighlight,
+      });
+    }
   };
 
-  const handleBtnGotoOfficialClick = () => {
-    console.log('handleBtnGotoOfficialClick');
-  };
+  // const handleBtnGotoOfficialClick = () => {
+  //   console.log('handleBtnGotoOfficialClick');
+  // };
 
   const handleBtnViewClick = () => {
     console.log('handleBtnViewClick');
+    if (!!pilotInfo?.tabInfo?.url) {
+      const messageJump = {
+        type: 'ginkgo-page-background-tab-update',
+        tabId: pilotInfo?.tabInfo?.id,
+        updateProperties: { active: true },
+      };
+      window.postMessage(messageJump, window.location.origin);
+    }
   };
 
   const renderPilotStepHeaderCompleted = () => {
@@ -91,12 +114,11 @@ function PurePilotStepHeader(props: PilotStepHeaderProps) {
                 <Button
                   variant="ghost"
                   className="flex-[1_1_auto] w-0"
-                  onClick={handleBtnGotoOfficialClick}
+                  onClick={handleBtnViewClick}
                 >
                   <IconView size={20} />
-                  <span className="text-primary truncate">
-                    Go to Official Submission Portal
-                  </span>
+                  <span className="text-primary truncate">Inspect Current Step</span>
+                  {/* <span className="text-primary truncate">Go to Official Submission Portal</span> */}
                 </Button>
               </div>
             </div>

@@ -18,33 +18,6 @@ export enum CaseStatusEnum {
   DEFAULT = 'DEFAULT',
 }
 
-export enum PilotStatusEnum {
-  INIT = 'INIT',
-  OPEN = 'OPEN',
-  QUERY = 'QUERY',
-  ANALYSIS = 'ANALYSIS',
-  ACTION = 'ACTION',
-  WAIT = 'WAIT',
-  HOLD = 'HOLD',
-  MANUAL = 'MANUAL',
-  NOT_SUPPORT = 'NOT_SUPPORT',
-  COMING_SOON = 'COMING_SOON',
-  PAUSE = 'PAUSE',
-  COMPLETED = 'COMPLETED',
-}
-
-export enum PilotModeEnum {
-  NOT_INSTALL = 'NOT_INSTALL',
-  PREPARING = 'PREPARING',
-  READY = 'READY',
-  RUNNING = 'RUNNING',
-}
-
-export enum StepModeEnum {
-  NORMAL = 'NORMAL',
-  DECLARATION = 'DECLARATION',
-}
-
 export type ActionResultType = 'success' | 'notFound' | 'manual';
 
 export interface IProfileVaultDocumentType extends IOcrFileType {
@@ -111,25 +84,8 @@ export interface IStepActionType {
 }
 
 export interface IStepItemType extends StepProps {
-  mode: StepModeEnum;
   descriptionText: string;
   actioncurrent?: number;
   actionlist?: IActionItemType[];
   formList?: IFormItemType[];
-}
-
-export interface IPilotType {
-  caseId: string;
-  fill_data: Record<string, unknown>;
-  tabInfo: {
-    [key: string]: unknown;
-  };
-  timer: NodeJS.Timeout | null;
-  pilotStatus: PilotStatusEnum;
-  stepListCurrent: number;
-  stepListItems: IStepItemType[];
-  repeatHash: string;
-  repeatCurrent: number;
-  pdfUrl: string;
-  cookiesStr: string;
 }

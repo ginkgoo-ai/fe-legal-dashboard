@@ -9,10 +9,11 @@ import {
   IconStepDown,
 } from '@/components/ui/icon';
 import { cn } from '@/lib/utils';
-import { IActionItemType, IPilotType } from '@/types/case';
-import { IWorkflowStepType } from '@/types/casePilot';
+import { IActionItemType } from '@/types/case';
+import { IPilotType, IWorkflowStepType } from '@/types/casePilot';
 import type { CollapseProps } from 'antd';
 import { Collapse } from 'antd';
+import dayjs from 'dayjs';
 import { Check } from 'lucide-react';
 import { memo, useEffect, useState } from 'react';
 import './index.css';
@@ -27,6 +28,7 @@ interface PilotStepBodyProps {
 function PurePilotStepBody(props: PilotStepBodyProps) {
   const { pilotInfo, stepListItems, onCollapseChange, onContinueFilling } = props;
 
+  const [refreshRenderTS, setRefreshRenderTS] = useState<number>(0);
   const [stepListActiveKeyBody, setStepListActiveKeyBody] = useState<string[]>([]);
   const [stepListItemsBody, setStepListItemsBody] = useState<CollapseProps['items']>([]);
 
@@ -50,8 +52,8 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
       // 收起操作
       setStepListActiveKeyBody(key);
     }
-    console.log('handleCollapseChange', key);
-    setStepListActiveKeyBody(key);
+
+    setRefreshRenderTS(+dayjs());
   };
 
   // update collapse
@@ -69,6 +71,7 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
           className={cn('flex w-full flex-row items-center justify-between gap-3', {
             'border-bottom': !isSelect,
           })}
+          data-ts={refreshRenderTS}
         >
           <div className="flex w-0 flex-1 flex-row gap-3.5">
             <div className="flex h-6 w-4 flex-[0_0_auto] flex-row items-center justify-center">
@@ -138,7 +141,7 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
         };
       })
     );
-  }, [stepListItems, onContinueFilling]);
+  }, [refreshRenderTS, stepListItems, onContinueFilling]);
 
   return stepListItemsBody && stepListItemsBody.length > 0 ? (
     <div className="relative box-border flex w-full items-center justify-start rounded-lg border border-[#D8DFF5] p-2">

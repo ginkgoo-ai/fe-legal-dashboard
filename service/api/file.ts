@@ -102,20 +102,4 @@ const downloadCustomFile = async (params: {
   );
 };
 
-const saveBlob = (params: { blobPart: BlobPart; fileName?: string }) => {
-  const { blobPart, fileName } = params;
-  const blob = new Blob([blobPart]);
-  const url = window.URL.createObjectURL(blob);
-  const a = document.createElement('a');
-
-  a.href = url;
-  if (fileName) {
-    a.download = fileName;
-  }
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  window.URL.revokeObjectURL(url);
-};
-
-export { downloadCustomFile, downloadFile, saveBlob, uploadFile, uploadFiles };
+export { downloadCustomFile, downloadFile, uploadFile, uploadFiles };

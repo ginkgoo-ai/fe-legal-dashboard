@@ -1,3 +1,4 @@
+import { IFilesPDFHighlightType } from '@/types/file';
 import ApiRequest from '../axios';
 import { mockCaseStream } from '../mock/case';
 
@@ -10,11 +11,16 @@ interface IOcrDocumentsParamsType {
   storageIds: string[];
 }
 
-export const PilotApi = {
+const PilotApi = {
   caseStream: '/legalcase/cases/:caseId/stream',
   documents: '/legalcase/cases/:caseId/documents',
   // workflows: '/workflows/:workflowId',
   // workflowsStep: '/workflows/:workflowId/steps/:stepKey',
+};
+
+const StorageApi = {
+  filesThirdPart: '/storage/v1/files/third-part',
+  filesPDFHighlight: '/storage/v1/files/pdf-highlight',
 };
 
 // const baseUrl = process.env.LOCAL_BASE_URL
@@ -155,5 +161,18 @@ export const ocrDocuments = async (
 
   return ApiRequest.post(`${baseUrl}${PilotApi.documents}`.replace(':caseId', caseId), {
     storageIds,
+  });
+};
+
+export const postFilesPDFHighlight = async (
+  params: IFilesPDFHighlightType
+): Promise<BlobPart> => {
+  // const { fileId, highlightData } = params;
+
+  return ApiRequest.post(`${baseUrl}${StorageApi.filesPDFHighlight}`, params, {
+    headers: {
+      Accept: 'application/octet-stream',
+    },
+    responseType: 'blob',
   });
 };

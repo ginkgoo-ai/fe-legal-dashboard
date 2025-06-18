@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { IPilotType } from '@/types/case';
+import { IPilotType } from '@/types/casePilot';
 import Image from 'next/image';
 import { memo, useCallback } from 'react';
 

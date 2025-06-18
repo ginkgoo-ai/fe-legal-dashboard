@@ -115,6 +115,13 @@ class UtilsManager {
     a.remove();
     window.URL.revokeObjectURL(url);
   };
+
+  saveBlob = (params: { blobPart: BlobPart; fileName?: string }) => {
+    const { blobPart, fileName } = params;
+    const blob = new Blob([blobPart]);
+
+    this.clickTagA({ url: window.URL.createObjectURL(blob), fileName });
+  };
 }
 
 export default UtilsManager.getInstance();
