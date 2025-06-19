@@ -408,7 +408,7 @@ function CaseDetailContent() {
               />
             </Splitter.Panel>
             {/* Pilot */}
-            {pilotInfo?.pilotStatus && pilotInfo?.pilotStatus !== PilotStatusEnum.HOLD ? (
+            {!!pilotInfo ? (
               <Splitter.Panel
                 min={SIZE_PILOT_MIN}
                 size={sizePilot}
