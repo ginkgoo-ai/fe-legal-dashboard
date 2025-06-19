@@ -99,9 +99,9 @@ function PureItemFile(props: ItemFileProps) {
       fileTypeTmp = ocrFile.fileType;
       dayjsUpdate = dayjs.utc(ocrFile.updatedAt).local();
     } else if (cloudFile) {
-      fileNameTmp = cloudFile.originalName;
+      fileNameTmp = cloudFile.filename;
       fileTypeTmp = cloudFile.fileType as FileTypeEnum;
-      dayjsUpdate = dayjs.utc(cloudFile.updatedAt).local();
+      dayjsUpdate = dayjs.utc(cloudFile.receivedAt).local();
     } else if (localFile) {
       fileNameTmp = localFile.name;
       fileTypeTmp = localFile.type as FileTypeEnum;

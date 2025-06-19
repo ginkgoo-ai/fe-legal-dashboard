@@ -1,4 +1,4 @@
-import { IOcrFileType } from '@/types/file';
+import { ICaseDocumentType, IOcrFileType } from '@/types/file';
 import { StepProps } from 'antd';
 
 export enum CaseStreamStatusEnum {
@@ -25,19 +25,32 @@ export interface IProfileVaultDocumentType extends IOcrFileType {
 }
 
 export interface ICaseItemType {
-  id: string;
-  title: string;
-  caseType: string;
-  documents?: IOcrFileType[];
-  status: CaseStatusEnum;
+  additionalData: null;
+  clientId: string | null;
+  clientName: string | null;
   createdAt: string;
+  description: string;
+  documentChecklist: unknown;
+  documents?: IOcrFileType[];
+  documentsCount: number;
+  endDate: null;
+  eventsCount: number;
+  id: string;
+  profileChecklist: unknown;
+  profileId: string;
+  profileName: string | null;
+  startDate: string | null;
+  status: string;
+  title: string;
+  travelDate: null;
   updatedAt: string;
+  visaType: string | null;
   caseStatusForFront?: {
     colorBackground: string;
     colorText: string;
     text: string;
   };
-  timestamp: number;
+  timestamp?: number;
   [key: string]: unknown;
 }
 
@@ -88,4 +101,21 @@ export interface IStepItemType extends StepProps {
   actioncurrent?: number;
   actionlist?: IActionItemType[];
   formList?: IFormItemType[];
+}
+
+export interface ICreateCaseParamsType {
+  clientName: string;
+  visaType: string;
+}
+
+export interface ICaseDocumentResultType {
+  success: boolean;
+  caseId: string;
+  message: string;
+  totalFiles: number;
+  acceptedFiles: number;
+  rejectedFiles: number;
+  receivedAt: string;
+  acceptedDocuments: ICaseDocumentType[];
+  rejectedDocuments: ICaseDocumentType[];
 }

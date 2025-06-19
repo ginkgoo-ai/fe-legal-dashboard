@@ -1,6 +1,18 @@
+import {
+  ICaseDocumentResultType,
+  ICaseItemType,
+  ICreateCaseParamsType,
+} from '@/types/case';
+import { IGetWorkflowDefinitionsParamsType } from '@/types/casePilot';
 import { IFilesPDFHighlightParamsType } from '@/types/file';
 import ApiRequest from '../axios';
-import { mockCaseStream } from '../mock/case';
+import {
+  mockCaseDetail,
+  mockCaseList,
+  mockCaseStream,
+  mockUploadDocument,
+  mockWorkflowDefinitions,
+} from '../mock/case';
 
 interface ICaseStreamParamsType {
   caseId: string;
@@ -11,11 +23,17 @@ interface IOcrDocumentsParamsType {
   storageIds: string[];
 }
 
-const PilotApi = {
+const CaseApi = {
+  case: '/legalcase/cases',
+  caseDetail: '/legalcase/cases/:caseId',
   caseStream: '/legalcase/cases/:caseId/stream',
   documents: '/legalcase/cases/:caseId/documents',
   // workflows: '/workflows/:workflowId',
   // workflowsStep: '/workflows/:workflowId/steps/:stepKey',
+};
+
+const WorkflowApi = {
+  workflowsDefinitions: '/workflows/definitions',
 };
 
 const StorageApi = {
@@ -30,7 +48,52 @@ const baseUrl = process.env.LOCAL_BASE_URL
   ? `${process.env.LOCAL_BASE_URL}:6011`
   : `${process.env.NEXT_PUBLIC_API_URL}/api`;
 
-const IS_MOCK = true;
+const IS_MOCK = false;
+
+export const createCase = async (params: ICreateCaseParamsType) => {
+  const { clientName, visaType } = params;
+
+  return ApiRequest.post(`${baseUrl}${CaseApi.case}`, {
+    clientName,
+    visaType,
+  });
+};
+
+export const getWorkflowDefinitions = async (
+  params: IGetWorkflowDefinitionsParamsType
+): Promise<any> => {
+  if (IS_MOCK) {
+    return new Promise(resolve => {
+      resolve(mockWorkflowDefinitions);
+    });
+  }
+
+  return ApiRequest.get(`${baseUrl}${WorkflowApi.workflowsDefinitions}`, params);
+};
+
+export const queryCaseList = async (): Promise<{ content: ICaseItemType[] }> => {
+  if (IS_MOCK) {
+    return new Promise(resolve => {
+      resolve({ content: mockCaseList });
+    });
+  }
+
+  return ApiRequest.get(`${baseUrl}${CaseApi.case}`);
+};
+
+export const queryCaseDetail = async (params: {
+  caseId: string;
+}): Promise<ICaseItemType> => {
+  const { caseId } = params || {};
+
+  if (IS_MOCK) {
+    return new Promise(resolve => {
+      resolve(mockCaseDetail);
+    });
+  }
+
+  return ApiRequest.get(`${baseUrl}${CaseApi.caseDetail}`.replace(':caseId', caseId));
+};
 
 export const caseStream = async (
   params: ICaseStreamParamsType,
@@ -46,7 +109,7 @@ export const caseStream = async (
       return;
     }
 
-    fetch(`${baseUrl}${PilotApi.caseStream}`.replace(':caseId', caseId), {
+    fetch(`${baseUrl}${CaseApi.caseStream}`.replace(':caseId', caseId), {
       method: 'GET',
       signal: controller.signal,
       credentials: 'include',
@@ -63,32 +126,42 @@ export const caseStream = async (
         const reader = response.body?.getReader();
         const decoder = new TextDecoder();
 
-        function push() {
+        let buffer = '';
+        const push = () => {
           reader
             ?.read()
             .then(({ done, value }) => {
               if (done) {
+                if (buffer.trim()) {
+                  try {
+                    const lastMessage = buffer.trim();
+                    if (lastMessage.startsWith('data:')) {
+                      onProgress?.(lastMessage.slice(5).trim());
+                    }
+                  } catch (e) {
+                    console.error('解析最终数据失败:', e, '原始数据:', buffer);
+                  }
+                }
                 resolve(null);
                 return;
               }
 
               const chunk = decoder.decode(value, { stream: true });
-              const lines = chunk.split('\n');
+              buffer += chunk;
 
-              for (const line of lines) {
-                if (line.startsWith('data:')) {
-                  const data = line.split('data:')[1];
+              const messages = buffer.split('\n\n');
 
-                  console.log('line', line);
+              buffer = messages.pop() || '';
 
-                  if (data && data.trim()) {
-                    res += data;
-                    try {
-                      onProgress?.(res);
-                      res = '';
-                    } catch (e) {
-                      console.error('解析数据失败:', e, '原始数据:', data);
-                    }
+              for (const message of messages) {
+                if (!message.trim()) continue;
+
+                const data = message.replace(/^data:\s*/gm, '').trim();
+                if (data) {
+                  try {
+                    onProgress?.(data);
+                  } catch (e) {
+                    console.error('解析数据失败:', e, '原始数据:', data);
                   }
                 }
               }
@@ -102,7 +175,7 @@ export const caseStream = async (
                 reject(error);
               }
             });
-        }
+        };
 
         push();
       })
@@ -120,48 +193,41 @@ export const caseStream = async (
   };
 };
 
-// export const getWorkflowList = async (
-//   params: IGetWorkflowListType
-// ): Promise<IWorkflowType> => {
-//   const { workflowId = '' } = params;
-
-//   if (IS_MOCK) {
-//     return new Promise(resolve => {
-//       resolve(mockGetWorkflowList);
-//     });
-//   }
-
-//   return ApiRequest.get(
-//     `${baseUrl}${PilotApi.workflows}`.replace(':workflowId', workflowId)
-//   );
-// };
-
-// export const getWorkflowStepData = async (
-//   params: IGetWorkflowStepDataType
-// ): Promise<IWorkflowStepDataType> => {
-//   const { workflowId = '', stepKey = '' } = params;
-
-//   if (IS_MOCK) {
-//     return new Promise(resolve => {
-//       resolve(mockGetWorkflowStepData);
-//     });
-//   }
-
-//   return ApiRequest.get(
-//     `${baseUrl}${PilotApi.workflowsStep}`
-//       .replace(':workflowId', workflowId)
-//       .replace(':stepKey', stepKey)
-//   );
-// };
-
 export const ocrDocuments = async (
   params: IOcrDocumentsParamsType
 ): Promise<string[]> => {
   const { caseId, storageIds = [] } = params;
 
-  return ApiRequest.post(`${baseUrl}${PilotApi.documents}`.replace(':caseId', caseId), {
+  return ApiRequest.post(`${baseUrl}${CaseApi.documents}`.replace(':caseId', caseId), {
     storageIds,
   });
+};
+
+export const uploadDocument = async (params: {
+  caseId: string;
+  files: File[];
+}): Promise<ICaseDocumentResultType> => {
+  const { caseId, files } = params || {};
+  const formData = new FormData();
+  files.forEach(file => {
+    formData.append('files', file);
+  });
+
+  if (IS_MOCK) {
+    return new Promise(resolve => {
+      resolve(mockUploadDocument);
+    });
+  }
+
+  return ApiRequest.post(
+    `${baseUrl}${CaseApi.documents}`.replace(':caseId', caseId),
+    formData,
+    {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    }
+  );
 };
 
 export const postFilesPDFHighlight = async (

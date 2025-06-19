@@ -46,16 +46,29 @@ export interface IOcrFileType {
   title: string;
   description: string;
   filePath: string;
-  fileType: FileTypeEnum;
+  fileType: string; // FileTypeEnum;
   fileSize: number;
-  storageId: string;
+  storageId: string | null;
   caseId: string;
-  documentType: string;
-  downloadUrl: string;
-  metadataJson: string;
-  createdAt: string;
-  updatedAt: string;
-  createdBy: string;
+  documentType: string | null;
+  downloadUrl: string | null;
+  metadataJson: string | null;
+  createdAt: string | null;
+  updatedAt: string | null;
+  createdBy: string | null;
+}
+
+export interface ICaseDocumentType {
+  success: boolean;
+  documentId: string;
+  caseId: string;
+  message: string;
+  filename: string;
+  fileSize: number;
+  fileType: string; // 'application/pdf';
+  receivedAt: string; // '2025-06-19T15:07:37.719299';
+  errorCode: null;
+  errorDetails: null;
 }
 
 export interface IFileItemType {
@@ -63,7 +76,7 @@ export interface IFileItemType {
   status: FileStatus;
   progress?: number; // ignore
   localFile?: File;
-  cloudFile?: ICloudFileType;
+  cloudFile?: ICaseDocumentType;
   ocrFile?: IOcrFileType;
   ocrResult?: Record<string, string>[];
 }

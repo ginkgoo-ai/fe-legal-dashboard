@@ -5,11 +5,11 @@ import { ModalCreateCase } from '@/components/case/modalCreateCase';
 import { Button } from '@/components/ui/button';
 import UtilsManager from '@/customManager/UtilsManager';
 import { parseCaseInfo } from '@/lib';
+import { queryCaseList } from '@/service/api/case';
 import { useUserStore } from '@/store/userStore';
 import { ICaseItemType } from '@/types/case';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { mockCaseList } from './mock';
 
 export default function CasePortalPage() {
   const router = useRouter();
@@ -18,12 +18,18 @@ export default function CasePortalPage() {
   const [caseList, setCaseList] = useState<ICaseItemType[]>([]);
   const [isModalCreateCaseOpen, setModalCreateCaseOpen] = useState<boolean>(false);
 
-  useEffect(() => {
+  const init = async () => {
+    const res = await queryCaseList();
+
     setCaseList(
-      mockCaseList.map(item => {
+      res.content.map(item => {
         return parseCaseInfo(item);
       })
     );
+  };
+
+  useEffect(() => {
+    init();
   }, []);
 
   const handleCardClick = (itemCase: ICaseItemType) => {

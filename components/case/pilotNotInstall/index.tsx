@@ -2,13 +2,14 @@
 
 import { Button } from '@/components/ui/button';
 import { IconExtension, IconInfo } from '@/components/ui/icon';
+import GlobalManager from '@/customManager/GlobalManager';
 import UtilsManager from '@/customManager/UtilsManager';
 import { memo } from 'react';
 
 function PurePilotNotInstall() {
   const handleBtnInstallClick = () => {
     UtilsManager.clickTagA({
-      url: 'https://github.com/ginkgoo-ai/fe-chrome-extensions/releases/download/v0.0.1/fe-chrome-extensions-v20250612_150648.zip',
+      url: GlobalManager.urlInstallExtension,
     });
   };
 

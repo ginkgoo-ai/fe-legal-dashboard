@@ -103,7 +103,8 @@ export const parseCaseInfo = (caseInfo: ICaseItemType): ICaseItemType => {
   return {
     ...caseInfo,
     caseStatusForFront:
-      CASE_STATUS_MAP[caseInfo.status] || CASE_STATUS_MAP[CaseStatusEnum.DEFAULT],
+      CASE_STATUS_MAP[caseInfo?.status as keyof typeof CASE_STATUS_MAP] ||
+      CASE_STATUS_MAP[CaseStatusEnum.DEFAULT],
     timestamp: +dayjs(),
   };
 };

@@ -1,6 +1,7 @@
 export enum PilotStatusEnum {
   INIT = 'INIT',
   OPEN = 'OPEN',
+  START = 'START',
   QUERY_WORKFLOW = 'QUERY_WORKFLOW',
   QUERY = 'QUERY',
   ANALYSIS = 'ANALYSIS',
@@ -21,15 +22,23 @@ export enum PilotModeEnum {
   RUNNING = 'RUNNING',
 }
 
+export enum WorkflowTypeEnum {
+  VISA = 'visa',
+  PASSPORT = 'passport',
+  IMMIGRATION = 'immigration',
+  STUDENT_VISA = 'student_visa',
+  WORK_PERMIT = 'work_permit',
+  FAMILY_VISA = 'family_visa',
+}
+
 export interface IPilotType {
+  id: string;
   caseId: string;
   workflowId: string;
   fill_data: Record<string, unknown>;
   progress_file_id: string;
   dummy_data_usage: IWorkflowDummyDataType[];
-  tabInfo: {
-    [key: string]: unknown;
-  };
+  tabInfo: chrome.tabs.Tab;
   timer: NodeJS.Timeout | null;
   pilotStatus: PilotStatusEnum;
   steps: IWorkflowStepType[];
@@ -47,17 +56,30 @@ export interface ISelectorResult {
   [key: string]: unknown;
 }
 
-export interface IGetWorkflowDetailParamsType {
-  workflowId: string;
+export interface IGetWorkflowDefinitionsParamsType {
+  page: number;
+  page_size: number;
+  workflow_type: WorkflowTypeEnum;
 }
 
 export interface IGetWorkflowListParamsType {
   userId: string;
+  caseId: string;
+}
+
+export interface IGetWorkflowDetailParamsType {
+  workflowId: string;
 }
 
 export interface IGetWorkflowStepDataParamsType {
   workflowId: string;
   stepKey: string;
+}
+
+export interface ICreateWorkflowParamsType {
+  user_id: string;
+  case_id: string;
+  workflow_definition_id: string;
 }
 
 export interface IWorkflowsProcessFormParamsType {
