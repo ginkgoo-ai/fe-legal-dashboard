@@ -32,7 +32,8 @@ function PureModalInstallExtension(props: ModalInstallExtensionProps) {
       footer={null}
       open={isOpen}
       keyboard={false}
-      destroyOnHidden={true}
+      destroyOnHidden
+      forceRender
       // onOk={handleCreateCaseOk}
       onCancel={handleBtnCancel}
     >
@@ -41,10 +42,10 @@ function PureModalInstallExtension(props: ModalInstallExtensionProps) {
       </div>
 
       <div className="mt-2 flex flex-row items-center justify-between gap-6">
-        <Button type="default" className="h-[44px] flex-1" onClick={handleBtnCancel}>
+        <Button type="default" className="!h-[44px] flex-1" onClick={handleBtnCancel}>
           <span className="font-bold">Cancel</span>
         </Button>
-        <Button type="primary" className="h-[44px] flex-1" onClick={handleBtnSubmit}>
+        <Button type="primary" className="!h-[44px] flex-1" onClick={handleBtnSubmit}>
           <span className="font-bold">Install Extension</span>
         </Button>
       </div>

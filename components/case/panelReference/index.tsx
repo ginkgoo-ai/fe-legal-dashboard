@@ -90,14 +90,14 @@ function PurePanelReference(props: PanelReferenceProps) {
   });
 
   const actionUploadFile = async (newFiles: IFileItemType[]) => {
-    const res = await uploadDocument({
+    const resUploadDocument = await uploadDocument({
       caseId,
       files: newFiles.map(file => file.localFile!),
     });
 
-    console.log('actionUploadFile', newFiles, res);
+    // console.log('actionUploadFile', newFiles, resUploadDocument);
 
-    if (res?.acceptedDocuments) {
+    if (resUploadDocument?.acceptedDocuments) {
       setFileList(prev =>
         produce(prev, draft => {
           draft.forEach(file => {
@@ -107,7 +107,7 @@ function PurePanelReference(props: PanelReferenceProps) {
 
             if (indexNewFile >= 0) {
               file.status = FileStatus.ANALYSIS;
-              file.documentFile = res?.acceptedDocuments?.[indexNewFile];
+              file.documentFile = resUploadDocument?.acceptedDocuments?.[indexNewFile];
             }
           });
         })
