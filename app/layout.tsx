@@ -37,7 +37,7 @@ export default function RootLayout({
   const { setUserInfo } = useUserStore();
   const { extensionsInfo, setExtensionsInfo } = useExtensionsStore();
 
-  const { emit } = useEventManager('ginkgo-message', () => {});
+  const { emit } = useEventManager('ginkgoo-message', () => {});
 
   const { data: user } = useRequest(getUserInfo, {
     errorRetryCount: 1,
@@ -73,12 +73,12 @@ export default function RootLayout({
       // 确保消息来源是当前页面 且 目标为 all 或者 page
       if (
         origin === window.location.origin &&
-        (/^ginkgo-[^-]+-all-.*$/.test(type) || /^ginkgo-[^-]+-page-.*$/.test(type))
+        (/^ginkgoo-[^-]+-all-.*$/.test(type) || /^ginkgoo-[^-]+-page-.*$/.test(type))
       ) {
         emit(data);
 
         if (
-          type === 'ginkgo-background-page-register' &&
+          type === 'ginkgoo-background-page-register' &&
           extensionsInfoRef.current?.version !== data?.version
         ) {
           setExtensionsInfo(data);
@@ -91,7 +91,7 @@ export default function RootLayout({
   const postHeartRegister = () => {
     window.postMessage(
       {
-        type: 'ginkgo-page-page-register',
+        type: 'ginkgoo-page-page-register',
       },
       window.location.origin
     );

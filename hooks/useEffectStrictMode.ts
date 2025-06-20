@@ -9,14 +9,14 @@ export function useEffectStrictMode(effect: EffectCallback, deps: DependencyList
     if (deps.length === 0) {
       if (isFirstRun.current) {
         isFirstRun.current = false;
-        effect();
+        return effect();
       }
       return;
     }
 
     if (!isEqual(prevDeps.current, deps)) {
       prevDeps.current = deps;
-      effect();
+      return effect();
     }
   }, deps);
 }

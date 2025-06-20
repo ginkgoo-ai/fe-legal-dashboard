@@ -38,7 +38,7 @@ export interface IPilotType {
   fill_data: Record<string, unknown>;
   progress_file_id: string;
   dummy_data_usage: IWorkflowDummyDataType[];
-  tabInfo: chrome.tabs.Tab;
+  tabInfo: Record<string, unknown>;
   timer: NodeJS.Timeout | null;
   pilotStatus: PilotStatusEnum;
   steps: IWorkflowStepType[];

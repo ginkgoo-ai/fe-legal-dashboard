@@ -15,14 +15,14 @@ function PurePilotStepBodyDeclaration(props: PilotStepBodyDeclarationProps) {
   const handleBtnJumpClick = useCallback(async () => {
     if (!!pilotInfo?.tabInfo?.url) {
       const messageJump = {
-        type: 'ginkgo-page-background-tab-update',
+        type: 'ginkgoo-page-background-tab-update',
         tabId: pilotInfo?.tabInfo?.id,
         updateProperties: { active: true },
       };
       window.postMessage(messageJump, window.location.origin);
 
       const messageOpenSidepanel = {
-        type: 'ginkgo-page-background-sidepanel-open',
+        type: 'ginkgoo-page-background-sidepanel-open',
         options: {
           tabId: pilotInfo?.tabInfo?.id,
         },

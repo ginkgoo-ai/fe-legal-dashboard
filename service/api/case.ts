@@ -51,11 +51,16 @@ export const DocumentsApi = {
 // const baseUrl = process.env.LOCAL_BASE_URL
 //   ? `${process.env.LOCAL_BASE_URL}:7878`
 //   : `${process.env.NEXT_PUBLIC_API_URL}/api`;
-const baseUrl = process.env.LOCAL_BASE_URL
-  ? `${process.env.LOCAL_BASE_URL}:6011`
-  : `${process.env.NEXT_PUBLIC_API_URL}/api`;
+const baseUrl = `${process.env.NEXT_PUBLIC_API_URL}/api`;
+const baseUrlAi = `${process.env.NEXT_PUBLIC_API_URL}/api/ai`;
 
-const IS_MOCK = false;
+const IS_MOCK_LIST: string[] = [
+  // 'getWorkflowDefinitions',
+  // 'queryCaseList',
+  // 'queryCaseDetail',
+  // 'caseStream',
+  // 'uploadDocument',
+];
 
 export const createCase = async (params: ICreateCaseParamsType) => {
   const { clientName, visaType } = params;
@@ -69,17 +74,17 @@ export const createCase = async (params: ICreateCaseParamsType) => {
 export const getWorkflowDefinitions = async (
   params: IGetWorkflowDefinitionsParamsType
 ): Promise<any> => {
-  if (IS_MOCK) {
+  if (IS_MOCK_LIST.includes('getWorkflowDefinitions')) {
     return new Promise(resolve => {
       resolve(mockWorkflowDefinitions);
     });
   }
 
-  return ApiRequest.get(`${baseUrl}${WorkflowApi.workflowsDefinitions}`, params);
+  return ApiRequest.get(`${baseUrlAi}${WorkflowApi.workflowsDefinitions}`, params);
 };
 
 export const queryCaseList = async (): Promise<{ content: ICaseItemType[] }> => {
-  if (IS_MOCK) {
+  if (IS_MOCK_LIST.includes('queryCaseList')) {
     return new Promise(resolve => {
       resolve({ content: mockCaseList });
     });
@@ -93,7 +98,7 @@ export const queryCaseDetail = async (params: {
 }): Promise<ICaseItemType> => {
   const { caseId } = params || {};
 
-  if (IS_MOCK) {
+  if (IS_MOCK_LIST.includes('queryCaseDetail')) {
     return new Promise(resolve => {
       resolve(mockCaseDetail);
     });
@@ -107,11 +112,10 @@ export const caseStream = async (
   onRequest?: (controller: AbortController) => void,
   onProgress?: (text: string) => void
 ): Promise<{ cancel: () => void; request: Promise<null> }> => {
-  let res = '';
   const { caseId } = params;
   const controller = new AbortController();
   const request = new Promise<null>((resolve, reject) => {
-    if (IS_MOCK) {
+    if (IS_MOCK_LIST.includes('caseStream')) {
       onProgress?.(mockCaseStream);
       return;
     }
@@ -220,7 +224,7 @@ export const uploadDocument = async (params: {
     formData.append('files', file);
   });
 
-  if (IS_MOCK) {
+  if (IS_MOCK_LIST.includes('uploadDocument')) {
     return new Promise(resolve => {
       resolve(mockUploadDocument);
     });

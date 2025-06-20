@@ -21,6 +21,11 @@ const CONTENT_PATTERNS = {
 };
 
 const CASE_STATUS_MAP = {
+  [CaseStatusEnum.DOCUMENTATION_IN_PROGRESS]: {
+    colorBackground: '#EEE5FF',
+    colorText: '#8950FC',
+    text: 'Documentation in progress',
+  },
   [CaseStatusEnum.ANALYZING]: {
     colorBackground: '#EEE5FF',
     colorText: '#8950FC',

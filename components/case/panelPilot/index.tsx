@@ -22,7 +22,7 @@ function PurePanelPilot(props: PanelPanelPilotProps) {
 
   const handleStepCollapseChange = async (stepKey: string) => {
     const message = {
-      type: 'ginkgo-page-background-polit-step-query',
+      type: 'ginkgoo-page-background-polit-step-query',
       workflowId: pilotInfo?.workflowId,
       stepKey,
     };
@@ -35,12 +35,12 @@ function PurePanelPilot(props: PanelPanelPilotProps) {
 
     try {
       window.postMessage({
-        type: 'ginkgo-page-all-case-start',
+        type: 'ginkgoo-page-all-case-start',
         pilotId: pilotInfo?.id,
         actionlistPre,
       });
     } catch (error) {
-      console.error('[Ginkgo] Sidepanel handleContinueFilling error', error);
+      console.error('[Ginkgoo] Sidepanel handleContinueFilling error', error);
     }
   };
 

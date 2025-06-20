@@ -51,7 +51,7 @@ function PurePilotStepHeader(props: PilotStepHeaderProps) {
     console.log('handleBtnViewClick');
     if (!!pilotInfo?.tabInfo?.url) {
       const messageJump = {
-        type: 'ginkgo-page-background-tab-update',
+        type: 'ginkgoo-page-background-tab-update',
         tabId: pilotInfo?.tabInfo?.id,
         updateProperties: { active: true },
       };
