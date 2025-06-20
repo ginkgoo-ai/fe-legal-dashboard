@@ -81,6 +81,12 @@ export interface IFileItemType {
   ocrResult?: Record<string, string>[];
 }
 
+export interface IUploadDocumentEventType {
+  status: string;
+  documentId: string;
+  filename: string;
+}
+
 export interface IFilesThirdPartParamsType {
   thirdPartUrl: string;
   cookie: string;

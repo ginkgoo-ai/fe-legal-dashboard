@@ -40,11 +40,6 @@ function CaseDetailContent() {
   const searchParams = useSearchParams();
   const caseId = decodeURIComponent(searchParams.get('caseId') || '');
 
-  if (!caseId) {
-    UtilsManager.navigateBack();
-    return null;
-  }
-
   const SIZE_REFERENCE_DEFAULT = useRef(0);
   const SIZE_PROFILEVAULT_DEFAULT = useRef(0);
   const SIZE_PILOT_DEFAULT = useRef(0);
@@ -67,7 +62,6 @@ function CaseDetailContent() {
   const [caseInfo, setCaseInfo] = useState<ICaseItemType | null>(null);
   const [pilotInfo, setPilotInfo] = useState<IPilotType | null>(null);
   const [stepListItems, setStepListItems] = useState<IWorkflowStepType[]>([]);
-  const [uploadDocumentEvent, setUploadDocumentEvent] = useState<unknown>(null);
 
   const [isModalInstallExtensionOpen, setModalInstallExtensionOpen] =
     useState<boolean>(false);
@@ -87,13 +81,13 @@ function CaseDetailContent() {
     return sizePilot <= PANEL_SIZE_LIMIT;
   }, [sizePilot]);
 
-  useEventManager('ginkgo-message', message => {
+  const { emit } = useEventManager('ginkgoo-message', message => {
     // console.log('🚀 ~ useEventManager ~ data:', message);
 
     const { type: typeMsg, pilotInfo: pilotInfoMsg } = message;
 
     switch (typeMsg) {
-      case 'ginkgo-background-all-case-update': {
+      case 'ginkgoo-background-all-case-update': {
         const { steps: stepsMsg, pilotStatus: pilotStatusMsg } = pilotInfoMsg || {};
 
         setPilotInfo(pilotInfoMsg);
@@ -125,17 +119,17 @@ function CaseDetailContent() {
         // }
         break;
       }
-      case 'ginkgo-background-all-toast': {
+      case 'ginkgoo-background-all-toast': {
         const { typeToast, contentToast } = message || {};
         messageAntd.open({
           type: typeToast,
           content: contentToast,
         });
-        console.log('ginkgo-background-all-toast', typeToast, contentToast);
+        console.log('ginkgoo-background-all-toast', typeToast, contentToast);
 
         break;
       }
-      case 'ginkgo-background-all-case-error': {
+      case 'ginkgoo-background-all-case-error': {
         const { content } = message || {};
         if (content) {
           messageAntd.open({
@@ -197,11 +191,17 @@ function CaseDetailContent() {
             console.log('🚀 ~ res:', res);
             // originalMessageLogRef.current = res;
 
-            try {
-              const data = JSON.parse(res);
-              setUploadDocumentEvent(data);
-            } catch (error) {
-              console.warn('[Debug] Error parse message', error);
+            if (res.indexOf('event:documentStatusUpdate') === 0) {
+              const dataStr = res.replace('event:documentStatusUpdate', '').trim();
+              try {
+                const data = JSON.parse(dataStr);
+                emit({
+                  type: 'event:documentStatusUpdate',
+                  data,
+                });
+              } catch (error) {
+                console.warn('[Debug] Error parse message', error);
+              }
             }
           }
         );
@@ -251,6 +251,11 @@ function CaseDetailContent() {
       },
     ]);
   }, [caseInfo]);
+
+  if (!caseId) {
+    UtilsManager.navigateBack();
+    return null;
+  }
 
   const handleSplitterResize = (sizes: number[]) => {
     // console.log('handleSplitterResize', sizes);
@@ -332,14 +337,14 @@ function CaseDetailContent() {
 
     try {
       window.postMessage({
-        type: 'ginkgo-page-all-case-start',
+        type: 'ginkgoo-page-all-case-start',
         url,
         userId: userInfo?.id,
         caseId,
         workflowDefinitionId: workflowDefinitionIdRef.current,
       });
     } catch (error) {
-      console.error('[Ginkgo] Sidepanel handleCardClick error', error);
+      console.error('[Ginkgoo] Sidepanel handleCardClick error', error);
     }
   };
 
@@ -386,7 +391,6 @@ function CaseDetailContent() {
               <PanelReference
                 caseId={caseId}
                 caseInfo={caseInfo}
-                uploadDocumentEvent={uploadDocumentEvent}
                 isFold={isFoldReference}
                 onBtnPanelLeftClick={handleBtnPanelLeftClick}
               />

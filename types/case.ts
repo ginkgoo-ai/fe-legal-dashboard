@@ -9,6 +9,7 @@ export enum CaseStreamStatusEnum {
 }
 
 export enum CaseStatusEnum {
+  DOCUMENTATION_IN_PROGRESS = 'DOCUMENTATION_IN_PROGRESS',
   ANALYZING = 'ANALYZING',
   PROGRESS = 'PROGRESS',
   READY = 'READY',

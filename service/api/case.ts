@@ -33,7 +33,7 @@ const CaseApi = {
 };
 
 const WorkflowApi = {
-  workflowsDefinitions: '/workflows/definitions',
+  workflowsDefinitions: '/ai/workflows/definitions',
 };
 
 const StorageApi = {

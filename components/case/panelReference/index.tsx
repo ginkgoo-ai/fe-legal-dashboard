@@ -5,31 +5,71 @@ import { FileUploadSimple } from '@/components/common/form/upload/fileUploadSimp
 import { ItemFile } from '@/components/common/itemFile';
 import { Button } from '@/components/ui/button';
 import { IconFoldLeft } from '@/components/ui/icon';
+import LockManager from '@/customManager/LockManager';
 import { cn } from '@/lib/utils';
 import { uploadDocument } from '@/service/api/case';
 import { message as messageAntd } from 'antd';
 // import { uploadFiles } from '@/service/api/file';
 import { useEffectStrictMode } from '@/hooks/useEffectStrictMode';
+import { useEventManager } from '@/hooks/useEventManager';
+import { useStateCallback } from '@/hooks/useStateCallback';
 import { ICaseItemType } from '@/types/case';
 import { FileStatus, IFileItemType } from '@/types/file';
 import { produce } from 'immer';
-import { memo, useState } from 'react';
+import { memo } from 'react';
 import { toast } from 'sonner';
 import { v4 as uuid } from 'uuid';
 
 interface PanelReferenceProps {
   caseId: string;
   caseInfo: ICaseItemType | null;
-  uploadDocumentEvent: unknown;
   isFold: boolean;
   // onFileListUpdate: Dispatch<SetStateAction<IFileItemType[]>>;
   onBtnPanelLeftClick: () => void;
 }
 
 function PurePanelReference(props: PanelReferenceProps) {
-  const { caseId, caseInfo, uploadDocumentEvent, isFold, onBtnPanelLeftClick } = props;
+  const { caseId, caseInfo, isFold, onBtnPanelLeftClick } = props;
 
-  const [fileList, setFileList] = useState<IFileItemType[]>([]);
+  const [fileList, setFileList] = useStateCallback<IFileItemType[]>([]);
+
+  useEventManager('ginkgoo-message', async message => {
+    // console.log('🚀 ~ useEventManager ~ data:', message);
+
+    const { type: typeMsg } = message;
+
+    switch (typeMsg) {
+      case 'event:documentStatusUpdate': {
+        const { data: dataMsg } = message || {};
+
+        const { status, documentId } = dataMsg || {};
+
+        if (!!documentId) {
+          const lockId = 'panel-reference-file-list';
+          await LockManager.acquireLock(lockId);
+
+          setFileList(
+            prev =>
+              produce(prev, draft => {
+                draft.forEach(file => {
+                  if (file.cloudFile?.documentId === documentId) {
+                    file.status =
+                      status === 'COMPLETED' ? FileStatus.DONE : FileStatus.ERROR;
+                  }
+                });
+              }),
+            () => {
+              LockManager.releaseLock(lockId);
+            }
+          );
+        }
+        break;
+      }
+      default: {
+        break;
+      }
+    }
+  });
 
   // const actionOcrFile = async (cloudFiles: ICloudFileType[]) => {
   //   const data = await ocrDocuments({
@@ -120,11 +160,7 @@ function PurePanelReference(props: PanelReferenceProps) {
         })) || []
       );
     });
-  }, [fileList, caseInfo?.timestamp, caseInfo?.documents]);
-
-  useEffectStrictMode(() => {
-    console.log('PurePanelReference uploadDocumentEvent', uploadDocumentEvent);
-  }, [uploadDocumentEvent]);
+  }, [fileList, caseInfo?.documents]);
 
   const handleFileChange = async (files: File[]) => {
     console.log('handleFileChange', files);
