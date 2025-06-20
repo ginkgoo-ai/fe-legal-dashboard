@@ -65,7 +65,7 @@ export default function RootLayout({
       const { origin, data } = event;
       const { type } = data;
 
-      if (type.startsWith('ginkgoo-page-')) {
+      if (type?.startsWith('ginkgo-page-')) {
         // 如果是来源自身的消息，则不会处理
         return;
       }

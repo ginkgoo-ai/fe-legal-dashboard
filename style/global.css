@@ -41,18 +41,24 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  /** custom */
+  --color-primary-dark: var(--primary-dark);
+  --color-primary-label: var(--primary-label);
+  --animate-point-loading: pointLoading 2s infinite;
 }
 
 :root {
   --radius: 0.625rem;
   --background: #f2f3f7;
-  --foreground: oklch(0.145 0 0);
+  --foreground: oklch(0.4235 0.0302 265.27);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
   /* --primary: oklch(0.205 0 0); */
-  --primary: #2c9aff;
+  --primary: oklch(0.5524 0.2441 261.35);
+  --primary-dark: oklch(0.4359 0.1786 260.09);
+  --primary-label: oklch(0.2723 0.1155 272.57);
   --primary-foreground: #f2f3f7;
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
@@ -87,7 +93,8 @@
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.205 0 0);
   --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
+  --primary: oklch(0.5524 0.2441 261.35);
+  --primary-dark: oklch(0.4359 0.1786 260.09);
   --primary-foreground: oklch(0.205 0 0);
   --secondary: oklch(0.269 0 0);
   --secondary-foreground: oklch(0.985 0 0);
@@ -174,5 +181,20 @@ html {
 @media screen and (min-width: 1920px) {
   html {
     --width-padding: 6%;
+  }
+}
+
+@keyframes pointLoading {
+  0% {
+    content: '.';
+  }
+  30% {
+    content: '..';
+  }
+  60% {
+    content: '...';
+  }
+  100% {
+    content: '.';
   }
 }

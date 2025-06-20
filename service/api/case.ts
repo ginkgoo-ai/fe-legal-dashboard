@@ -4,6 +4,7 @@ import {
   ICreateCaseParamsType,
 } from '@/types/case';
 import { IGetWorkflowDefinitionsParamsType } from '@/types/casePilot';
+import { IMarkDocumentValid } from '@/types/document';
 import { IFilesPDFHighlightParamsType } from '@/types/file';
 import ApiRequest from '../axios';
 import {
@@ -39,6 +40,12 @@ const WorkflowApi = {
 const StorageApi = {
   filesThirdPart: '/storage/v1/files/third-part',
   filesPDFHighlight: '/storage/v1/files/pdf-highlight',
+};
+
+export const DocumentsApi = {
+  markValid: '/legalcase/cases/:caseId/documents/:documentId/mark-valid',
+  uploadSingle: '/legalcase/cases/:caseId/documents/single',
+  documents: '/legalcase/cases/:caseId/documents/:documentId',
 };
 
 // const baseUrl = process.env.LOCAL_BASE_URL
@@ -245,4 +252,38 @@ export const postFilesPDFHighlight = async (
     },
     responseType: 'blob',
   });
+};
+
+export const markValid = async (
+  caseId: string,
+  documentId: string,
+  params: IMarkDocumentValid
+) => {
+  return ApiRequest.post(
+    `${baseUrl}${DocumentsApi.markValid.replace(':caseId', caseId).replace(':documentId', documentId)}`,
+    params
+  );
+};
+
+export const uploadDocumentSingle = async (caseId: string, params: { file: File }) => {
+  const { file } = params;
+
+  const formData = new FormData();
+  formData.append('file', file);
+
+  return ApiRequest.post(
+    `${baseUrl}${DocumentsApi.uploadSingle.replace(':caseId', caseId)}`,
+    formData,
+    {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    }
+  );
+};
+
+export const removeDocument = async (caseId: string, documentId: string) => {
+  return ApiRequest.delete(
+    `${baseUrl}${DocumentsApi.documents.replace(':caseId', caseId).replace(':documentId', documentId)}`
+  );
 };
