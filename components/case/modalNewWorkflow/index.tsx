@@ -3,7 +3,7 @@
 import { IconFormItemLink } from '@/components/ui/icon';
 import { useEventManager } from '@/hooks/useEventManager';
 import { Button, Form, Input, Modal, message as messageAntd } from 'antd';
-import { memo, useEffect, useState } from 'react';
+import { memo, useEffect, useRef, useState } from 'react';
 
 interface ModalNewWorkflowProps {
   isOpen: boolean;
@@ -14,12 +14,31 @@ interface ModalNewWorkflowProps {
 function PureModalNewWorkflow(props: ModalNewWorkflowProps) {
   const { isOpen = false, onOpenUpdate, onFinish } = props;
 
+  const refTabInfo = useRef<any>(null);
+
   const [loadingContinue, setLoadingContinue] = useState<boolean>(false);
+
+  const [isShowLoginTip, setShowLoginTip] = useState<boolean>(false);
 
   useEventManager('ginkgoo-message', message => {
     const { type: typeMsg } = message;
 
     switch (typeMsg) {
+      case 'ginkgoo-background-all-tab-query': {
+        const { value: valueMsg } = message;
+
+        console.log('useEventManager ginkgoo-background-all-tab-query', message);
+        refTabInfo.current = valueMsg;
+        break;
+      }
+      case 'ginkgoo-background-all-auth-check': {
+        const { value: valueMsg } = message;
+
+        console.log('useEventManager ginkgoo-background-all-auth-check', message);
+        setShowLoginTip(!valueMsg);
+        setLoadingContinue(false);
+        break;
+      }
       case 'ginkgoo-background-all-case-no-match-page': {
         const { typeToast, contentToast } = message || {};
         messageAntd.open({
@@ -39,6 +58,19 @@ function PureModalNewWorkflow(props: ModalNewWorkflowProps) {
   useEffect(() => {
     if (isOpen) {
       setLoadingContinue(false);
+
+      window.postMessage(
+        {
+          type: 'ginkgoo-page-background-auth-check',
+        },
+        window.location.origin
+      );
+      window.postMessage(
+        {
+          type: 'ginkgoo-page-background-tab-query',
+        },
+        window.location.origin
+      );
     }
   }, [isOpen]);
 
@@ -51,11 +83,25 @@ function PureModalNewWorkflow(props: ModalNewWorkflowProps) {
     onFinish?.(values);
   };
 
+  const handleBtnLoginClick = () => {
+    console.log('handleBtnLoginClick');
+
+    window.postMessage(
+      {
+        type: 'ginkgoo-page-background-sidepanel-open',
+        options: {
+          tabId: refTabInfo.current?.id,
+        },
+      },
+      window.location.origin
+    );
+  };
+
   return (
     <Modal
       title={<div className="box-border pb-6 text-xl font-bold">URL</div>}
       closable={false}
-      width={422}
+      width={500}
       footer={null}
       open={isOpen}
       keyboard={false}
@@ -83,6 +129,7 @@ function PureModalNewWorkflow(props: ModalNewWorkflowProps) {
           <Form.Item
             label="URL"
             name="url"
+            className="mb-4"
             validateTrigger="onSubmit"
             validateFirst={true}
             rules={[
@@ -110,7 +157,20 @@ function PureModalNewWorkflow(props: ModalNewWorkflowProps) {
             />
           </Form.Item>
 
-          <div className="mt-2 flex flex-row items-center justify-between gap-6">
+          {isShowLoginTip ? (
+            <div className="mb-4 text-sm text-[#1A1A1AB2]">
+              <span>Please </span>
+              <span
+                className="cursor-pointer text-blue-700 underline"
+                onClick={handleBtnLoginClick}
+              >
+                log in
+              </span>
+              <span> to the extension to activate the auto-fill feature.</span>
+            </div>
+          ) : null}
+
+          <div className="flex flex-row items-center justify-between gap-6">
             <Button
               type="default"
               className="!h-[44px] flex-1"
