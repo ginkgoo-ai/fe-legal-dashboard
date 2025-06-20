@@ -1,3 +1,4 @@
+import { ICaseItemType } from '@/types';
 import ApiRequest from '../axios';
 interface ICaseStreamParamsType {
   caseId: string;
@@ -11,6 +12,7 @@ interface IOcrDocumentsParamsType {
 export const PilotApi = {
   caseStream: '/legalcase/cases/:caseId/stream',
   documents: '/legalcase/cases/:caseId/documents',
+  detail: '/legalcase/cases/:caseId',
 };
 
 const baseUrl = process.env.LOCAL_BASE_URL
@@ -124,4 +126,8 @@ const ocrDocuments = async (params: IOcrDocumentsParamsType): Promise<string[]> 
   );
 };
 
-export { caseStream, ocrDocuments };
+const caseDetail = async (params: { caseId: string }): Promise<ICaseItemType> => {
+  return ApiRequest.get(`${baseUrl}${PilotApi.detail}`.replace(':caseId', params.caseId));
+};
+
+export { caseDetail, caseStream, ocrDocuments };

@@ -1,12 +1,8 @@
 import { cn } from '@/lib/utils';
 
-export const IconLoading = ({
-  size = 16,
-  className = '',
-}: {
-  size?: number;
-  className?: string;
-}) => {
+type IconProps = Partial<{ size: number; className: string }>;
+
+export const IconLoading = ({ size = 16, className = '' }: IconProps) => {
   return (
     <svg
       width={size}
@@ -60,13 +56,7 @@ export const IconLoading = ({
   );
 };
 
-export const IconStepDot = ({
-  size = 16,
-  className = '',
-}: {
-  size?: number;
-  className?: string;
-}) => {
+export const IconStepDot = ({ size = 16, className = '' }: IconProps) => {
   return (
     <svg
       width={size}
@@ -85,10 +75,8 @@ export const IconStepDown = ({
   size = 16,
   color = '#98A1B7',
   className = '',
-}: {
-  size?: number;
+}: IconProps & {
   color?: string;
-  className?: string;
 }) => {
   return (
     <svg
@@ -107,13 +95,7 @@ export const IconStepDown = ({
   );
 };
 
-export const IconStepDeclaration = ({
-  size = 16,
-  className = '',
-}: {
-  size?: number;
-  className?: string;
-}) => {
+export const IconStepDeclaration = ({ size = 16, className = '' }: IconProps) => {
   return (
     <svg
       width={size}
@@ -155,7 +137,7 @@ export const IconStepDeclaration = ({
   );
 };
 
-export const IconStop = ({ size = 16 }: { size?: number }) => {
+export const IconStop = ({ size = 16 }: IconProps) => {
   return (
     <svg height={size} viewBox="0 0 16 16" width={size} style={{ color: 'currentcolor' }}>
       <path
@@ -168,7 +150,7 @@ export const IconStop = ({ size = 16 }: { size?: number }) => {
   );
 };
 
-export const IconLoader = ({ size = 16 }: { size?: number }) => {
+export const IconLoader = ({ size = 16 }: IconProps) => {
   return (
     <svg
       height={size}
@@ -238,7 +220,7 @@ export const IconLoader = ({ size = 16 }: { size?: number }) => {
   );
 };
 
-export const IconFile = ({ size = 16 }: { size?: number }) => {
+export const IconFile = ({ size = 16 }: IconProps) => {
   return (
     <svg
       height={size}
@@ -257,7 +239,7 @@ export const IconFile = ({ size = 16 }: { size?: number }) => {
   );
 };
 
-export const IconFullscreen = ({ size = 16 }: { size?: number }) => (
+export const IconFullscreen = ({ size = 16 }: IconProps) => (
   <svg
     height={size}
     strokeLinejoin="round"
@@ -274,7 +256,7 @@ export const IconFullscreen = ({ size = 16 }: { size?: number }) => (
   </svg>
 );
 
-export const IconImage = ({ size = 16 }: { size?: number }) => {
+export const IconImage = ({ size = 16 }: IconProps) => {
   return (
     <svg
       height={size}
@@ -293,13 +275,7 @@ export const IconImage = ({ size = 16 }: { size?: number }) => {
   );
 };
 
-export const IconFormItemClientName = ({
-  size = 16,
-  className = '',
-}: {
-  size?: number;
-  className?: string;
-}) => {
+export const IconFormItemClientName = ({ size = 16, className = '' }: IconProps) => {
   return (
     <svg
       width={size}
@@ -319,13 +295,7 @@ export const IconFormItemClientName = ({
   );
 };
 
-export const IconFormItemVisaType = ({
-  size = 16,
-  className = '',
-}: {
-  size?: number;
-  className?: string;
-}) => {
+export const IconFormItemVisaType = ({ size = 16, className = '' }: IconProps) => {
   return (
     <svg
       width={size}
@@ -343,13 +313,7 @@ export const IconFormItemVisaType = ({
   );
 };
 
-export const IconFormItemLayer = ({
-  size = 16,
-  className = '',
-}: {
-  size?: number;
-  className?: string;
-}) => {
+export const IconFormItemLayer = ({ size = 16, className = '' }: IconProps) => {
   return (
     <svg
       width={size}
@@ -367,13 +331,7 @@ export const IconFormItemLayer = ({
   );
 };
 
-export const IconFormItemEmail = ({
-  size = 16,
-  className = '',
-}: {
-  size?: number;
-  className?: string;
-}) => {
+export const IconFormItemEmail = ({ size = 16, className = '' }: IconProps) => {
   return (
     <svg
       width={size}
@@ -393,13 +351,7 @@ export const IconFormItemEmail = ({
   );
 };
 
-export const IconFormItemPassword = ({
-  size = 16,
-  className = '',
-}: {
-  size?: number;
-  className?: string;
-}) => {
+export const IconFormItemPassword = ({ size = 16, className = '' }: IconProps) => {
   return (
     <svg
       width={size}
@@ -417,7 +369,7 @@ export const IconFormItemPassword = ({
   );
 };
 
-export const IconFileStatusError = ({ size = 16 }: { size?: number }) => {
+export const IconFileStatusError = ({ size = 16 }: IconProps) => {
   return (
     <svg
       width={size}
@@ -442,7 +394,7 @@ export const IconFileStatusError = ({ size = 16 }: { size?: number }) => {
   );
 };
 
-export const IconFileStatusLoading = ({ size = 16 }: { size?: number }) => {
+export const IconFileStatusLoading = ({ size = 16 }: IconProps) => {
   return (
     <svg
       width={size}
@@ -464,7 +416,7 @@ export const IconFileStatusLoading = ({ size = 16 }: { size?: number }) => {
   );
 };
 
-export const IconFileStatusSuccess = ({ size = 16 }: { size?: number }) => {
+export const IconFileStatusSuccess = ({ size = 16 }: IconProps) => {
   return (
     <svg
       width={size}
@@ -481,7 +433,7 @@ export const IconFileStatusSuccess = ({ size = 16 }: { size?: number }) => {
   );
 };
 
-export const IconFileTypeDoc = ({ size = 16 }: { size?: number }) => {
+export const IconFileTypeDoc = ({ size = 16 }: IconProps) => {
   return (
     <svg
       width={size}
@@ -506,7 +458,7 @@ export const IconFileTypeDoc = ({ size = 16 }: { size?: number }) => {
   );
 };
 
-export const IconFileTypeExcel = ({ size = 16 }: { size?: number }) => {
+export const IconFileTypeExcel = ({ size = 16 }: IconProps) => {
   return (
     <svg
       width={size}
@@ -531,7 +483,7 @@ export const IconFileTypeExcel = ({ size = 16 }: { size?: number }) => {
   );
 };
 
-export const IconFileTypeImage = ({ size = 16 }: { size?: number }) => {
+export const IconFileTypeImage = ({ size = 16 }: IconProps) => {
   return (
     <svg
       width={size}
@@ -560,7 +512,7 @@ export const IconFileTypeImage = ({ size = 16 }: { size?: number }) => {
   );
 };
 
-export const IconFileTypePDF = ({ size = 16 }: { size?: number }) => {
+export const IconFileTypePDF = ({ size = 16 }: IconProps) => {
   return (
     <svg
       width={size}
@@ -585,7 +537,7 @@ export const IconFileTypePDF = ({ size = 16 }: { size?: number }) => {
   );
 };
 
-export const IconFileTypePPT = ({ size = 16 }: { size?: number }) => {
+export const IconFileTypePPT = ({ size = 16 }: IconProps) => {
   return (
     <svg
       width={size}
@@ -617,7 +569,7 @@ export const IconFileTypePPT = ({ size = 16 }: { size?: number }) => {
   );
 };
 
-export const IconFileTypeTXT = ({ size = 16 }: { size?: number }) => {
+export const IconFileTypeTXT = ({ size = 16 }: IconProps) => {
   return (
     <svg
       width={size}
@@ -642,7 +594,7 @@ export const IconFileTypeTXT = ({ size = 16 }: { size?: number }) => {
   );
 };
 
-export const IconFileUpload = ({ size = 16 }: { size?: number }) => {
+export const IconFileUpload = ({ size = 16 }: IconProps) => {
   return (
     <svg
       width={size}
@@ -675,7 +627,7 @@ export const IconFileUpload = ({ size = 16 }: { size?: number }) => {
   );
 };
 
-export const IconFoldLeft = ({ size = 16 }: { size?: number }) => {
+export const IconFoldLeft = ({ size = 16 }: IconProps) => {
   return (
     <svg
       width={size}
@@ -692,7 +644,7 @@ export const IconFoldLeft = ({ size = 16 }: { size?: number }) => {
   );
 };
 
-export const IconFoldRight = ({ size = 16 }: { size?: number }) => {
+export const IconFoldRight = ({ size = 16 }: IconProps) => {
   return (
     <svg
       width={size}
@@ -709,7 +661,7 @@ export const IconFoldRight = ({ size = 16 }: { size?: number }) => {
   );
 };
 
-export const IconInfo = ({ size = 16 }: { size?: number }) => {
+export const IconInfo = ({ size = 16 }: IconProps) => {
   return (
     <svg
       width={size}
@@ -728,7 +680,7 @@ export const IconInfo = ({ size = 16 }: { size?: number }) => {
   );
 };
 
-export const IconExtension = ({ size = 16 }: { size?: number }) => {
+export const IconExtension = ({ size = 16 }: IconProps) => {
   return (
     <svg
       width={size}
@@ -757,7 +709,7 @@ export const IconExtension = ({ size = 16 }: { size?: number }) => {
   );
 };
 
-export const IconMagic = ({ size = 16 }: { size?: number }) => {
+export const IconMagic = ({ size = 16 }: IconProps) => {
   return (
     <svg
       width={size}
@@ -789,8 +741,7 @@ export const IconMagic = ({ size = 16 }: { size?: number }) => {
 export const IconAutoFill = ({
   size = 16,
   isSpin = false,
-}: {
-  size?: number;
+}: IconProps & {
   isSpin?: boolean;
 }) => {
   return (
@@ -827,7 +778,7 @@ export const IconAutoFill = ({
   );
 };
 
-export const IconCompleted = ({ size = 16 }: { size?: number }) => {
+export const IconCompleted = ({ size = 16 }: IconProps) => {
   return (
     <svg
       width={size}
@@ -859,7 +810,7 @@ export const IconCompleted = ({ size = 16 }: { size?: number }) => {
   );
 };
 
-export const IconPause = ({ size = 16 }: { size?: number }) => {
+export const IconPause = ({ size = 16 }: IconProps) => {
   return (
     <svg
       width={size}
@@ -884,7 +835,7 @@ export const IconPause = ({ size = 16 }: { size?: number }) => {
   );
 };
 
-export const IconView = ({ size = 16 }: { size?: number }) => {
+export const IconView = ({ size = 16 }: IconProps) => {
   return (
     <svg
       width={size}
@@ -914,13 +865,7 @@ export const IconView = ({ size = 16 }: { size?: number }) => {
   );
 };
 
-export const IconFace = ({
-  size = 16,
-  className,
-}: {
-  size?: number;
-  className?: string;
-}) => {
+export const IconFace = ({ size = 16, className }: IconProps) => {
   return (
     <svg
       width={size}
@@ -954,13 +899,7 @@ export const IconFace = ({
   );
 };
 
-export const IconRefresh = ({
-  size = 16,
-  className,
-}: {
-  size?: number;
-  className?: string;
-}) => {
+export const IconRefresh = ({ size = 16, className }: IconProps) => {
   return (
     <svg
       className={cn(className)}
@@ -982,13 +921,7 @@ export const IconRefresh = ({
   );
 };
 
-export const IconUpload = ({
-  size = 16,
-  className,
-}: {
-  size?: number;
-  className?: string;
-}) => {
+export const IconUpload = ({ size = 16, className }: IconProps) => {
   return (
     <svg
       className={cn(className)}
@@ -1010,13 +943,7 @@ export const IconUpload = ({
   );
 };
 
-export const IconUpload2 = ({
-  size = 16,
-  className,
-}: {
-  size?: number;
-  className?: string;
-}) => {
+export const IconUpload2 = ({ size = 16, className }: IconProps) => {
   return (
     <svg
       className={cn(className)}
@@ -1047,13 +974,7 @@ export const IconUpload2 = ({
   );
 };
 
-export const IconTrash = ({
-  size = 24,
-  className,
-}: {
-  size?: number;
-  className?: string;
-}) => {
+export const IconTrash = ({ size = 24, className }: IconProps) => {
   return (
     <svg
       className={cn(className)}
@@ -1079,13 +1000,7 @@ export const IconTrash = ({
   );
 };
 
-export const IconDashboard = ({
-  size = 24,
-  className,
-}: {
-  size?: number;
-  className?: string;
-}) => {
+export const IconDashboard = ({ size = 24, className }: IconProps) => {
   return (
     <svg
       className={cn(className)}
@@ -1116,13 +1031,7 @@ export const IconDashboard = ({
   );
 };
 
-export const IconList = ({
-  size = 16,
-  className,
-}: {
-  size?: number;
-  className?: string;
-}) => {
+export const IconList = ({ size = 16, className }: IconProps) => {
   return (
     <svg
       className={cn(className)}
@@ -1145,6 +1054,122 @@ export const IconList = ({
       <path
         d="M20.1489 19.4775H27.8511C28.1916 19.4775 28.5181 19.6128 28.7588 19.8535C28.9996 20.0943 29.1348 20.4208 29.1348 20.7612C29.1348 21.1017 28.9996 21.4282 28.7588 21.6689C28.5181 21.9097 28.1916 22.0449 27.8511 22.0449H20.1489C19.8085 22.0449 19.482 21.9097 19.2412 21.6689C19.0005 21.4282 18.8652 21.1017 18.8652 20.7612C18.8652 20.4208 19.0005 20.0943 19.2412 19.8535C19.482 19.6128 19.8085 19.4775 20.1489 19.4775Z"
         className="fill-current/30"
+      />
+    </svg>
+  );
+};
+
+export const IconMagicWand = ({ size = 16, className }: IconProps) => {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+    >
+      <g clipPath="url(#clip0_533_2897)">
+        <path
+          d="M10.8344 5.33438L9.65625 5.775C9.5625 5.80937 9.5 5.9 9.5 6C9.5 6.1 9.5625 6.19062 9.65625 6.225L10.8344 6.66563L11.275 7.84375C11.3094 7.9375 11.4 8 11.5 8C11.6 8 11.6906 7.9375 11.725 7.84375L12.1656 6.66563L13.3438 6.225C13.4375 6.19062 13.5 6.1 13.5 6C13.5 5.9 13.4375 5.80937 13.3438 5.775L12.1656 5.33438L11.725 4.15625C11.6906 4.0625 11.6 4 11.5 4C11.4 4 11.3094 4.0625 11.275 4.15625L10.8344 5.33438ZM4.94062 16.3562C4.35625 16.9406 4.35625 17.8906 4.94062 18.4781L6.02187 19.5594C6.60625 20.1437 7.55625 20.1437 8.14375 19.5594L20.0594 7.64062C20.6438 7.05625 20.6438 6.10625 20.0594 5.51875L18.9781 4.44063C18.3937 3.85625 17.4437 3.85625 16.8562 4.44063L4.94062 16.3562ZM18.6438 6.58125L15.3625 9.8625L14.6344 9.13438L17.9156 5.85312L18.6438 6.58125ZM3.73438 7.6625C3.59375 7.71562 3.5 7.85 3.5 8C3.5 8.15 3.59375 8.28438 3.73438 8.3375L5.5 9L6.1625 10.7656C6.21562 10.9062 6.35 11 6.5 11C6.65 11 6.78438 10.9062 6.8375 10.7656L7.5 9L9.26562 8.3375C9.40625 8.28438 9.5 8.15 9.5 8C9.5 7.85 9.40625 7.71562 9.26562 7.6625L7.5 7L6.8375 5.23438C6.78438 5.09375 6.65 5 6.5 5C6.35 5 6.21562 5.09375 6.1625 5.23438L5.5 7L3.73438 7.6625ZM14.7344 15.6625C14.5938 15.7156 14.5 15.85 14.5 16C14.5 16.15 14.5938 16.2844 14.7344 16.3375L16.5 17L17.1625 18.7656C17.2156 18.9062 17.35 19 17.5 19C17.65 19 17.7844 18.9062 17.8375 18.7656L18.5 17L20.2656 16.3375C20.4062 16.2844 20.5 16.15 20.5 16C20.5 15.85 20.4062 15.7156 20.2656 15.6625L18.5 15L17.8375 13.2344C17.7844 13.0938 17.65 13 17.5 13C17.35 13 17.2156 13.0938 17.1625 13.2344L16.5 15L14.7344 15.6625Z"
+          fill="#BAD4FF"
+        />
+        <path
+          d="M9.65625 5.775L10.8344 5.33438L11.275 4.15625C11.3094 4.0625 11.4 4 11.5 4C11.6 4 11.6906 4.0625 11.725 4.15625L12.1656 5.33438L13.3438 5.775C13.4375 5.80937 13.5 5.9 13.5 6C13.5 6.1 13.4375 6.19062 13.3438 6.225L12.1656 6.66563L11.725 7.84375C11.6906 7.9375 11.6 8 11.5 8C11.4 8 11.3094 7.9375 11.275 7.84375L10.8344 6.66563L9.65625 6.225C9.5625 6.19062 9.5 6.1 9.5 6C9.5 5.9 9.5625 5.80937 9.65625 5.775Z"
+          fill="currentColor"
+        />
+        <path
+          d="M3.5 8C3.5 7.85 3.59375 7.71562 3.73438 7.6625L5.5 7L6.1625 5.23438C6.21562 5.09375 6.35 5 6.5 5C6.65 5 6.78438 5.09375 6.8375 5.23438L7.5 7L9.26562 7.6625C9.40625 7.71562 9.5 7.85 9.5 8C9.5 8.15 9.40625 8.28438 9.26562 8.3375L7.5 9L6.8375 10.7656C6.78438 10.9062 6.65 11 6.5 11C6.35 11 6.21562 10.9062 6.1625 10.7656L5.5 9L3.73438 8.3375C3.59375 8.28438 3.5 8.15 3.5 8Z"
+          fill="currentColor"
+        />
+        <path
+          d="M14.5 16C14.5 15.85 14.5938 15.7156 14.7344 15.6625L16.5 15L17.1625 13.2344C17.2156 13.0938 17.35 13 17.5 13C17.65 13 17.7844 13.0938 17.8375 13.2344L18.5 15L20.2656 15.6625C20.4062 15.7156 20.5 15.85 20.5 16C20.5 16.15 20.4062 16.2844 20.2656 16.3375L18.5 17L17.8375 18.7656C17.7844 18.9062 17.65 19 17.5 19C17.35 19 17.2156 18.9062 17.1625 18.7656L16.5 17L14.7344 16.3375C14.5938 16.2844 14.5 16.15 14.5 16Z"
+          fill="currentColor"
+        />
+      </g>
+      <defs>
+        <clipPath id="clip0_533_2897">
+          <path d="M3.5 4H21.5V20H3.5V4Z" fill="white" />
+        </clipPath>
+      </defs>
+    </svg>
+  );
+};
+
+export const IconEmailDraft = ({ size = 16, className }: IconProps) => {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+    >
+      <g clipPath="url(#clip0_533_2907)">
+        <path opacity="0.01" d="M0 0H24V24H0V0Z" fill="#202425" />
+        <path
+          d="M2.83594 12.0536C2.83591 11.9375 2.86678 11.8234 2.92539 11.7232C2.98399 11.6229 3.06822 11.54 3.16942 11.4831C3.27062 11.4261 3.38516 11.3971 3.50128 11.399C3.61739 11.4009 3.73091 11.4337 3.83018 11.494L6.14658 12.9006C6.23136 12.9521 6.30334 13.0221 6.35706 13.1055C6.41079 13.1889 6.44487 13.2834 6.45672 13.3818C6.46858 13.4803 6.45789 13.5802 6.42548 13.6739C6.39307 13.7677 6.33978 13.8528 6.26963 13.923L4.10508 16.0869C3.9209 16.271 3.81743 16.5208 3.81743 16.7813C3.81743 16.9103 3.84283 17.038 3.89219 17.1572C3.94154 17.2763 4.01388 17.3846 4.10508 17.4758C4.19628 17.567 4.30455 17.6393 4.4237 17.6887C4.54286 17.738 4.67057 17.7634 4.79954 17.7634C5.06002 17.7634 5.30982 17.66 5.49401 17.4758L8.22342 14.7457C8.32707 14.6419 8.46258 14.5759 8.60822 14.5584C8.75386 14.5408 8.90118 14.5727 9.02653 14.6488L10.6406 15.6293C11.0502 15.878 11.5202 16.0096 11.9994 16.0096C12.4786 16.0096 12.9486 15.878 13.3583 15.6293L14.9723 14.6488C15.0976 14.5728 15.2448 14.541 15.3903 14.5586C15.5358 14.5762 15.6712 14.6421 15.7748 14.7457L18.5049 17.4751C18.6899 17.6541 18.9379 17.7531 19.1953 17.751C19.4528 17.7489 19.6991 17.6458 19.8812 17.4638C20.0633 17.2819 20.1667 17.0357 20.169 16.7782C20.1714 16.5208 20.0725 16.2728 19.8938 16.0875L17.7292 13.923C17.6591 13.8528 17.6058 13.7677 17.5734 13.6739C17.541 13.5802 17.5303 13.4803 17.5421 13.3818C17.554 13.2834 17.5881 13.1889 17.6418 13.1055C17.6955 13.0221 17.7675 12.9521 17.8523 12.9006L20.1687 11.494C20.268 11.4337 20.3815 11.4009 20.4976 11.399C20.6137 11.3971 20.7282 11.4261 20.8295 11.4831C20.9307 11.54 21.0149 11.6229 21.0735 11.7232C21.1321 11.8234 21.163 11.9375 21.1629 12.0536V16.7813C21.1629 17.1251 21.0952 17.4656 20.9636 17.7832C20.8321 18.1009 20.6392 18.3895 20.3961 18.6326C20.153 18.8757 19.8644 19.0686 19.5467 19.2002C19.2291 19.3317 18.8886 19.3995 18.5448 19.3995H5.45408C5.11026 19.3995 4.76981 19.3317 4.45216 19.2002C4.13451 19.0686 3.84589 18.8757 3.60277 18.6326C3.35966 18.3895 3.16681 18.1009 3.03523 17.7832C2.90366 17.4656 2.83594 17.1251 2.83594 16.7813V12.0536Z"
+          fill="currentColor"
+        />
+        <path
+          d="M2.83594 7.61814C2.83594 7.27432 2.90366 6.93387 3.03523 6.61622C3.16681 6.29857 3.35966 6.00995 3.60277 5.76684C3.84589 5.52372 4.13451 5.33087 4.45216 5.19929C4.76981 5.06772 5.11026 5 5.45408 5H18.5448C18.8886 5 19.2291 5.06772 19.5467 5.19929C19.8644 5.33087 20.153 5.52372 20.3961 5.76684C20.6392 6.00995 20.8321 6.29857 20.9636 6.61622C21.0952 6.93387 21.1629 7.27432 21.1629 7.61814V8.56984C21.1629 8.67946 21.1353 8.78732 21.0826 8.8835C21.03 8.97968 20.9541 9.0611 20.8618 9.1203L13.4158 13.9082C12.9936 14.1797 12.5021 14.324 12.0001 14.324C11.4981 14.324 11.0066 14.1797 10.5843 13.9082L3.13637 9.11965C3.04441 9.06049 2.96873 8.97924 2.91625 8.88331C2.86377 8.78738 2.83616 8.67984 2.83594 8.57049V7.61814Z"
+          fill="#CBE2FF"
+        />
+      </g>
+      <defs>
+        <clipPath id="clip0_533_2907">
+          <rect width="24" height="24" fill="white" />
+        </clipPath>
+      </defs>
+    </svg>
+  );
+};
+
+export const IconEdit = ({ size = 16, className }: IconProps) => {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 18 18"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+    >
+      <path
+        d="M6.02684 1.22013C6.02684 1.22013 5.07115 1.58572 3.31436 3.34252C1.56382 5.09284 1.19682 6.05032 1.19408 6.05732C1.15154 6.8914 1.125 7.86681 1.125 9.00327C1.125 12.3941 1.36079 14.3513 1.55911 15.3983C1.68637 16.0708 2.21108 16.5318 2.89195 16.6052C3.81055 16.7044 5.43185 16.8112 8.15214 16.8112C10.8725 16.8112 12.4938 16.7044 13.4124 16.6052C14.0932 16.5318 14.6179 16.0708 14.7452 15.3983C14.9435 14.3513 15.1793 12.3941 15.1793 9.00327C15.1793 5.61245 14.9435 3.65523 14.7452 2.60828C14.6179 1.9357 14.0932 1.47473 13.4124 1.40129C12.4938 1.30215 10.8725 1.19531 8.15214 1.19531C7.35184 1.19531 6.64678 1.20456 6.02684 1.22013Z"
+        fill="#CFD6E8"
+      />
+      <path
+        d="M1.19437 6.0574C2.31867 6.34016 3.64568 6.35893 4.79226 6.00871C5.27671 5.86063 5.65464 5.48309 5.81823 5.00345C6.22579 3.80856 6.32652 2.34599 6.02705 1.22021C6.02705 1.22021 5.0714 1.5858 3.31461 3.3426C1.55782 5.09936 1.19434 6.0574 1.19434 6.0574H1.19437Z"
+        fill="white"
+      />
+      <path
+        className="fill-[#98A1B7] path-pen"
+        d="M16.4178 9.21998C16.4178 9.21998 16.4178 9.21997 16.4178 9.21996C17.0276 8.61011 17.0276 7.62143 16.4178 7.01158L15.2189 5.81286C14.6091 5.203 13.6202 5.203 13.0104 5.81286L8.60994 10.2137C8.46484 10.3587 8.34974 10.5308 8.27122 10.7203C8.1927 10.9098 8.15231 11.1128 8.15234 11.3179V13.2974C8.15234 13.7286 8.5018 14.0782 8.93316 14.0782H10.9125C11.1176 14.0782 11.3207 14.0378 11.5102 13.9594C11.6997 13.8809 11.8719 13.7658 12.0169 13.6208L16.4178 9.21999C16.4178 9.21998 16.4178 9.21997 16.4178 9.21998Z"
+      />
+    </svg>
+  );
+};
+
+export const IconAvatar = ({ size = 16, className }: IconProps) => {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 16 16"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+    >
+      <path
+        d="M9.64328 7.06157H6.36797C3.96563 7.06157 2 9.0272 2 11.4297V11.7013C2 12.9688 3.03688 14.0058 4.30438 14.0058H11.7069C12.9742 14.0058 14.0114 12.9688 14.0114 11.7013V11.4297C14.0114 9.0272 12.0456 7.06157 9.64328 7.06157ZM8.91594 11.3934H7.09516C6.6225 11.3934 6.23531 11.0066 6.23531 10.5338C6.23531 10.0609 6.62234 9.67407 7.09516 9.67407H8.91578C9.38875 9.67407 9.77562 10.0609 9.77562 10.5338C9.77562 11.0066 9.38875 11.3934 8.91594 11.3934ZM5.75422 4.29548C5.75422 4.59766 5.81374 4.89689 5.92938 5.17607C6.04502 5.45525 6.21452 5.70892 6.42819 5.9226C6.64187 6.13627 6.89554 6.30577 7.17472 6.42141C7.4539 6.53705 7.75313 6.59657 8.05531 6.59657C8.3575 6.59657 8.65672 6.53705 8.9359 6.42141C9.21508 6.30577 9.46876 6.13627 9.68243 5.9226C9.89611 5.70892 10.0656 5.45525 10.1812 5.17607C10.2969 4.89689 10.3564 4.59766 10.3564 4.29548C10.3564 3.99329 10.2969 3.69407 10.1812 3.41489C10.0656 3.13571 9.89611 2.88204 9.68243 2.66836C9.46876 2.45468 9.21508 2.28519 8.9359 2.16955C8.65672 2.0539 8.3575 1.99438 8.05531 1.99438C7.75313 1.99438 7.4539 2.0539 7.17472 2.16955C6.89554 2.28519 6.64187 2.45468 6.42819 2.66836C6.21452 2.88204 6.04502 3.13571 5.92938 3.41489C5.81374 3.69407 5.75422 3.99329 5.75422 4.29548Z"
+        className="fill-current/40"
+      />
+      <path
+        d="M5.9359 5.32377C5.82026 5.04459 5.76074 4.74537 5.76074 4.44318C5.76074 4.141 5.82026 3.84177 5.9359 3.56259C6.05154 3.28341 6.22104 3.02974 6.43472 2.81606C6.64839 2.60239 6.90206 2.43289 7.18125 2.31725C7.46043 2.20161 7.75965 2.14209 8.06184 2.14209C8.36402 2.14209 8.66324 2.20161 8.94243 2.31725C9.22161 2.43289 9.47528 2.60239 9.68896 2.81606C9.90263 3.02974 10.0721 3.28341 10.1878 3.56259C10.3034 3.84177 10.3629 4.141 10.3629 4.44318C10.3629 4.74537 10.3034 5.04459 10.1878 5.32377C10.0721 5.60296 9.90263 5.85663 9.68896 6.0703C9.47528 6.28398 9.22161 6.45348 8.94243 6.56912C8.66324 6.68476 8.36402 6.74428 8.06184 6.74428C7.75965 6.74428 7.46043 6.68476 7.18125 6.56912C6.90206 6.45348 6.64839 6.28398 6.43472 6.0703C6.22104 5.85663 6.05154 5.60296 5.9359 5.32377Z"
+        fill="#FFA800"
+        className="fill-current"
       />
     </svg>
   );

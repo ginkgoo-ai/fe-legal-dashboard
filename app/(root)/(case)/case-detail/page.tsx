@@ -5,8 +5,8 @@ import { PanelProfileVault } from '@/components/case/panelProfileVault';
 import { PanelReference } from '@/components/case/panelReference';
 import { TagStatus } from '@/components/case/tagStatus';
 import UtilsManager from '@/customManager/UtilsManager';
-import { cn, parseCaseInfo } from '@/lib/utils';
-import { caseStream } from '@/service/api';
+import { cn } from '@/lib/utils';
+import { caseDetail, caseStream } from '@/service/api';
 import { ICaseItemType } from '@/types/case';
 import { Breadcrumb, Splitter } from 'antd';
 import { ItemType } from 'antd/es/breadcrumb/Breadcrumb';
@@ -65,14 +65,15 @@ function CaseDetailContent() {
           // 可以立即获取到 controller
           // setRequestController({ cancel: () => controller.abort() });
         },
-        res => {
+        async res => {
           // console.log('🚀 ~ res:', res);
           // originalMessageLogRef.current = res;
 
           try {
             const data = JSON.parse(res);
-
-            setCaseInfo(parseCaseInfo(data));
+            const detail = await caseDetail({ caseId });
+            console.log(detail);
+            setCaseInfo(detail);
           } catch (error) {
             console.warn('[Debug] Error parse message', error);
           }
@@ -226,7 +227,7 @@ function CaseDetailContent() {
               min={SIZE_PROFILEVAULT_MIN}
               size={sizeProfileVault}
               className={cn(
-                'bg-white relative rounded-2xl flex-col flex h-full min-w-[680px]',
+                'bg-white relative rounded-2xl flex-col flex h-full min-w-[870px]',
                 {
                   'transition-all': false,
                 }
