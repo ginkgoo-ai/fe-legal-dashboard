@@ -11,8 +11,8 @@ import { useEffectStrictMode } from '@/hooks/useEffectStrictMode';
 import { useEventManager } from '@/hooks/useEventManager';
 import { cn, parseCaseInfo } from '@/lib/utils';
 import { caseStream, getWorkflowDefinitions, queryCaseDetail } from '@/service/api/case';
+import { useCaseStore } from '@/store';
 import { useUserStore } from '@/store/userStore';
-import { ICaseItemType } from '@/types/case';
 import {
   IPilotType,
   IWorkflowStepType,
@@ -59,7 +59,7 @@ function CaseDetailContent() {
   const [sizeProfileVault, setSizeProfileVault] = useState<number>(0);
   const [sizePilot, setSizePilot] = useState<number>(0);
 
-  const [caseInfo, setCaseInfo] = useState<ICaseItemType | null>(null);
+  const { setCaseInfo, caseInfo, caseTimestamp } = useCaseStore();
   const [pilotInfo, setPilotInfo] = useState<IPilotType | null>(null);
   const [stepListItems, setStepListItems] = useState<IWorkflowStepType[]>([]);
   const [uploadDocumentEvent, setUploadDocumentEvent] = useState<unknown>(null);

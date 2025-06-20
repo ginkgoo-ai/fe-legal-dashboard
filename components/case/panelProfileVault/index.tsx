@@ -5,11 +5,11 @@ import { IconExtensionStart, IconExtensionStop } from '@/components/ui/icon';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { useExtensionsStore } from '@/store/extensionsStore';
-import { ICaseItemType, IProfileVaultDocumentType } from '@/types/case';
+import { ICaseItemType } from '@/types/case';
 import { IPilotType, PilotStatusEnum } from '@/types/casePilot';
 import { Button } from 'antd';
 import Image from 'next/image';
-import { memo, useEffect, useRef, useState } from 'react';
+import { memo, useRef } from 'react';
 import { PanelProfileVaultOverview } from '../panelProfileVaultOverview';
 
 interface PanelProfileVaultProps {
@@ -52,39 +52,7 @@ function PurePanelProfileVault(props: PanelProfileVaultProps) {
     },
   ]);
 
-  const [profileVaultDocumentList, setProfileVaultDocumentList] = useState<
-    IProfileVaultDocumentType[]
-  >([]);
-
   const { extensionsInfo } = useExtensionsStore();
-
-  useEffect(() => {
-    console.log(caseInfo);
-    const profileVaultDocumentListTmp =
-      caseInfo?.documents?.map((itemDocument: any) => {
-        let metadataForFrontObject: Record<string, unknown> = {};
-
-        try {
-          metadataForFrontObject = itemDocument.metadataJson
-            ? JSON.parse(itemDocument.metadataJson)
-            : {};
-        } catch (error) {
-          console.error('PurePanelProfileVault parse', error);
-        }
-
-        return {
-          ...itemDocument,
-          metadataForFrontList: Object.keys(metadataForFrontObject).map((key: string) => {
-            return {
-              key,
-              value: JSON.stringify(metadataForFrontObject[key]),
-            };
-          }),
-        };
-      }) || [];
-
-    setProfileVaultDocumentList(profileVaultDocumentListTmp);
-  }, [caseInfo?.timestamp, caseInfo?.documents]);
 
   const handleBtnDraftEmailClick = () => {
     console.log('handleBtnDraftEmailClick');
@@ -150,7 +118,7 @@ function PurePanelProfileVault(props: PanelProfileVaultProps) {
               ))}
             </TabsList>
             <TabsContent value="overview">
-              <PanelProfileVaultOverview />
+              <PanelProfileVaultOverview {...caseInfo} />
             </TabsContent>
             <TabsContent value="applicantProfile">UNDER CONSTRUCTION</TabsContent>
             <TabsContent value="sponsorDetails">UNDER CONSTRUCTION</TabsContent>

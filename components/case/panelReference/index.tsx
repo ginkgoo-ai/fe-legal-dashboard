@@ -173,7 +173,6 @@ function PurePanelReference(props: PanelReferenceProps) {
           <div className="flex flex-col py-4 w-full">
             <FileUploadSimple
               accept="application/pdf,image/jpeg,image/png,image/gif,image/webp,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/plain"
-              multiple
               maxSize={50}
               onChange={handleFileChange}
               onError={handleFileError}

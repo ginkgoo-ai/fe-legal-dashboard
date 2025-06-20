@@ -30,13 +30,13 @@ export interface ICaseItemType {
   clientName: string | null;
   createdAt: string;
   description: string;
-  documentChecklist: unknown;
+  documentChecklist: ICaseDocumentChecklistType;
   documents?: IOcrFileType[];
   documentsCount: number;
   endDate: null;
   eventsCount: number;
   id: string;
-  profileChecklist: unknown;
+  profileChecklist: ICaseProfileChecklistType;
   profileId: string;
   profileName: string | null;
   startDate: string | null;
@@ -118,4 +118,88 @@ export interface ICaseDocumentResultType {
   receivedAt: string;
   acceptedDocuments: ICaseDocumentType[];
   rejectedDocuments: ICaseDocumentType[];
+}
+
+export interface ICaseDocumentChecklistType {
+  documentItems: ICaseDocumentItemType[];
+  documentsWithIssues: number;
+  totalRequiredDocuments: number;
+  uploadedDocuments: number;
+}
+
+export interface ICaseDocumentItemType {
+  actionNeeded: string;
+  documentDisplayName: string;
+  documentId: string;
+  documentType: string;
+  hasIssues: boolean;
+  isMarkedAsValid: boolean;
+  isRequired: boolean;
+  isUploaded: boolean;
+  markedAsValid: boolean;
+  required: boolean;
+  uploadStatus: string;
+  uploaded: boolean;
+  uploadedAt: string;
+  issues: ICaseDocumentIssueType[];
+}
+
+export interface ICaseDocumentIssueType {
+  description: string;
+  issueType: string;
+  severity: string;
+  suggestion: string;
+}
+
+export enum ICaseDocumentTypeEnum {
+  PASSPORT = 'PASSPORT',
+  NATIONAL_IDENTIFICATION_CARD = 'NATIONAL_IDENTIFICATION_CARD',
+  CERTIFICATE_OF_SPONSORSHIP = 'CERTIFICATE_OF_SPONSORSHIP',
+  ENGLISH_LANGUAGE_EVIDENCE = 'ENGLISH_LANGUAGE_EVIDENCE',
+  TUBERCULOSIS_TEST_CERTIFICATE = 'TUBERCULOSIS_TEST_CERTIFICATE',
+  CRIMINAL_RECORD_CERTIFICATE = 'CRIMINAL_RECORD_CERTIFICATE',
+  UTILITY_BILL = 'UTILITY_BILL',
+  P60 = 'P60',
+  REFEREE_INFO = 'REFEREE_INFO',
+  REFEREE_AND_IDENTITY = 'REFEREE_AND_IDENTITY',
+  PARENTS_INFO = 'PARENTS_INFO',
+  QUESTIONNAIRE = 'QUESTIONNAIRE',
+  OTHER = 'OTHER',
+}
+
+export const ICaseDocumentTypeMap = {
+  [ICaseDocumentTypeEnum.PASSPORT]: 'Passport',
+  [ICaseDocumentTypeEnum.NATIONAL_IDENTIFICATION_CARD]: 'National Identification Card',
+  [ICaseDocumentTypeEnum.CERTIFICATE_OF_SPONSORSHIP]: 'Certificate of Sponsorship',
+  [ICaseDocumentTypeEnum.ENGLISH_LANGUAGE_EVIDENCE]: 'English Language Evidence',
+  [ICaseDocumentTypeEnum.TUBERCULOSIS_TEST_CERTIFICATE]: 'Tuberculosis Test Certificate',
+  [ICaseDocumentTypeEnum.CRIMINAL_RECORD_CERTIFICATE]: 'Criminal Record Certificate',
+  [ICaseDocumentTypeEnum.UTILITY_BILL]: 'Utility Bill',
+  [ICaseDocumentTypeEnum.P60]: 'P60',
+  [ICaseDocumentTypeEnum.REFEREE_INFO]: 'Referee Info',
+  [ICaseDocumentTypeEnum.REFEREE_AND_IDENTITY]: 'Referee and Identity',
+  [ICaseDocumentTypeEnum.PARENTS_INFO]: 'Parents Info',
+  [ICaseDocumentTypeEnum.QUESTIONNAIRE]: 'Questionnaire',
+  [ICaseDocumentTypeEnum.OTHER]: 'Other',
+};
+
+export interface ICaseProfileChecklistType {
+  completedFields: number;
+  totalFields: number;
+  completionPercentage: number;
+  missingFieldsCount: number;
+  profileId: string;
+  missingFields: ICaseProfileMissingField[];
+  availableDummyData: Record<string, unknown>;
+}
+
+export interface ICaseProfileMissingField {
+  category: string;
+  displayName: string;
+  dummyValue: string;
+  fieldPath: string;
+  fieldType: string;
+  isRequired: boolean;
+  required: boolean;
+  [key: string]: unknown;
 }
