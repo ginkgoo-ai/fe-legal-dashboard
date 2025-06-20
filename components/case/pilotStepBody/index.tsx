@@ -1,4 +1,7 @@
-import { Button } from '@/components/ui/button';
+'use client';
+
+import { PilotStepBodyDeclaration } from '@/components/case/pilotStepBodyDeclaration';
+import { PilotStepBodyNormal } from '@/components/case/pilotStepBodyNormal';
 import {
   IconLoading,
   IconStepDeclaration,
@@ -6,90 +9,92 @@ import {
   IconStepDown,
 } from '@/components/ui/icon';
 import { cn } from '@/lib/utils';
-import {
-  IActionItemType,
-  ICaseItemType,
-  IPilotType,
-  IStepItemType,
-  StepModeEnum,
-} from '@/types/case';
+import { IActionItemType } from '@/types/case';
+import { IPilotType, IWorkflowStepType } from '@/types/casePilot';
 import type { CollapseProps } from 'antd';
-import { Collapse, Steps, Tooltip } from 'antd';
+import { Collapse } from 'antd';
+import dayjs from 'dayjs';
 import { Check } from 'lucide-react';
-import Image from 'next/image';
-import { memo, useCallback, useEffect, useState } from 'react';
+import { memo, useEffect, useState } from 'react';
 import './index.css';
-import { mockStepListItems } from './mock';
 
 interface PilotStepBodyProps {
-  caseInfo: ICaseItemType | null;
   pilotInfo: IPilotType | null;
-  stepListCurrent: number;
-  stepListItems: IStepItemType[];
+  stepListItems: IWorkflowStepType[];
+  onCollapseChange: (key: string) => void;
+  onContinueFilling: (params: { actionlistPre: IActionItemType[] }) => void;
 }
 
 function PurePilotStepBody(props: PilotStepBodyProps) {
-  const { caseInfo, pilotInfo, stepListCurrent, stepListItems } = props;
+  const { pilotInfo, stepListItems, onCollapseChange, onContinueFilling } = props;
 
+  const [refreshRenderTS, setRefreshRenderTS] = useState<number>(0);
   const [stepListActiveKeyBody, setStepListActiveKeyBody] = useState<string[]>([]);
-  const [stepListCurrentBody, setStepListCurrentBody] = useState<number>(3);
   const [stepListItemsBody, setStepListItemsBody] = useState<CollapseProps['items']>([]);
 
   const handleCollapseChange = (key: string[]) => {
-    setStepListActiveKeyBody(key);
+    // 找出 key 中比 stepListActiveKeyBody 多的元素
+    const newKeys = key.filter(k => !stepListActiveKeyBody.includes(k));
+    if (newKeys.length > 0) {
+      // 展开操作：如果有新增的 key, 且是可展开的项，则调用 onCollapseChange，并展开
+      const newKey = newKeys[0];
+      const newStep = stepListItems.find(item => {
+        return (
+          item.step_key === newKey &&
+          ['ACTIVE', 'COMPLETED_SUCCESS'].includes(item.status)
+        );
+      });
+      if (newStep) {
+        onCollapseChange?.(newKey);
+        setStepListActiveKeyBody(key);
+      }
+    } else {
+      // 收起操作
+      setStepListActiveKeyBody(key);
+    }
+
+    setRefreshRenderTS(+dayjs());
   };
 
-  const handleBtnJumpClick = useCallback(async () => {
-    if (!!pilotInfo?.tabInfo?.url) {
-      const messageJump = {
-        type: 'ginkgo-page-background-tab-update',
-        tabId: pilotInfo?.tabInfo?.id,
-        updateProperties: { active: true },
-      };
-      window.postMessage(messageJump, window.location.origin);
-
-      const messageOpenSidepanel = {
-        type: 'ginkgo-page-background-sidepanel-open',
-        options: {
-          tabId: pilotInfo?.tabInfo?.id,
-        },
-      };
-      window.postMessage(messageOpenSidepanel, window.location.origin);
-    }
-  }, [pilotInfo?.tabInfo?.url, pilotInfo?.tabInfo?.id]);
-
+  // update collapse
   useEffect(() => {
-    const calcStepLabel = (itemStep: IStepItemType, indexStep: number) => {
-      const isSelect = stepListActiveKeyBody.includes(String(indexStep));
+    // console.log("PurePilotStepBody", stepListItems);
+    if (!stepListItems) {
+      return;
+    }
+
+    const renderStepLabel = (itemStep: IWorkflowStepType, indexStep: number) => {
+      const isSelect = stepListActiveKeyBody.includes(itemStep.step_key);
       return (
         <div
           id={`step-item-${indexStep}`}
-          className={cn('flex flex-row justify-between items-center gap-3', {
+          className={cn('flex w-full flex-row items-center justify-between gap-3', {
             'border-bottom': !isSelect,
           })}
+          data-ts={refreshRenderTS}
         >
-          <div className="flex flex-row gap-3.5 flex-1 w-0">
-            <div className="flex flex-row w-4 h-6 flex-[0_0_auto] justify-center items-center">
-              {itemStep.mode === StepModeEnum.DECLARATION ? (
+          <div className="flex w-0 flex-1 flex-row gap-3.5">
+            <div className="flex h-6 w-4 flex-[0_0_auto] flex-row items-center justify-center">
+              {itemStep.step_key === 'Declaration' ? (
                 <IconStepDeclaration size={16} />
               ) : (
                 <>
-                  {indexStep < stepListCurrentBody ? (
+                  {itemStep.status === 'COMPLETED_SUCCESS' ? (
                     <Check size={16} color="#00ff00" />
                   ) : null}
-                  {indexStep === stepListCurrentBody ? (
+                  {itemStep.status === 'ACTIVE' ? (
                     <IconLoading size={16} className="animate-spin" />
                   ) : null}
-                  {indexStep > stepListCurrentBody ? <IconStepDot size={16} /> : null}
+                  {itemStep.status === 'PENDING' ? <IconStepDot size={16} /> : null}
                 </>
               )}
             </div>
-            <div className="flex-1 w-0 truncate flex justify-start items-center gap-3">
-              <span>{itemStep.title}</span>
-              {itemStep.mode === StepModeEnum.DECLARATION ? (
-                <span className="flex-[0_0_auto] h-full text-xs mt-0.5 text-[#FF55CB] flex justify-center items-center">
+            <div className="flex w-0 flex-1 items-center justify-start gap-3">
+              <div className="truncate">{itemStep.name}</div>
+              {itemStep.step_key === 'Declaration' ? (
+                <div className="mt-0.5 flex h-full flex-[0_0_auto] items-center justify-center text-xs text-[#FF55CB]">
                   Confirm Declaration
-                </span>
+                </div>
               ) : null}
             </div>
           </div>
@@ -106,130 +111,40 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
       );
     };
 
-    const calcActionItem = (
-      item: IActionItemType,
-      indexStep: number,
-      indexAction: number
-    ) => {
-      const { type, selector } = item || {};
+    const renderStepChildren = (itemStep: IWorkflowStepType, indexStep: number) => {
+      if (itemStep.step_key !== 'Declaration' && !itemStep?.data) {
+        return null;
+      }
 
-      return {
-        title: (
-          <div
-            id={`action-item-${indexStep}-${indexAction}`}
-            className="flex flex-row items-center gap-1"
-          >
-            <Tooltip placement="top" title={selector} mouseEnterDelay={1}>
-              <div className="flex-1 text-sm truncate text-[#B4B3B3]">{selector}</div>
-            </Tooltip>
-          </div>
-        ),
-        description: (
-          <div className="flex w-full flex-col">
-            <div className="flex flex-row text-sm gap-1 text-[#464E5F]">{type}</div>
-          </div>
-        ),
-      };
-    };
-
-    const calcStepChildren = (itemStep: IStepItemType, indexStep: number) => {
       return (
-        {
-          [StepModeEnum.ACTION]: (
-            <Steps
-              className="border-bottom"
-              progressDot
-              direction="vertical"
-              current={itemStep.actioncurrent}
-              items={itemStep.actionlist.map((itemAction, indexAction) =>
-                calcActionItem(itemAction, indexStep, indexAction)
-              )}
+        <div className="border-bottom">
+          {itemStep.step_key === 'Declaration' ? (
+            <PilotStepBodyDeclaration pilotInfo={pilotInfo} />
+          ) : (
+            <PilotStepBodyNormal
+              itemStep={itemStep}
+              indexStep={indexStep}
+              onContinueFilling={onContinueFilling}
             />
-          ),
-          [StepModeEnum.MANUAL]: null,
-          [StepModeEnum.FORM]: null,
-          [StepModeEnum.DECLARATION]: (
-            <div className="flex flex-row gap-1 bg-[#FF97DF1A] rounded-xl box-border pt-5 pl-6">
-              <div className="flex flex-col pb-2.5 box-border">
-                <div className="text-sm font-[600] text-[#FF55CB]">
-                  Manual Input Required
-                </div>
-                <div className="text-xs font-[400] text-[#FF97DF]">
-                  To ensure full compliance with legal standards, your personal attention
-                  is required for specific items in this form. The system will now direct
-                  you to the relevant section for your manual input and confirmation.
-                </div>
-                <Button
-                  variant="ghost"
-                  className="self-end border-dashed border border-[#FF55CB] bg-[#FFFFFF] w-[160px] h-[44px] mt-4"
-                  onClick={handleBtnJumpClick}
-                >
-                  <span className="text-[#FF55CB]">Proceed to Form</span>
-                </Button>
-              </div>
-              <Image
-                src="/imgDeclaration.webp"
-                className="flex-[0_0_auto] !w-[111px] !h-[107px] justify-self-end self-end"
-                alt="Declaration"
-                width={111}
-                height={107}
-              />
-            </div>
-          ),
-        }[itemStep.mode] || null
+          )}
+        </div>
       );
     };
 
     setStepListItemsBody(
-      mockStepListItems.map((item, index) => {
+      stepListItems.map((item, index) => {
         return {
-          key: index,
-          label: calcStepLabel(item, index),
+          key: item.step_key,
+          label: renderStepLabel(item, index),
           showArrow: false,
-          children: calcStepChildren(item, index),
+          children: renderStepChildren(item, index),
         };
       })
     );
-  }, [
-    caseInfo?.timestamp,
-    stepListActiveKeyBody,
-    stepListCurrentBody,
-    stepListItems,
-    handleBtnJumpClick,
-  ]);
+  }, [refreshRenderTS, stepListItems, onContinueFilling]);
 
-  useEffect(() => {
-    setStepListActiveKeyBody(prev => {
-      const prevArray = Array.isArray(prev) ? prev : [prev];
-      const strStepListCurrent = String(stepListCurrent);
-
-      return prevArray.includes(strStepListCurrent)
-        ? prevArray
-        : [...prevArray, strStepListCurrent];
-    });
-
-    setStepListCurrentBody(stepListCurrent);
-  }, [stepListCurrent]);
-
-  // const handleBtnDownloadClick = async () => {
-  //   console.log('handleBtnDownloadClick', pilotInfo);
-  //   if (pilotInfo?.pdfUrl && pilotInfo?.cookiesStr) {
-  //     const headers = new AxiosHeaders();
-  //     // headers.set('Accept', 'application/octet-stream');
-  //     headers.set('withCredentials', true);
-  //     headers.set('Cookie', pilotInfo.cookiesStr);
-
-  //     const resDownloadCustomFile = await downloadCustomFile({
-  //       url: pilotInfo.pdfUrl,
-  //       headers,
-  //     });
-
-  //     // await saveBlob({ blobPart: resDownloadCustomFile });
-  //   }
-  // };
-
-  return (
-    <div className="relative w-full flex justify-start items-center rounded-lg border border-[#D8DFF5] box-border p-2">
+  return stepListItemsBody && stepListItemsBody.length > 0 ? (
+    <div className="relative box-border flex w-full items-center justify-start rounded-lg border border-[#D8DFF5] p-2">
       <Collapse
         className="w-full"
         activeKey={stepListActiveKeyBody}
@@ -238,7 +153,7 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
         onChange={handleCollapseChange}
       />
     </div>
-  );
+  ) : null;
 }
 
 export const PilotStepBody = memo(PurePilotStepBody);

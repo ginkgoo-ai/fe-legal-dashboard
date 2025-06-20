@@ -1,18 +1,33 @@
+'use client';
+
 import { PanelContainer } from '@/components/case/panelContainer';
+import { IconExtensionStart, IconExtensionStop } from '@/components/ui/icon';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
-import { ICaseItemType, IProfileVaultDocumentType } from '@/types';
+import { useExtensionsStore } from '@/store/extensionsStore';
+import { ICaseItemType, IProfileVaultDocumentType } from '@/types/case';
+import { IPilotType, PilotStatusEnum } from '@/types/casePilot';
+import { Button } from 'antd';
 import Image from 'next/image';
 import { memo, useEffect, useRef, useState } from 'react';
 import { PanelProfileVaultOverview } from '../panelProfileVaultOverview';
 
 interface PanelProfileVaultProps {
   caseInfo: ICaseItemType | null;
+  pilotInfo: IPilotType | null;
   isFold: boolean;
+  onShowInstallExtension: () => void;
+  onShowNewWorkflow: () => void;
 }
 
 function PurePanelProfileVault(props: PanelProfileVaultProps) {
-  const { caseInfo = null, isFold } = props;
+  const {
+    caseInfo = null,
+    pilotInfo,
+    isFold,
+    onShowInstallExtension,
+    onShowNewWorkflow,
+  } = props;
 
   const tabList = useRef([
     {
@@ -40,6 +55,8 @@ function PurePanelProfileVault(props: PanelProfileVaultProps) {
   const [profileVaultDocumentList, setProfileVaultDocumentList] = useState<
     IProfileVaultDocumentType[]
   >([]);
+
+  const { extensionsInfo } = useExtensionsStore();
 
   useEffect(() => {
     console.log(caseInfo);
@@ -69,8 +86,49 @@ function PurePanelProfileVault(props: PanelProfileVaultProps) {
     setProfileVaultDocumentList(profileVaultDocumentListTmp);
   }, [caseInfo?.timestamp, caseInfo?.documents]);
 
+  const handleBtnDraftEmailClick = () => {
+    console.log('handleBtnDraftEmailClick');
+  };
+
+  const handleBtnExtensionClick = () => {
+    if (!extensionsInfo?.version) {
+      onShowInstallExtension?.();
+      return;
+    }
+
+    onShowNewWorkflow?.();
+  };
+
   return (
-    <PanelContainer title="Profile vault" showTitle={!isFold}>
+    <PanelContainer
+      title="Profile vault"
+      showTitle={!isFold}
+      renderTitleExtend={() => {
+        return (
+          <div className="mt-2 flex flex-row items-center justify-between gap-2.5">
+            <Button
+              type="default"
+              className="h-9 flex-1"
+              onClick={handleBtnDraftEmailClick}
+            >
+              <span className="font-bold">Draft email</span>
+            </Button>
+            <Button
+              type="primary"
+              className="h-9 flex-1"
+              onClick={handleBtnExtensionClick}
+            >
+              {pilotInfo?.pilotStatus !== PilotStatusEnum.HOLD ? (
+                <IconExtensionStart />
+              ) : (
+                <IconExtensionStop />
+              )}
+              <span className="font-bold">Start auto-fill</span>
+            </Button>
+          </div>
+        );
+      }}
+    >
       {caseInfo ? (
         <div
           className={cn(

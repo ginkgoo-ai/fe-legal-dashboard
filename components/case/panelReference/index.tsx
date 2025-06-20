@@ -1,82 +1,99 @@
+'use client';
+
 import { PanelContainer } from '@/components/case/panelContainer';
 import { FileUploadSimple } from '@/components/common/form/upload/fileUploadSimple';
 import { ItemFile } from '@/components/common/itemFile';
 import { Button } from '@/components/ui/button';
 import { IconFoldLeft } from '@/components/ui/icon';
 import { cn } from '@/lib/utils';
-import { ocrDocuments } from '@/service/api';
-import { uploadFiles } from '@/service/api/file';
+import { uploadDocument } from '@/service/api/case';
+import { message as messageAntd } from 'antd';
+// import { uploadFiles } from '@/service/api/file';
+import { useEffectStrictMode } from '@/hooks/useEffectStrictMode';
 import { ICaseItemType } from '@/types/case';
-import { FileStatus, ICloudFileType, IFileItemType } from '@/types/file';
+import { FileStatus, IFileItemType } from '@/types/file';
 import { produce } from 'immer';
-import { memo, useEffect, useState } from 'react';
+import { memo, useState } from 'react';
 import { toast } from 'sonner';
 import { v4 as uuid } from 'uuid';
 
 interface PanelReferenceProps {
+  caseId: string;
   caseInfo: ICaseItemType | null;
+  uploadDocumentEvent: unknown;
   isFold: boolean;
   // onFileListUpdate: Dispatch<SetStateAction<IFileItemType[]>>;
   onBtnPanelLeftClick: () => void;
 }
 
 function PurePanelReference(props: PanelReferenceProps) {
-  const { caseInfo, isFold, onBtnPanelLeftClick } = props;
+  const { caseId, caseInfo, uploadDocumentEvent, isFold, onBtnPanelLeftClick } = props;
 
   const [fileList, setFileList] = useState<IFileItemType[]>([]);
 
-  const actionOcrFile = async (cloudFiles: ICloudFileType[]) => {
-    const data = await ocrDocuments({
-      caseId: caseInfo?.id || '',
-      storageIds: cloudFiles.map(file => file.id),
-    });
+  // const actionOcrFile = async (cloudFiles: ICloudFileType[]) => {
+  //   const data = await ocrDocuments({
+  //     caseId,
+  //     storageIds: cloudFiles.map(file => file.id),
+  //   });
 
-    if (data?.length > 0) {
-      // nothing... async ocr...
-    } else {
-      toast.error('Analysis file failed.');
-      setFileList(prev =>
-        produce(prev, draft => {
-          draft.forEach(file => {
-            if (
-              cloudFiles.some(cloudFile => {
-                return cloudFile.id === file.cloudFile?.id;
-              })
-            ) {
-              file.status = FileStatus.ERROR;
-            }
-          });
-        })
-      );
-    }
-  };
+  //   if (data?.length > 0) {
+  //     // nothing... async ocr...
+  //   } else {
+  //     toast.error('Analysis file failed.');
+  //     setFileList(prev =>
+  //       produce(prev, draft => {
+  //         draft.forEach(file => {
+  //           if (
+  //             cloudFiles.some(cloudFile => {
+  //               return cloudFile.id === file.cloudFile?.id;
+  //             })
+  //           ) {
+  //             file.status = FileStatus.ERROR;
+  //           }
+  //         });
+  //       })
+  //     );
+  //   }
+  // };
 
   const actionUploadFile = async (newFiles: IFileItemType[]) => {
-    const data = await uploadFiles(
-      newFiles.map(file => file.localFile!),
-      {
-        onUploadeProgress: () => {
-          // console.log('percentCompleted', percentCompleted);
-        },
-      }
-    );
-    if (data?.cloudFiles) {
+    const res = await uploadDocument({
+      caseId,
+      files: newFiles.map(file => file.localFile!),
+    });
+
+    console.log('actionUploadFile', newFiles, res);
+
+    if (res?.success) {
       setFileList(prev =>
         produce(prev, draft => {
           draft.forEach(file => {
-            const indexNewFile = newFiles.findIndex(
-              newFile => newFile.localId === file.localId
+            const indexAccepted = res?.acceptedDocuments?.findIndex(
+              acceptedFile => acceptedFile.filename === file.localFile?.name
             );
-            if (indexNewFile >= 0) {
-              file.status = FileStatus.ANALYSIS;
-              file.cloudFile = data.cloudFiles[indexNewFile];
+            if (indexAccepted >= 0) {
+              file.status = FileStatus.UPLOADING;
+              file.cloudFile = res?.acceptedDocuments?.[indexAccepted];
+              return;
+            }
+
+            const indexRejected = res?.rejectedDocuments?.findIndex(
+              rejectedFile => rejectedFile.filename === file.localFile?.name
+            );
+            if (indexRejected >= 0) {
+              file.status = FileStatus.ERROR;
+              file.cloudFile = res?.rejectedDocuments?.[indexRejected];
             }
           });
         })
       );
-      await actionOcrFile(data.cloudFiles);
+      // await actionOcrFile(data.cloudFiles);
     } else {
-      toast.error('Upload file failed.');
+      messageAntd.open({
+        type: 'error',
+        content: 'Upload file failed.',
+      });
       setFileList(prev =>
         produce(prev, draft => {
           draft.forEach(file => {
@@ -89,7 +106,11 @@ function PurePanelReference(props: PanelReferenceProps) {
     }
   };
 
-  useEffect(() => {
+  useEffectStrictMode(() => {
+    console.log('caseInfo', caseInfo);
+    if (fileList.length > 0) {
+      return;
+    }
     setFileList(() => {
       return (
         caseInfo?.documents?.map(item => ({
@@ -99,7 +120,11 @@ function PurePanelReference(props: PanelReferenceProps) {
         })) || []
       );
     });
-  }, [caseInfo?.timestamp, caseInfo?.documents]);
+  }, [fileList, caseInfo?.timestamp, caseInfo?.documents]);
+
+  useEffectStrictMode(() => {
+    console.log('PurePanelReference uploadDocumentEvent', uploadDocumentEvent);
+  }, [uploadDocumentEvent]);
 
   const handleFileChange = async (files: File[]) => {
     console.log('handleFileChange', files);

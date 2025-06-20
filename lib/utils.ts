@@ -1,4 +1,5 @@
-import { CaseStatusEnum, ChatMessagePart, ICaseItemType } from '@/types';
+import { CaseStatusEnum, ICaseItemType } from '@/types/case';
+import { ChatMessagePart } from '@/types/chat';
 import { type ClassValue, clsx } from 'clsx';
 import dayjs from 'dayjs';
 import { twMerge } from 'tailwind-merge';
@@ -102,7 +103,8 @@ export const parseCaseInfo = (caseInfo: ICaseItemType): ICaseItemType => {
   return {
     ...caseInfo,
     caseStatusForFront:
-      CASE_STATUS_MAP[caseInfo.status] || CASE_STATUS_MAP[CaseStatusEnum.DEFAULT],
+      CASE_STATUS_MAP[caseInfo?.status as keyof typeof CASE_STATUS_MAP] ||
+      CASE_STATUS_MAP[CaseStatusEnum.DEFAULT],
     timestamp: +dayjs(),
   };
 };

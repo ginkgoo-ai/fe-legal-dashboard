@@ -1,11 +1,11 @@
+'use client';
+
 import { FileUpload } from '@/components/common/form/upload/fileUpload';
 import { ItemFile } from '@/components/common/itemFile';
 import { Button } from '@/components/ui/button';
 import {
   IconFormItemClientName,
-  IconFormItemEmail,
   IconFormItemLayer,
-  IconFormItemPassword,
   IconFormItemVisaType,
 } from '@/components/ui/icon';
 import { FileStatus, IFileItemType } from '@/types/file';
@@ -136,7 +136,7 @@ function PureModalCreateCase(props: ModalCreateCaseProps) {
           />
         </Form.Item>
 
-        <div className="flex flex-row justify-between items-center gap-5">
+        {/* <div className="flex flex-row justify-between items-center gap-5">
           <Form.Item
             className="flex-1"
             label="Application detail"
@@ -163,7 +163,7 @@ function PureModalCreateCase(props: ModalCreateCaseProps) {
               autoComplete="current-password"
             />
           </Form.Item>
-        </div>
+        </div> */}
 
         <Form.Item
           className="flex-1 !mt-3"

@@ -1,3 +1,5 @@
+'use client';
+
 import { Button } from '@/components/ui/button';
 import { IconMagic } from '@/components/ui/icon';
 import { memo, MouseEventHandler } from 'react';
