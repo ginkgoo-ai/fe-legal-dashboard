@@ -187,16 +187,28 @@ function CaseDetailContent() {
             // setRequestController({ cancel: () => controller.abort() });
           },
           async res => {
-            refreshCaseDetail();
             console.log('🚀 ~ res:', res);
             // originalMessageLogRef.current = res;
 
             if (res.indexOf('event:documentStatusUpdate') === 0) {
+              refreshCaseDetail();
+
               const dataStr = res.replace('event:documentStatusUpdate', '').trim();
               try {
                 const data = JSON.parse(dataStr);
                 emit({
                   type: 'event:documentStatusUpdate',
+                  data,
+                });
+              } catch (error) {
+                console.warn('[Debug] Error parse message', error);
+              }
+            } else if (res.indexOf('event:init') === 0) {
+              const dataStr = res.replace('event:init', '').trim();
+              try {
+                const data = JSON.parse(dataStr);
+                emit({
+                  type: 'event:init',
                   data,
                 });
               } catch (error) {
@@ -390,7 +402,6 @@ function CaseDetailContent() {
             >
               <PanelReference
                 caseId={caseId}
-                caseInfo={caseInfo}
                 isFold={isFoldReference}
                 onBtnPanelLeftClick={handleBtnPanelLeftClick}
               />

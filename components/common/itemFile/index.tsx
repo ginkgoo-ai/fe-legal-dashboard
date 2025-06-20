@@ -88,20 +88,20 @@ function PureItemFile(props: ItemFileProps) {
   const [fileUpdate, setFileUpdate] = useState<string>('');
 
   useEffect(() => {
-    const { localFile, cloudFile, ocrFile } = file || {};
+    const { localFile, documentFile, documentInitResultFile } = file || {};
     let dayjsUpdate = dayjs();
     let fileNameTmp = '';
     let fileTypeTmp = FileTypeEnum.UNKNOW;
     let fileUpdateTmp = '';
 
-    if (ocrFile) {
-      fileNameTmp = ocrFile.title;
-      fileTypeTmp = ocrFile.fileType;
-      dayjsUpdate = dayjs.utc(ocrFile.updatedAt).local();
-    } else if (cloudFile) {
-      fileNameTmp = cloudFile.filename;
-      fileTypeTmp = cloudFile.fileType as FileTypeEnum;
-      dayjsUpdate = dayjs.utc(cloudFile.receivedAt).local();
+    if (documentInitResultFile) {
+      fileNameTmp = documentInitResultFile.filename;
+      fileTypeTmp = documentInitResultFile.fileType as FileTypeEnum;
+      dayjsUpdate = dayjs.utc(documentInitResultFile.updatedAt).local();
+    } else if (documentFile) {
+      fileNameTmp = documentFile.filename;
+      fileTypeTmp = documentFile.fileType as FileTypeEnum;
+      dayjsUpdate = dayjs.utc(documentFile.receivedAt).local();
     } else if (localFile) {
       fileNameTmp = localFile.name;
       fileTypeTmp = localFile.type as FileTypeEnum;

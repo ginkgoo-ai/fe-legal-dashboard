@@ -71,12 +71,27 @@ export interface ICaseDocumentType {
   errorDetails: null;
 }
 
+export interface ICaseDocumentInitResultType {
+  createdAt: string;
+  filename: string;
+  fileSize: number;
+  documentType: string;
+  documentCategory: string;
+  id: string;
+  fileType: string;
+  status: string; // 'REJECTED';
+  updatedAt: string;
+  storageId: null;
+}
+
 export interface IFileItemType {
   localId: string;
   status: FileStatus;
   progress?: number; // ignore
   localFile?: File;
-  cloudFile?: ICaseDocumentType;
+  documentFile?: ICaseDocumentType;
+  documentInitResultFile?: ICaseDocumentInitResultType;
+  cloudFile?: ICloudFileType;
   ocrFile?: IOcrFileType;
   ocrResult?: Record<string, string>[];
 }

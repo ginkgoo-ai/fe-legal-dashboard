@@ -43,7 +43,7 @@ function PureCardCase(props: CardCaseProps) {
           ) : null}
         </div>
         <div className="flex flex-row justify-start items-center w-full mt-1">
-          <span className="text-base text-[#B5B5C3]">{itemCase.caseType}</span>
+          <span className="text-base text-[#B5B5C3]">{itemCase.visaType}</span>
         </div>
         <div className="flex-1 w-full"></div>
         <div className="flex flex-row justify-between items-center w-full mt-1">

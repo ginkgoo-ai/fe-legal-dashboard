@@ -10,11 +10,9 @@ import { cn } from '@/lib/utils';
 import { uploadDocument } from '@/service/api/case';
 import { message as messageAntd } from 'antd';
 // import { uploadFiles } from '@/service/api/file';
-import { useEffectStrictMode } from '@/hooks/useEffectStrictMode';
 import { useEventManager } from '@/hooks/useEventManager';
 import { useStateCallback } from '@/hooks/useStateCallback';
-import { ICaseItemType } from '@/types/case';
-import { FileStatus, IFileItemType } from '@/types/file';
+import { FileStatus, ICaseDocumentInitResultType, IFileItemType } from '@/types/file';
 import { produce } from 'immer';
 import { memo } from 'react';
 import { toast } from 'sonner';
@@ -22,23 +20,36 @@ import { v4 as uuid } from 'uuid';
 
 interface PanelReferenceProps {
   caseId: string;
-  caseInfo: ICaseItemType | null;
   isFold: boolean;
   // onFileListUpdate: Dispatch<SetStateAction<IFileItemType[]>>;
   onBtnPanelLeftClick: () => void;
 }
 
 function PurePanelReference(props: PanelReferenceProps) {
-  const { caseId, caseInfo, isFold, onBtnPanelLeftClick } = props;
+  const { caseId, isFold, onBtnPanelLeftClick } = props;
 
   const [fileList, setFileList] = useStateCallback<IFileItemType[]>([]);
 
   useEventManager('ginkgoo-message', async message => {
-    // console.log('🚀 ~ useEventManager ~ data:', message);
-
     const { type: typeMsg } = message;
 
     switch (typeMsg) {
+      case 'event:init': {
+        const { data: dataMsg } = message || {};
+        const { documents } = dataMsg || {};
+
+        setFileList(() => {
+          return (
+            documents?.map((item: ICaseDocumentInitResultType) => ({
+              localId: uuid(),
+              status: item.status === 'COMPLETED' ? FileStatus.DONE : FileStatus.ERROR,
+              documentInitResultFile: item,
+            })) || []
+          );
+        });
+
+        break;
+      }
       case 'event:documentStatusUpdate': {
         const { data: dataMsg } = message || {};
 
@@ -51,12 +62,19 @@ function PurePanelReference(props: PanelReferenceProps) {
           setFileList(
             prev =>
               produce(prev, draft => {
-                draft.forEach(file => {
-                  if (file.cloudFile?.documentId === documentId) {
-                    file.status =
-                      status === 'COMPLETED' ? FileStatus.DONE : FileStatus.ERROR;
-                  }
+                const indexFile = draft.findIndex(file => {
+                  return file.documentFile?.documentId === documentId;
                 });
+                if (indexFile >= 0) {
+                  draft[indexFile].status =
+                    status === 'COMPLETED' ? FileStatus.DONE : FileStatus.ERROR;
+                } else {
+                  draft.push({
+                    localId: uuid(),
+                    status: status === 'COMPLETED' ? FileStatus.DONE : FileStatus.ERROR,
+                    documentFile: dataMsg,
+                  });
+                }
               }),
             () => {
               LockManager.releaseLock(lockId);
@@ -71,32 +89,6 @@ function PurePanelReference(props: PanelReferenceProps) {
     }
   });
 
-  // const actionOcrFile = async (cloudFiles: ICloudFileType[]) => {
-  //   const data = await ocrDocuments({
-  //     caseId,
-  //     storageIds: cloudFiles.map(file => file.id),
-  //   });
-
-  //   if (data?.length > 0) {
-  //     // nothing... async ocr...
-  //   } else {
-  //     toast.error('Analysis file failed.');
-  //     setFileList(prev =>
-  //       produce(prev, draft => {
-  //         draft.forEach(file => {
-  //           if (
-  //             cloudFiles.some(cloudFile => {
-  //               return cloudFile.id === file.cloudFile?.id;
-  //             })
-  //           ) {
-  //             file.status = FileStatus.ERROR;
-  //           }
-  //         });
-  //       })
-  //     );
-  //   }
-  // };
-
   const actionUploadFile = async (newFiles: IFileItemType[]) => {
     const res = await uploadDocument({
       caseId,
@@ -105,25 +97,17 @@ function PurePanelReference(props: PanelReferenceProps) {
 
     console.log('actionUploadFile', newFiles, res);
 
-    if (res?.success) {
+    if (res?.acceptedDocuments) {
       setFileList(prev =>
         produce(prev, draft => {
           draft.forEach(file => {
-            const indexAccepted = res?.acceptedDocuments?.findIndex(
-              acceptedFile => acceptedFile.filename === file.localFile?.name
+            const indexNewFile = newFiles.findIndex(
+              newFile => newFile.localId === file.localId
             );
-            if (indexAccepted >= 0) {
-              file.status = FileStatus.UPLOADING;
-              file.cloudFile = res?.acceptedDocuments?.[indexAccepted];
-              return;
-            }
 
-            const indexRejected = res?.rejectedDocuments?.findIndex(
-              rejectedFile => rejectedFile.filename === file.localFile?.name
-            );
-            if (indexRejected >= 0) {
-              file.status = FileStatus.ERROR;
-              file.cloudFile = res?.rejectedDocuments?.[indexRejected];
+            if (indexNewFile >= 0) {
+              file.status = FileStatus.ANALYSIS;
+              file.documentFile = res?.acceptedDocuments?.[indexNewFile];
             }
           });
         })
@@ -145,22 +129,6 @@ function PurePanelReference(props: PanelReferenceProps) {
       );
     }
   };
-
-  useEffectStrictMode(() => {
-    console.log('caseInfo', caseInfo);
-    if (fileList.length > 0) {
-      return;
-    }
-    setFileList(() => {
-      return (
-        caseInfo?.documents?.map(item => ({
-          localId: uuid(),
-          status: FileStatus.DONE,
-          ocrFile: item,
-        })) || []
-      );
-    });
-  }, [fileList, caseInfo?.documents]);
 
   const handleFileChange = async (files: File[]) => {
     console.log('handleFileChange', files);
