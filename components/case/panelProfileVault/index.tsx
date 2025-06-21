@@ -58,13 +58,20 @@ function PurePanelProfileVault(props: PanelProfileVaultProps) {
     console.log('handleBtnDraftEmailClick');
   };
 
-  const handleBtnExtensionClick = () => {
+  const handleBtnExtensionStartClick = () => {
     if (!extensionsInfo?.version) {
       onShowInstallExtension?.();
       return;
     }
 
     onShowNewWorkflow?.();
+  };
+
+  const handleBtnExtensionStopClick = () => {
+    window.postMessage({
+      type: 'ginkgoo-page-all-case-stop',
+      workflowId: pilotInfo?.workflowId,
+    });
   };
 
   return (
@@ -81,18 +88,25 @@ function PurePanelProfileVault(props: PanelProfileVaultProps) {
             >
               <span className="font-bold">Draft email</span>
             </Button>
-            <Button
-              type="primary"
-              className="h-9 flex-1"
-              onClick={handleBtnExtensionClick}
-            >
-              {pilotInfo?.pilotStatus !== PilotStatusEnum.HOLD ? (
+            {!pilotInfo || pilotInfo?.pilotStatus === PilotStatusEnum.HOLD ? (
+              <Button
+                type="primary"
+                className="h-9 flex-1"
+                onClick={handleBtnExtensionStartClick}
+              >
                 <IconExtensionStart />
-              ) : (
+                <span className="font-bold">Start auto-fill</span>
+              </Button>
+            ) : (
+              <Button
+                type="primary"
+                className="h-9 flex-1"
+                onClick={handleBtnExtensionStopClick}
+              >
                 <IconExtensionStop />
-              )}
-              <span className="font-bold">Start auto-fill</span>
-            </Button>
+                <span className="font-bold">Stop auto-fill</span>
+              </Button>
+            )}
           </div>
         );
       }}
