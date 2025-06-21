@@ -1,5 +1,18 @@
 import { CaseStatusEnum, ICaseItemType } from '@/types/case';
 
+export const mockGetWorkflowList = [
+  {
+    workflow_instance_id: '1221f2f4-5311-4e15-b7dd-aecd4f8d9401',
+    user_id: 'user-12345',
+    case_id: 'case-12345',
+    status: 'PENDING',
+    current_step_key: 'string',
+    created_at: '2025-06-18T09:55:52.668Z',
+    updated_at: '2025-06-18T09:55:52.668Z',
+    completed_at: '2025-06-18T09:55:52.668Z',
+  },
+];
+
 export const mockCaseList: any = [
   {
     id: '44c6cd75-b7c4-4e27-b643-ab14c15ee3a0',

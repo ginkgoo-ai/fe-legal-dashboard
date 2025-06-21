@@ -1,48 +1,55 @@
 'use client';
 
 import { PanelContainer } from '@/components/case/panelContainer';
-import { PilotStepBody } from '@/components/case/pilotStepBody';
+import { PilotWorkflow } from '@/components/case/pilotWorkflow';
 import { Button } from '@/components/ui/button';
 import { IconFoldRight } from '@/components/ui/icon';
 import { cn } from '@/lib/utils';
-import { IActionItemType, ICaseItemType } from '@/types/case';
-import { IPilotType, IWorkflowStepType } from '@/types/casePilot';
-import { memo } from 'react';
+import { ICaseItemType } from '@/types/case';
+import { IWorkflowType } from '@/types/casePilot';
+import { memo, useMemo } from 'react';
 
 interface PanelPanelPilotProps {
-  caseInfo: ICaseItemType | null;
-  pilotInfo: IPilotType | null;
-  stepListItems: IWorkflowStepType[];
+  caseInfo: ICaseItemType;
+  currentWorkflowId: string;
+  pilotWorkflowList: IWorkflowType[];
   isFold: boolean;
   onBtnPanelRightClick: () => void;
 }
 
 function PurePanelPilot(props: PanelPanelPilotProps) {
-  const { caseInfo, pilotInfo, stepListItems, isFold, onBtnPanelRightClick } = props;
+  const { caseInfo, currentWorkflowId, pilotWorkflowList, isFold, onBtnPanelRightClick } =
+    props;
 
-  const handleStepCollapseChange = async (stepKey: string) => {
-    const message = {
-      type: 'ginkgoo-page-background-polit-step-query',
-      workflowId: pilotInfo?.workflowId,
-      stepKey,
-    };
+  const indexCurrentWorkflow = useMemo(() => {
+    return pilotWorkflowList.findIndex(item => {
+      return item.workflow_instance_id === currentWorkflowId;
+    });
+  }, [currentWorkflowId, pilotWorkflowList]);
 
-    window.postMessage(message, window.location.origin);
-  };
+  // const handleStepCollapseChange = async (stepKey: string) => {
+  //   const message = {
+  //     type: 'ginkgoo-page-background-polit-step-query',
+  //     workflowId: pilotWorkflowList,
+  //     stepKey,
+  //   };
 
-  const handleStepContinueFilling = (params: { actionlistPre: IActionItemType[] }) => {
-    const { actionlistPre } = params || {};
+  //   window.postMessage(message, window.location.origin);
+  // };
 
-    try {
-      window.postMessage({
-        type: 'ginkgoo-page-all-case-start',
-        pilotId: pilotInfo?.id,
-        actionlistPre,
-      });
-    } catch (error) {
-      console.error('[Ginkgoo] Sidepanel handleContinueFilling error', error);
-    }
-  };
+  // const handleStepContinueFilling = (params: { actionlistPre: IActionItemType[] }) => {
+  //   const { actionlistPre } = params || {};
+
+  //   try {
+  //     window.postMessage({
+  //       type: 'ginkgoo-page-all-case-start',
+  //       pilotId: pilotInfo?.id,
+  //       actionlistPre,
+  //     });
+  //   } catch (error) {
+  //     console.error('[Ginkgoo] Sidepanel handleContinueFilling error', error);
+  //   }
+  // };
 
   return (
     <PanelContainer
@@ -56,13 +63,19 @@ function PurePanelPilot(props: PanelPanelPilotProps) {
         );
       }}
     >
-      <div className={cn('flex flex-col overflow-y-auto p-4 box-border flex-1 h-0')}>
-        <PilotStepBody
-          pilotInfo={pilotInfo}
-          stepListItems={stepListItems}
-          onCollapseChange={handleStepCollapseChange}
-          onContinueFilling={handleStepContinueFilling}
-        />
+      <div
+        className={cn('flex flex-col overflow-y-auto p-4 box-border flex-1 h-0 gap-3')}
+      >
+        {pilotWorkflowList.map((itemWorkflow, indexWorkflow) => {
+          return (
+            <PilotWorkflow
+              key={`workflow-item-${indexWorkflow}`}
+              caseInfo={caseInfo}
+              workflowInfo={itemWorkflow}
+              isCurrentWorkflow={indexCurrentWorkflow === indexWorkflow}
+            />
+          );
+        })}
       </div>
     </PanelContainer>
   );

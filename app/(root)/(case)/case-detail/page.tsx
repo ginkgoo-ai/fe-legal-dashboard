@@ -10,20 +10,20 @@ import UtilsManager from '@/customManager/UtilsManager';
 import { useEffectStrictMode } from '@/hooks/useEffectStrictMode';
 import { useEventManager } from '@/hooks/useEventManager';
 import { cn, parseCaseInfo } from '@/lib/utils';
-import { caseStream, getWorkflowDefinitions, queryCaseDetail } from '@/service/api/case';
+import {
+  caseStream,
+  getWorkflowDefinitions,
+  getWorkflowList,
+  queryCaseDetail,
+} from '@/service/api/case';
 import { useCaseStore } from '@/store';
 import { useUserStore } from '@/store/userStore';
-import {
-  IPilotType,
-  IWorkflowStepType,
-  PilotStatusEnum,
-  WorkflowTypeEnum,
-} from '@/types/casePilot';
+import { IWorkflowType, PilotStatusEnum, WorkflowTypeEnum } from '@/types/casePilot';
 import { Breadcrumb, message as messageAntd, Splitter } from 'antd';
 import { ItemType } from 'antd/es/breadcrumb/Breadcrumb';
+import { produce } from 'immer';
 import { useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
-import { stepListItemsDeclaration } from './config';
 import './index.css';
 
 const breadcrumbItemsCasePortal = {
@@ -59,14 +59,15 @@ function CaseDetailContent() {
   const [sizeProfileVault, setSizeProfileVault] = useState<number>(0);
   const [sizePilot, setSizePilot] = useState<number>(0);
 
-  const { setCaseInfo, caseInfo, caseTimestamp } = useCaseStore();
-  const [pilotInfo, setPilotInfo] = useState<IPilotType | null>(null);
-  const [stepListItems, setStepListItems] = useState<IWorkflowStepType[]>([]);
-
+  const [currentWorkflowId, setCurrentWorkflowId] = useState<string>('');
+  const [pilotWorkflowList, setPilotWorkflowList] = useState<IWorkflowType[]>([]);
+  const [isModalNewWorkflowOpen, setModalNewWorkflowOpen] = useState<boolean>(false);
   const [isModalInstallExtensionOpen, setModalInstallExtensionOpen] =
     useState<boolean>(false);
-  const [isModalNewWorkflowOpen, setModalNewWorkflowOpen] = useState<boolean>(false);
+  // const [pilotInfo, setPilotInfo] = useState<IPilotType | null>(null);
+  // const [stepListItems, setStepListItems] = useState<IWorkflowStepType[]>([]);
 
+  const { setCaseInfo, caseInfo, caseTimestamp } = useCaseStore();
   const { userInfo } = useUserStore();
 
   const isFoldReference = useMemo(() => {
@@ -88,15 +89,31 @@ function CaseDetailContent() {
 
     switch (typeMsg) {
       case 'ginkgoo-background-all-case-update': {
-        const { steps: stepsMsg, pilotStatus: pilotStatusMsg } = pilotInfoMsg || {};
+        const {
+          steps: stepsMsg,
+          workflowId: workflowIdMsg,
+          pilotStatus: pilotStatusMsg,
+        } = pilotInfoMsg || {};
 
-        setPilotInfo(pilotInfoMsg);
-        if (stepsMsg?.length > 0) {
-          setStepListItems(stepsMsg.concat(stepListItemsDeclaration));
-        }
+        // setPilotInfo(pilotInfoMsg);
+        // if (stepsMsg?.length > 0) {
+        //   setStepListItems(stepsMsg.concat(stepListItemsDeclaration));
+        // }
         if (pilotStatusMsg === PilotStatusEnum.START) {
+          refreshWorkflowList();
           setModalNewWorkflowOpen(false);
+          setCurrentWorkflowId(workflowIdMsg);
         }
+        setPilotWorkflowList(prev =>
+          produce(prev, draft => {
+            const indexWorkflow = draft.findIndex(item => {
+              return item.workflow_instance_id === workflowIdMsg;
+            });
+            if (indexWorkflow >= 0) {
+              draft[indexWorkflow].pilotInfo = pilotStatusMsg;
+            }
+          })
+        );
 
         // if (
         //   stepListCurrentMsg >= 0 &&
@@ -181,6 +198,17 @@ function CaseDetailContent() {
     });
   };
 
+  const refreshWorkflowList = async () => {
+    const resWorkflowList = await getWorkflowList({
+      userId: userInfo?.id || '',
+      caseId: caseId || '',
+    });
+
+    if (resWorkflowList.length >= 0) {
+      setPilotWorkflowList(resWorkflowList);
+    }
+  };
+
   useEffectStrictMode(() => {
     SIZE_REFERENCE_DEFAULT.current = window.innerWidth * 0.2;
     SIZE_PROFILEVAULT_DEFAULT.current = window.innerWidth * 0.6;
@@ -192,6 +220,7 @@ function CaseDetailContent() {
 
     refreshCaseDetail();
     refreshWorkflowDefinitions();
+    refreshWorkflowList();
 
     const regCaseStream = async () => {
       try {
@@ -411,7 +440,7 @@ function CaseDetailContent() {
           >
             {/* Reference */}
             <Splitter.Panel
-              // min={SIZE_REFERENCE_MIN}
+              min={SIZE_REFERENCE_MIN}
               size={sizeReference}
               className={cn('bg-white relative rounded-2xl flex-col flex h-full', {
                 'transition-all': isTransitionAll,
@@ -436,16 +465,16 @@ function CaseDetailContent() {
             >
               <PanelProfileVault
                 caseInfo={caseInfo}
-                pilotInfo={pilotInfo}
+                currentWorkflowId={currentWorkflowId}
                 isFold={isFoldProfileVault}
                 onShowInstallExtension={handleShowInstallExtension}
                 onShowNewWorkflow={handleShowNewWorkflow}
               />
             </Splitter.Panel>
             {/* Pilot */}
-            {!!pilotInfo ? (
+            {true ? (
               <Splitter.Panel
-                // min={SIZE_PILOT_MIN}
+                min={SIZE_PILOT_MIN}
                 size={sizePilot}
                 className={cn('bg-white relative rounded-2xl flex-col flex h-full', {
                   'transition-all': isTransitionAll,
@@ -453,8 +482,8 @@ function CaseDetailContent() {
               >
                 <PanelPilot
                   caseInfo={caseInfo}
-                  pilotInfo={pilotInfo}
-                  stepListItems={stepListItems}
+                  currentWorkflowId={currentWorkflowId}
+                  pilotWorkflowList={pilotWorkflowList}
                   isFold={isFoldPilot}
                   onBtnPanelRightClick={handleBtnPanelRightClick}
                 />

@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/icon';
 import { cn } from '@/lib/utils';
 import { IActionItemType } from '@/types/case';
-import { IPilotType, IWorkflowStepType } from '@/types/casePilot';
+import { IWorkflowStepType, IWorkflowType } from '@/types/casePilot';
 import type { CollapseProps } from 'antd';
 import { Collapse } from 'antd';
 import dayjs from 'dayjs';
@@ -19,14 +19,16 @@ import { memo, useEffect, useState } from 'react';
 import './index.css';
 
 interface PilotStepBodyProps {
-  pilotInfo: IPilotType | null;
-  stepListItems: IWorkflowStepType[];
-  onCollapseChange: (key: string) => void;
-  onContinueFilling: (params: { actionlistPre: IActionItemType[] }) => void;
+  workflowInfo: IWorkflowType;
+  // pilotInfo: IPilotType | null;
+  // stepListItems: IWorkflowStepType[];
+  onCollapseChange?: (key: string) => void;
+  onContinueFilling?: (params: { actionlistPre: IActionItemType[] }) => void;
 }
 
 function PurePilotStepBody(props: PilotStepBodyProps) {
-  const { pilotInfo, stepListItems, onCollapseChange, onContinueFilling } = props;
+  const { workflowInfo, onCollapseChange, onContinueFilling } = props;
+  const { pilotInfo = null } = workflowInfo || {};
 
   const [refreshRenderTS, setRefreshRenderTS] = useState<number>(0);
   const [stepListActiveKeyBody, setStepListActiveKeyBody] = useState<string[]>([]);
@@ -38,7 +40,7 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
     if (newKeys.length > 0) {
       // 展开操作：如果有新增的 key, 且是可展开的项，则调用 onCollapseChange，并展开
       const newKey = newKeys[0];
-      const newStep = stepListItems.find(item => {
+      const newStep = pilotInfo?.steps?.find(item => {
         return (
           item.step_key === newKey &&
           ['ACTIVE', 'COMPLETED_SUCCESS'].includes(item.status)
@@ -56,10 +58,14 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
     setRefreshRenderTS(+dayjs());
   };
 
+  const handleContinueFilling = (params: { actionlistPre: IActionItemType[] }) => {
+    onContinueFilling?.(params);
+  };
+
   // update collapse
   useEffect(() => {
     // console.log("PurePilotStepBody", stepListItems);
-    if (!stepListItems) {
+    if (!pilotInfo?.steps) {
       return;
     }
 
@@ -124,7 +130,7 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
             <PilotStepBodyNormal
               itemStep={itemStep}
               indexStep={indexStep}
-              onContinueFilling={onContinueFilling}
+              onContinueFilling={handleContinueFilling}
             />
           )}
         </div>
@@ -132,7 +138,7 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
     };
 
     setStepListItemsBody(
-      stepListItems.map((item, index) => {
+      pilotInfo?.steps.map((item, index) => {
         return {
           key: item.step_key,
           label: renderStepLabel(item, index),
@@ -141,7 +147,7 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
         };
       })
     );
-  }, [refreshRenderTS, stepListItems, onContinueFilling]);
+  }, [refreshRenderTS, pilotInfo?.steps, onContinueFilling]);
 
   return stepListItemsBody && stepListItemsBody.length > 0 ? (
     <div className="relative box-border flex w-full items-center justify-start rounded-lg border border-[#D8DFF5] p-2">

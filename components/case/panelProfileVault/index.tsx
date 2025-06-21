@@ -1,20 +1,19 @@
 'use client';
 
 import { PanelContainer } from '@/components/case/panelContainer';
+import { PanelProfileVaultOverview } from '@/components/case/panelProfileVaultOverview';
 import { IconExtensionStart, IconExtensionStop } from '@/components/ui/icon';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { useExtensionsStore } from '@/store/extensionsStore';
 import { ICaseItemType } from '@/types/case';
-import { IPilotType, PilotStatusEnum } from '@/types/casePilot';
 import { Button } from 'antd';
 import Image from 'next/image';
 import { memo, useRef } from 'react';
-import { PanelProfileVaultOverview } from '../panelProfileVaultOverview';
 
 interface PanelProfileVaultProps {
   caseInfo: ICaseItemType | null;
-  pilotInfo: IPilotType | null;
+  currentWorkflowId: string;
   isFold: boolean;
   onShowInstallExtension: () => void;
   onShowNewWorkflow: () => void;
@@ -23,7 +22,7 @@ interface PanelProfileVaultProps {
 function PurePanelProfileVault(props: PanelProfileVaultProps) {
   const {
     caseInfo = null,
-    pilotInfo,
+    currentWorkflowId,
     isFold,
     onShowInstallExtension,
     onShowNewWorkflow,
@@ -70,7 +69,7 @@ function PurePanelProfileVault(props: PanelProfileVaultProps) {
   const handleBtnExtensionStopClick = () => {
     window.postMessage({
       type: 'ginkgoo-page-all-case-stop',
-      workflowId: pilotInfo?.workflowId,
+      workflowId: currentWorkflowId,
     });
   };
 
@@ -88,16 +87,7 @@ function PurePanelProfileVault(props: PanelProfileVaultProps) {
             >
               <span className="font-bold">Draft email</span>
             </Button>
-            {!pilotInfo || pilotInfo?.pilotStatus === PilotStatusEnum.HOLD ? (
-              <Button
-                type="primary"
-                className="h-9 flex-1"
-                onClick={handleBtnExtensionStartClick}
-              >
-                <IconExtensionStart />
-                <span className="font-bold">Start auto-fill</span>
-              </Button>
-            ) : (
+            {!!currentWorkflowId ? (
               <Button
                 type="primary"
                 className="h-9 flex-1"
@@ -105,6 +95,15 @@ function PurePanelProfileVault(props: PanelProfileVaultProps) {
               >
                 <IconExtensionStop />
                 <span className="font-bold">Stop auto-fill</span>
+              </Button>
+            ) : (
+              <Button
+                type="primary"
+                className="h-9 flex-1"
+                onClick={handleBtnExtensionStartClick}
+              >
+                <IconExtensionStart />
+                <span className="font-bold">Start auto-fill</span>
               </Button>
             )}
           </div>

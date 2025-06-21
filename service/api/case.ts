@@ -1,9 +1,15 @@
 import {
   ICaseDocumentResultType,
   ICaseItemType,
+  ICaseStreamParamsType,
   ICreateCaseParamsType,
+  IOcrDocumentsParamsType,
 } from '@/types/case';
-import { IGetWorkflowDefinitionsParamsType } from '@/types/casePilot';
+import {
+  IGetWorkflowDefinitionsParamsType,
+  IGetWorkflowListParamsType,
+  IWorkflowType,
+} from '@/types/casePilot';
 import { IMarkDocumentValid } from '@/types/document';
 import { IFilesPDFHighlightParamsType } from '@/types/file';
 import ApiRequest from '../axios';
@@ -11,18 +17,19 @@ import {
   mockCaseDetail,
   mockCaseList,
   mockCaseStream,
+  mockGetWorkflowList,
   mockUploadDocument,
   mockWorkflowDefinitions,
 } from '../mock/case';
 
-interface ICaseStreamParamsType {
-  caseId: string;
-}
-
-interface IOcrDocumentsParamsType {
-  caseId: string;
-  storageIds: string[];
-}
+const IS_MOCK_LIST: string[] = [
+  // 'getWorkflowDefinitions',
+  // 'queryCaseList',
+  // 'queryCaseDetail',
+  // 'getWorkflowList',
+  // 'caseStream',
+  // 'uploadDocument',
+];
 
 const CaseApi = {
   case: '/legalcase/cases',
@@ -35,6 +42,7 @@ const CaseApi = {
 
 const WorkflowApi = {
   workflowsDefinitions: '/workflows/definitions',
+  workflowsList: '/workflows/user/:userId/case/:caseId',
 };
 
 const StorageApi = {
@@ -53,14 +61,6 @@ export const DocumentsApi = {
 //   : `${process.env.NEXT_PUBLIC_API_URL}/api`;
 const baseUrl = `${process.env.NEXT_PUBLIC_API_URL}/api`;
 const baseUrlAi = `${process.env.NEXT_PUBLIC_API_URL}/api/ai`;
-
-const IS_MOCK_LIST: string[] = [
-  // 'getWorkflowDefinitions',
-  // 'queryCaseList',
-  // 'queryCaseDetail',
-  // 'caseStream',
-  // 'uploadDocument',
-];
 
 export const createCase = async (params: ICreateCaseParamsType) => {
   const { clientName, visaType } = params;
@@ -105,6 +105,24 @@ export const queryCaseDetail = async (params: {
   }
 
   return ApiRequest.get(`${baseUrl}${CaseApi.caseDetail}`.replace(':caseId', caseId));
+};
+
+export const getWorkflowList = async (
+  params: IGetWorkflowListParamsType
+): Promise<IWorkflowType[]> => {
+  const { userId = '', caseId = '' } = params;
+
+  if (IS_MOCK_LIST.includes('getWorkflowList')) {
+    return new Promise(resolve => {
+      resolve(mockGetWorkflowList);
+    });
+  }
+
+  return ApiRequest.get(
+    `${baseUrlAi}${WorkflowApi.workflowsList}`
+      .replace(':userId', userId)
+      .replace(':caseId', caseId)
+  );
 };
 
 export const caseStream = async (

@@ -204,3 +204,12 @@ export interface ICaseProfileMissingField {
   required: boolean;
   [key: string]: unknown;
 }
+
+export interface ICaseStreamParamsType {
+  caseId: string;
+}
+
+export interface IOcrDocumentsParamsType {
+  caseId: string;
+  storageIds: string[];
+}
