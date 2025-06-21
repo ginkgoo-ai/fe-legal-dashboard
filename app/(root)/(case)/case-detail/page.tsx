@@ -74,7 +74,7 @@ function CaseDetailContent() {
   }, [sizeReference]);
 
   const isFoldProfileVault = useMemo(() => {
-    return sizeProfileVault <= PANEL_SIZE_LIMIT;
+    return false; // sizeProfileVault <= PANEL_SIZE_LIMIT;
   }, [sizeProfileVault]);
 
   const isFoldPilot = useMemo(() => {
@@ -150,7 +150,16 @@ function CaseDetailContent() {
     const resCaseDetail = await queryCaseDetail({
       caseId,
     });
-    setCaseInfo(parseCaseInfo(resCaseDetail));
+
+    if (resCaseDetail?.id) {
+      setCaseInfo(parseCaseInfo(resCaseDetail));
+      return;
+    }
+
+    messageAntd.open({
+      type: 'error',
+      content: 'RefreshCaseDetail Error',
+    });
   };
 
   const refreshWorkflowDefinitions = async () => {
@@ -163,7 +172,13 @@ function CaseDetailContent() {
     if (resWorkflowDefinitions?.items?.length > 0) {
       const item = resWorkflowDefinitions?.items[0];
       workflowDefinitionIdRef.current = item.workflow_definition_id;
+      return;
     }
+
+    messageAntd.open({
+      type: 'error',
+      content: 'RefreshWorkflowDefinitions Error',
+    });
   };
 
   useEffectStrictMode(() => {
@@ -275,7 +290,9 @@ function CaseDetailContent() {
 
     setSizeReference(left);
     setSizeProfileVault(mid);
-    setSizePilot(right);
+    if (typeof right === 'number' && right >= 0) {
+      setSizePilot(right);
+    }
   };
 
   const handleBtnPanelLeftClick = () => {
@@ -394,7 +411,7 @@ function CaseDetailContent() {
           >
             {/* Reference */}
             <Splitter.Panel
-              min={SIZE_REFERENCE_MIN}
+              // min={SIZE_REFERENCE_MIN}
               size={sizeReference}
               className={cn('bg-white relative rounded-2xl flex-col flex h-full', {
                 'transition-all': isTransitionAll,
@@ -408,10 +425,10 @@ function CaseDetailContent() {
             </Splitter.Panel>
             {/* Profile Vault */}
             <Splitter.Panel
-              min={SIZE_PROFILEVAULT_MIN}
+              // min={SIZE_PROFILEVAULT_MIN}
               size={sizeProfileVault}
               className={cn(
-                'bg-white relative rounded-2xl flex-col flex h-full min-w-[870px]',
+                'bg-white relative rounded-2xl flex-col flex h-full', // min-w-[870px]
                 {
                   'transition-all': isTransitionAll,
                 }
@@ -428,7 +445,7 @@ function CaseDetailContent() {
             {/* Pilot */}
             {!!pilotInfo ? (
               <Splitter.Panel
-                min={SIZE_PILOT_MIN}
+                // min={SIZE_PILOT_MIN}
                 size={sizePilot}
                 className={cn('bg-white relative rounded-2xl flex-col flex h-full', {
                   'transition-all': isTransitionAll,

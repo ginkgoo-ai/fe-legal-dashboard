@@ -80,6 +80,17 @@ function PureModalNewWorkflow(props: ModalNewWorkflowProps) {
 
   const handleFormFinish = (values: any) => {
     setLoadingContinue(true);
+    if (isShowLoginTip) {
+      handleBtnLoginClick();
+
+      window.postMessage(
+        {
+          type: 'ginkgoo-page-background-auth-check',
+        },
+        window.location.origin
+      );
+      return;
+    }
     onFinish?.(values);
   };
 

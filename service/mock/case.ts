@@ -1,4 +1,4 @@
-import { CaseStatusEnum } from '@/types/case';
+import { CaseStatusEnum, ICaseItemType } from '@/types/case';
 
 export const mockCaseList: any = [
   {
@@ -40,7 +40,7 @@ export const mockCaseList: any = [
   },
 ];
 
-export const mockCaseDetail = {
+export const mockCaseDetail: ICaseItemType = {
   id: '44c6cd75-b7c4-4e27-b643-ab14c15ee3a0',
   title: '知识产权案例（已更新）',
   description: '这是一个更新后的知识产权侵权案例描述',

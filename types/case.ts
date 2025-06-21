@@ -131,7 +131,7 @@ export interface ICaseDocumentChecklistType {
 export interface ICaseDocumentItemType {
   actionNeeded: string;
   documentDisplayName: string;
-  documentId: string;
+  documentId: string | null;
   documentType: string;
   hasIssues: boolean;
   isMarkedAsValid: boolean;
@@ -141,7 +141,7 @@ export interface ICaseDocumentItemType {
   required: boolean;
   uploadStatus: string;
   uploaded: boolean;
-  uploadedAt: string;
+  uploadedAt: string | null;
   issues: ICaseDocumentIssueType[];
 }
 
