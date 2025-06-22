@@ -52,7 +52,7 @@ function PureModalCreateCase(props: ModalCreateCaseProps) {
         },
       ]);
     }
-  }, [isOpen]);
+  }, [isOpen, userInfo?.name]);
 
   const handleCreateCaseCancel = () => {
     onOpenUpdate?.(false);
@@ -87,7 +87,7 @@ function PureModalCreateCase(props: ModalCreateCaseProps) {
       status: FileStatus.UPLOADING,
       localFile: file,
     }));
-    const resUploadDocument = uploadDocument({
+    uploadDocument({
       caseId: resCreateCase.id,
       files: newFiles.map((file: IFileItemType) => file.localFile!),
     });

@@ -8,9 +8,9 @@ const StatusMap: Record<string, string> = {
   NOT_PROVIDED: 'Not Provided yet',
 };
 
-const TypeMap: Record<string, string> = {
-  PERSONAL_INFORMATION: 'Personal Information',
-};
+// const TypeMap: Record<string, string> = {
+//   PERSONAL_INFORMATION: 'Personal Information',
+// };
 
 const PurePanelProfileVaultInformationItem = (props: ICaseProfileMissingField) => {
   const [editMode, setEditMode] = useState(false);

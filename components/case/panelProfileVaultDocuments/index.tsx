@@ -78,9 +78,9 @@ export const PanelProfileVaultDocuments = ({
 
   const handleMarkAsValid = async (doc: ICaseDocumentItemType, index: number) => {
     setLoading(index, true);
-    await markValid(caseId, doc.documentId, {
+    await markValid(caseId, doc.documentId || '', {
       markAsValid: true,
-      documentId: doc.documentId,
+      documentId: doc.documentId || '',
     });
     setLoading(index, false);
   };
@@ -105,7 +105,7 @@ export const PanelProfileVaultDocuments = ({
 
   const handleRemove = (doc: ICaseDocumentItemType, index: number) => {
     setLoading(index, true);
-    removeDocument(caseId, doc.documentId).then(() => {
+    removeDocument(caseId, doc.documentId || '').then(() => {
       setLoading(index, false);
     });
   };

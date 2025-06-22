@@ -21,8 +21,8 @@ function PurePanelPilot(props: PanelPanelPilotProps) {
     caseInfo,
     currentWorkflowId,
     pilotWorkflowList,
-    isFold,
-    onBtnPanelRightClick,
+    // isFold,
+    // onBtnPanelRightClick,
     onQueryWorkflowDetail,
   } = props;
 

@@ -12,7 +12,7 @@ import { message as messageAntd, Spin } from 'antd';
 // import { uploadFiles } from '@/service/api/file';
 import { useEventManager } from '@/hooks/useEventManager';
 import { useStateCallback } from '@/hooks/useStateCallback';
-import { FileStatus, IFileItemType } from '@/types/file';
+import { FileStatus, ICaseDocumentInitResultType, IFileItemType } from '@/types/file';
 import { produce } from 'immer';
 import { cloneDeep } from 'lodash';
 import { memo } from 'react';

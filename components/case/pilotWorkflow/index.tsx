@@ -47,7 +47,7 @@ function PurePilotWorkflow(props: PilotWorkflowProps) {
         .getElementById(`workflow-item-${indexWorkflow}`)
         ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
-  }, [isCurrentWorkflow]);
+  }, [isCurrentWorkflow, indexWorkflow]);
 
   const handleHeaderClick = () => {
     if (isFold) {

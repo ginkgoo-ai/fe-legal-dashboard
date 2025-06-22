@@ -37,7 +37,7 @@ const breadcrumbItemsCasePortal = {
 
 const PANEL_SIZE_LIMIT = 200;
 const SIZE_REFERENCE_MIN = 70;
-const SIZE_PROFILEVAULT_MIN = 200;
+// const SIZE_PROFILEVAULT_MIN = 200;
 const SIZE_PILOT_MIN = 70;
 
 function CaseDetailContent() {
@@ -61,6 +61,7 @@ function CaseDetailContent() {
   const [sizeReference, setSizeReference] = useState<number>(0);
   const [sizeProfileVault, setSizeProfileVault] = useState<number>(0);
   const [sizePilot, setSizePilot] = useState<number>(0);
+  const [isShowPilot, setShowPilot] = useState<boolean>(false);
 
   const [workflowDefinitionId, setWorkflowDefinitionId] = useState<string>('');
   const [currentWorkflowId, setCurrentWorkflowId] = useState<string>('');
@@ -71,16 +72,12 @@ function CaseDetailContent() {
   // const [pilotInfo, setPilotInfo] = useState<IPilotType | null>(null);
   // const [stepListItems, setStepListItems] = useState<IWorkflowStepType[]>([]);
 
-  const { setCaseInfo, caseInfo, caseTimestamp } = useCaseStore();
+  const { setCaseInfo, caseInfo } = useCaseStore();
   const { userInfo } = useUserStore();
 
   const isFoldReference = useMemo(() => {
     return sizeReference <= PANEL_SIZE_LIMIT;
   }, [sizeReference]);
-
-  const isFoldProfileVault = useMemo(() => {
-    return false; // sizeProfileVault <= PANEL_SIZE_LIMIT;
-  }, [sizeProfileVault]);
 
   const isFoldPilot = useMemo(() => {
     return sizePilot <= PANEL_SIZE_LIMIT;
@@ -100,6 +97,7 @@ function CaseDetailContent() {
 
         if (!!workflowIdMsg && caseIdMsg === caseId) {
           setCurrentWorkflowId(workflowIdMsg);
+          setShowPilot(true);
           window.postMessage({
             type: 'ginkgoo-page-background-polit-query',
             workflowId: workflowIdMsg,
@@ -132,6 +130,7 @@ function CaseDetailContent() {
             console.log('Lock Check queryPolit 1 pilotInfoMsg', pilotInfoMsg);
           }
         );
+        break;
       }
       case 'ginkgoo-background-all-case-update': {
         const { pilotInfo: pilotInfoMsg } = message;
@@ -153,6 +152,7 @@ function CaseDetailContent() {
           });
           setModalNewWorkflowOpen(false);
           setCurrentWorkflowId(workflowIdMsg);
+          setShowPilot(true);
         }
 
         console.log('Lock Check caseUpdate 0 pilotInfoMsg', pilotInfoMsg);
@@ -311,9 +311,11 @@ function CaseDetailContent() {
       setPilotWorkflowList(
         prev => {
           return cloneDeep(
-            resWorkflowList?.map((itemNewWorkflow, indexNewWorkflow) => {
+            resWorkflowList?.map(itemNewWorkflow => {
               const oldWorkflow = prev.find(itemOld => {
-                itemOld.workflow_instance_id === itemNewWorkflow.workflow_instance_id;
+                return (
+                  itemOld.workflow_instance_id === itemNewWorkflow.workflow_instance_id
+                );
               });
 
               return !!oldWorkflow
@@ -364,7 +366,7 @@ function CaseDetailContent() {
 
     const regCaseStream = async () => {
       try {
-        const { cancel, request } = await caseStream(
+        const { cancel } = await caseStream(
           { caseId },
           () => {
             // 可以立即获取到 controller
@@ -663,13 +665,13 @@ function CaseDetailContent() {
               <PanelProfileVault
                 caseInfo={caseInfo}
                 currentWorkflowId={currentWorkflowId}
-                isFold={isFoldProfileVault}
+                isFold={false}
                 onShowInstallExtension={handleShowInstallExtension}
                 onShowNewWorkflow={handleShowNewWorkflow}
               />
             </Splitter.Panel>
             {/* Pilot */}
-            {true ? (
+            {isShowPilot ? (
               <Splitter.Panel
                 min={SIZE_PILOT_MIN}
                 size={sizePilot}

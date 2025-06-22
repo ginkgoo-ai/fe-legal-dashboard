@@ -59,7 +59,7 @@ function PurePanelProfileVault(props: PanelProfileVaultProps) {
     if (!currentWorkflowId) {
       setLoadingExtensionStop(false);
     }
-  }, []);
+  }, [currentWorkflowId]);
 
   const handleBtnDraftEmailClick = () => {
     console.log('handleBtnDraftEmailClick');

@@ -23,9 +23,14 @@ interface PilotStepBodyProps {
 }
 
 function PurePilotStepBody(props: PilotStepBodyProps) {
-  const { workflowInfo, isCurrentWorkflow, onCollapseChange, onContinueFilling } = props;
+  const {
+    workflowInfo,
+    isCurrentWorkflow,
+    // onCollapseChange,
+    onContinueFilling,
+  } = props;
 
-  const [stepListActiveKeyBody, setStepListActiveKeyBody] = useState<string[]>([]);
+  // const [stepListActiveKeyBody, setStepListActiveKeyBody] = useState<string[]>([]);
   const [stepListItemsBody, setStepListItemsBody] = useState<CollapseProps['items']>([]);
 
   const workflowSteps = useMemo(() => {
@@ -39,7 +44,7 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
     return result;
   }, [workflowInfo]);
 
-  const handleCollapseChange = (key: string[]) => {
+  const handleCollapseChange = () => {
     // 找出 key 中比 stepListActiveKeyBody 多的元素
     // const newKeys = key.filter(k => !stepListActiveKeyBody.includes(k));
     // if (newKeys.length > 0) {
@@ -141,30 +146,30 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
       );
     };
 
-    const renderStepChildren = (itemStep: IWorkflowStepType, indexStep: number) => {
-      return null;
-      // if (itemStep.step_key === 'Declaration') {
-      //   return <PilotStepBodyDeclaration pilotInfo={workflowInfo.pilotInfo || null} />;
-      // }
+    // const renderStepChildren = (itemStep: IWorkflowStepType, indexStep: number) => {
+    //   return null;
+    //   // if (itemStep.step_key === 'Declaration') {
+    //   //   return <PilotStepBodyDeclaration pilotInfo={workflowInfo.pilotInfo || null} />;
+    //   // }
 
-      // if (itemStep.step_key !== 'Declaration' && !itemStep?.data) {
-      //   return null;
-      // }
+    //   // if (itemStep.step_key !== 'Declaration' && !itemStep?.data) {
+    //   //   return null;
+    //   // }
 
-      // return (
-      //   <div className="border-bottom">
-      //     {itemStep.step_key === 'Declaration' ? (
-      //       <PilotStepBodyDeclaration pilotInfo={workflowInfo.pilotInfo || null} />
-      //     ) : (
-      //       <PilotStepBodyNormal
-      //         itemStep={itemStep}
-      //         indexStep={indexStep}
-      //         onContinueFilling={handleContinueFilling}
-      //       />
-      //     )}
-      //   </div>
-      // );
-    };
+    //   // return (
+    //   //   <div className="border-bottom">
+    //   //     {itemStep.step_key === 'Declaration' ? (
+    //   //       <PilotStepBodyDeclaration pilotInfo={workflowInfo.pilotInfo || null} />
+    //   //     ) : (
+    //   //       <PilotStepBodyNormal
+    //   //         itemStep={itemStep}
+    //   //         indexStep={indexStep}
+    //   //         onContinueFilling={handleContinueFilling}
+    //   //       />
+    //   //     )}
+    //   //   </div>
+    //   // );
+    // };
 
     setStepListItemsBody(
       workflowSteps.map((item, index) => {
@@ -172,7 +177,7 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
           key: item.step_key,
           label: renderStepLabel(item, index),
           showArrow: false,
-          children: renderStepChildren(item, index),
+          children: null,
         };
       })
     );
@@ -182,7 +187,7 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
     <div className="relative box-border flex flex-col w-full items-center justify-start rounded-lg border border-[#D8DFF5] p-2">
       <Collapse
         className="w-full"
-        activeKey={stepListActiveKeyBody}
+        // activeKey={stepListActiveKeyBody}
         ghost
         items={stepListItemsBody}
         onChange={handleCollapseChange}
