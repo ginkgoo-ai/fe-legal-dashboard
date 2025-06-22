@@ -19,12 +19,19 @@ interface PilotWorkflowProps {
   workflowInfo: IWorkflowType;
   indexWorkflow: number;
   isCurrentWorkflow: boolean;
+  onQueryWorkflowDetail: (params: { workflowId: string }) => void;
 }
 
 dayjs.extend(utc);
 
 function PurePilotWorkflow(props: PilotWorkflowProps) {
-  const { caseInfo, workflowInfo, indexWorkflow, isCurrentWorkflow } = props;
+  const {
+    caseInfo,
+    workflowInfo,
+    indexWorkflow,
+    isCurrentWorkflow,
+    onQueryWorkflowDetail,
+  } = props;
 
   const [isFold, setFold] = useState<boolean>(true);
   const [isLoadingDownload, setLoadingDownload] = useState<boolean>(false);
@@ -44,14 +51,16 @@ function PurePilotWorkflow(props: PilotWorkflowProps) {
 
   const handleHeaderClick = () => {
     if (isFold) {
-      // Query Workflow Detail
-      window.postMessage(
-        {
-          type: 'ginkgoo-page-background-workflow-detail-query',
-          workflowId: workflowInfo.workflow_instance_id,
-        },
-        window.location.origin
-      );
+      // window.postMessage(
+      //   {
+      //     type: 'ginkgoo-page-background-workflow-detail-query',
+      //     workflowId: workflowInfo.workflow_instance_id,
+      //   },
+      //   window.location.origin
+      // );
+      onQueryWorkflowDetail?.({
+        workflowId: workflowInfo.workflow_instance_id,
+      });
     }
     setFold(prev => {
       return !prev;

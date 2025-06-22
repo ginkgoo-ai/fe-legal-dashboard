@@ -1,12 +1,16 @@
 'use client';
 
-import { PilotStepBodyDeclaration } from '@/components/case/pilotStepBodyDeclaration';
-import { IconLoading, IconStepDeclaration, IconStepDot } from '@/components/ui/icon';
+import {
+  IconInfo,
+  IconLoading,
+  IconStepDeclaration,
+  IconStepDot,
+} from '@/components/ui/icon';
 import { cn } from '@/lib/utils';
 import { IActionItemType } from '@/types/case';
 import { IWorkflowStepType, IWorkflowType } from '@/types/casePilot';
 import type { CollapseProps } from 'antd';
-import { Collapse, Spin } from 'antd';
+import { Alert, Button, Collapse, Spin } from 'antd';
 import { Check } from 'lucide-react';
 import { memo, useEffect, useMemo, useState } from 'react';
 import './index.css';
@@ -58,8 +62,27 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
     // setRefreshRenderTS(+dayjs());
   };
 
-  const handleContinueFilling = (params: { actionlistPre: IActionItemType[] }) => {
-    onContinueFilling?.(params);
+  // const handleContinueFilling = (params: { actionlistPre: IActionItemType[] }) => {
+  //   onContinueFilling?.(params);
+  // };
+
+  const handleBtnProceedToFormClick = () => {
+    if (!!workflowInfo.pilotInfo?.tabInfo?.id) {
+      const messageJump = {
+        type: 'ginkgoo-page-background-tab-update',
+        tabId: workflowInfo.pilotInfo?.tabInfo?.id,
+        updateProperties: { active: true },
+      };
+      window.postMessage(messageJump, window.location.origin);
+
+      const messageOpenSidepanel = {
+        type: 'ginkgoo-page-background-sidepanel-open',
+        options: {
+          tabId: workflowInfo.pilotInfo?.tabInfo?.id,
+        },
+      };
+      window.postMessage(messageOpenSidepanel, window.location.origin);
+    }
   };
 
   // update collapse
@@ -72,12 +95,12 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
     }
 
     const renderStepLabel = (itemStep: IWorkflowStepType, indexStep: number) => {
-      const isSelect = stepListActiveKeyBody.includes(itemStep.step_key);
+      // const isSelect = stepListActiveKeyBody.includes(itemStep.step_key);
       return (
         <div
           id={`step-item-${indexStep}`}
           className={cn('flex w-full flex-row items-center justify-between gap-3', {
-            'border-bottom': !isSelect,
+            'border-bottom': indexStep < Number(workflowSteps?.length) - 1,
           })}
         >
           <div className="flex w-0 flex-1 flex-row gap-3.5">
@@ -119,10 +142,10 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
     };
 
     const renderStepChildren = (itemStep: IWorkflowStepType, indexStep: number) => {
-      if (itemStep.step_key === 'Declaration') {
-        return <PilotStepBodyDeclaration pilotInfo={workflowInfo.pilotInfo || null} />;
-      }
       return null;
+      // if (itemStep.step_key === 'Declaration') {
+      //   return <PilotStepBodyDeclaration pilotInfo={workflowInfo.pilotInfo || null} />;
+      // }
 
       // if (itemStep.step_key !== 'Declaration' && !itemStep?.data) {
       //   return null;
@@ -153,10 +176,10 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
         };
       })
     );
-  }, [isCurrentWorkflow, workflowSteps?.length, onContinueFilling]);
+  }, [isCurrentWorkflow, workflowSteps, onContinueFilling]);
 
   return stepListItemsBody && stepListItemsBody.length > 0 ? (
-    <div className="relative box-border flex w-full items-center justify-start rounded-lg border border-[#D8DFF5] p-2">
+    <div className="relative box-border flex flex-col w-full items-center justify-start rounded-lg border border-[#D8DFF5] p-2">
       <Collapse
         className="w-full"
         activeKey={stepListActiveKeyBody}
@@ -164,6 +187,31 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
         items={stepListItemsBody}
         onChange={handleCollapseChange}
       />
+      {workflowInfo.pilotInfo?.tabInfo?.id ? (
+        <Alert
+          message={<div className="text-[#075985] text-base">Manual Input Required</div>}
+          icon={<IconInfo size={16} className="mt-1 mr-2" />}
+          description={
+            <div className="flex flex-col -ml-8 gap-2 items-start">
+              <div className="text-[#0369A1] text-sm">
+                To ensure full compliance with legal standards, your personal attention is
+                required for specific items in this form. The system will now direct you
+                to the relevant section for your manual input and confirmation.
+              </div>
+              <Button
+                color="primary"
+                variant="outlined"
+                onClick={handleBtnProceedToFormClick}
+              >
+                Proceed to Form
+              </Button>
+            </div>
+          }
+          type="info"
+          showIcon
+          closable
+        />
+      ) : null}
     </div>
   ) : (
     <Spin tip="Loading" size="small">

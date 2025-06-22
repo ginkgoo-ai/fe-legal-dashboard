@@ -7,6 +7,7 @@ import {
 } from '@/types/case';
 import {
   IGetWorkflowDefinitionsParamsType,
+  IGetWorkflowDetailParamsType,
   IGetWorkflowListParamsType,
   IWorkflowType,
 } from '@/types/casePilot';
@@ -17,6 +18,7 @@ import {
   mockCaseDetail,
   mockCaseList,
   mockCaseStream,
+  mockGetWorkflowDetail,
   mockGetWorkflowList,
   mockUploadDocument,
   mockWorkflowDefinitions,
@@ -43,6 +45,7 @@ const CaseApi = {
 const WorkflowApi = {
   workflowsDefinitions: '/workflows/definitions',
   workflowsList: '/workflows/user/:userId/case/:caseId',
+  workflowsDetail: '/workflows/:workflowId',
 };
 
 const StorageApi = {
@@ -122,6 +125,22 @@ export const getWorkflowList = async (
     `${baseUrlAi}${WorkflowApi.workflowsList}`
       .replace(':userId', userId)
       .replace(':caseId', caseId)
+  );
+};
+
+export const getWorkflowDetail = async (
+  params: IGetWorkflowDetailParamsType
+): Promise<IWorkflowType> => {
+  const { workflowId = '' } = params;
+
+  if (IS_MOCK_LIST.includes('getWorkflowDetail')) {
+    return new Promise(resolve => {
+      resolve(mockGetWorkflowDetail);
+    });
+  }
+
+  return ApiRequest.get(
+    `${baseUrlAi}${WorkflowApi.workflowsDetail}`.replace(':workflowId', workflowId)
   );
 };
 

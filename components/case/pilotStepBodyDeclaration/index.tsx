@@ -13,7 +13,7 @@ function PurePilotStepBodyDeclaration(props: PilotStepBodyDeclarationProps) {
   const { pilotInfo } = props;
 
   const handleBtnJumpClick = useCallback(async () => {
-    if (!!pilotInfo?.tabInfo?.url) {
+    if (!!pilotInfo?.tabInfo?.id) {
       const messageJump = {
         type: 'ginkgoo-page-background-tab-update',
         tabId: pilotInfo?.tabInfo?.id,
@@ -29,7 +29,7 @@ function PurePilotStepBodyDeclaration(props: PilotStepBodyDeclarationProps) {
       };
       window.postMessage(messageOpenSidepanel, window.location.origin);
     }
-  }, [pilotInfo?.tabInfo?.url, pilotInfo?.tabInfo?.id]);
+  }, [pilotInfo?.tabInfo?.id]);
 
   return (
     <div className="flex flex-row gap-1 bg-[#FF97DF1A] rounded-xl box-border pt-5 pl-6">

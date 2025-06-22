@@ -13,11 +13,18 @@ interface PanelPanelPilotProps {
   pilotWorkflowList: IWorkflowType[];
   isFold: boolean;
   onBtnPanelRightClick: () => void;
+  onQueryWorkflowDetail: (params: { workflowId: string }) => void;
 }
 
 function PurePanelPilot(props: PanelPanelPilotProps) {
-  const { caseInfo, currentWorkflowId, pilotWorkflowList, isFold, onBtnPanelRightClick } =
-    props;
+  const {
+    caseInfo,
+    currentWorkflowId,
+    pilotWorkflowList,
+    isFold,
+    onBtnPanelRightClick,
+    onQueryWorkflowDetail,
+  } = props;
 
   const indexCurrentWorkflow = useMemo(() => {
     const result = pilotWorkflowList.findIndex(item => {
@@ -74,6 +81,7 @@ function PurePanelPilot(props: PanelPanelPilotProps) {
               workflowInfo={itemWorkflow}
               indexWorkflow={indexWorkflow}
               isCurrentWorkflow={indexCurrentWorkflow === indexWorkflow}
+              onQueryWorkflowDetail={onQueryWorkflowDetail}
             />
           );
         })}
