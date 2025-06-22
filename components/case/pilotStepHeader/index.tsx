@@ -1,3 +1,5 @@
+'use client';
+
 import { Button } from '@/components/ui/button';
 import {
   IconAutoFill,
@@ -6,8 +8,11 @@ import {
   IconPause,
   IconView,
 } from '@/components/ui/icon';
-import { IPilotType, PilotStatusEnum } from '@/types/case';
+import UtilsManager from '@/customManager/UtilsManager';
+import { postFilesPDFHighlight } from '@/service/api/case';
+import { IPilotType, PilotStatusEnum } from '@/types/casePilot';
 import { memo, MouseEventHandler } from 'react';
+import './index.css';
 
 interface PilotStepHeaderProps {
   pilotInfo: IPilotType | null;
@@ -21,16 +26,37 @@ function PurePilotStepHeader(props: PilotStepHeaderProps) {
   //   !!pilotInfo &&
   //   [PilotStatusEnum.PAUSE, PilotStatusEnum.COMPLETED].includes(pilotInfo.pilotStatus);
 
-  const handleBtnDownloadPdfClick = () => {
+  const handleBtnDownloadPdfClick = async () => {
     console.log('handleBtnDownloadPdfClick');
+    if (!pilotInfo?.progress_file_id) {
+      return;
+    }
+    const resFilesPDFHighlight = await postFilesPDFHighlight({
+      fileId: pilotInfo?.progress_file_id || '',
+      highlightData: pilotInfo?.dummy_data_usage || '',
+    });
+    console.log('handleBtnDownloadPdfClick', resFilesPDFHighlight);
+    if (resFilesPDFHighlight) {
+      UtilsManager.downloadBlob({
+        blobPart: resFilesPDFHighlight,
+      });
+    }
   };
 
-  const handleBtnGotoOfficialClick = () => {
-    console.log('handleBtnGotoOfficialClick');
-  };
+  // const handleBtnGotoOfficialClick = () => {
+  //   console.log('handleBtnGotoOfficialClick');
+  // };
 
   const handleBtnViewClick = () => {
     console.log('handleBtnViewClick');
+    if (!!pilotInfo?.tabInfo?.url) {
+      const messageJump = {
+        type: 'ginkgoo-page-background-tab-update',
+        tabId: pilotInfo?.tabInfo?.id,
+        updateProperties: { active: true },
+      };
+      window.postMessage(messageJump, window.location.origin);
+    }
   };
 
   const renderPilotStepHeaderCompleted = () => {
@@ -89,12 +115,11 @@ function PurePilotStepHeader(props: PilotStepHeaderProps) {
                 <Button
                   variant="ghost"
                   className="flex-[1_1_auto] w-0"
-                  onClick={handleBtnGotoOfficialClick}
+                  onClick={handleBtnViewClick}
                 >
                   <IconView size={20} />
-                  <span className="text-primary truncate">
-                    Go to Official Submission Portal
-                  </span>
+                  <span className="text-primary truncate">Inspect Current Step</span>
+                  {/* <span className="text-primary truncate">Go to Official Submission Portal</span> */}
                 </Button>
               </div>
             </div>
@@ -107,7 +132,7 @@ function PurePilotStepHeader(props: PilotStepHeaderProps) {
   const renderPilotStepHeaderRunning = () => {
     return (
       <>
-        <div className="absolute top-[50%] left-[50%] -translate-1/2 w-[200%] min-h-full pb-[100%] rounded-lg overflow-hidden animate-spin bg-linear-[125deg,#F2E0ED_5%,#E2EDEC_10%,#C9FAED_30%,#8C83E6_45%,#F4CEE4_75%,#DCC1E0_90%,teal]"></div>
+        <div className="animate-spin-header absolute left-[50%] top-[50%] min-h-full w-[200%] overflow-hidden rounded-lg pb-[100%]"></div>
         <div className="relative w-full box-border p-0.5 bg-[rgba(0,0,0,0)]">
           <div className="flex flex-col bg-white rounded-lg overflow-hidden box-border p-3 gap-1.5 w-full">
             <div className="flex flex-row justify-between items-start gap-3">

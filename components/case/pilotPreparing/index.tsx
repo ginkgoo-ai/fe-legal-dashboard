@@ -1,3 +1,5 @@
+'use client';
+
 import { Button } from '@/components/ui/button';
 import { IconInfo, IconMagic } from '@/components/ui/icon';
 import { memo } from 'react';

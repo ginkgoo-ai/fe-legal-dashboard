@@ -1,13 +1,17 @@
+'use client';
+
 import { Button } from '@/components/ui/button';
 import { IconExtension, IconInfo } from '@/components/ui/icon';
-import { memo, MouseEventHandler } from 'react';
+import GlobalManager from '@/customManager/GlobalManager';
+import UtilsManager from '@/customManager/UtilsManager';
+import { memo } from 'react';
 
-interface PilotNotInstallProps {
-  onBtnInstallClick: MouseEventHandler<HTMLButtonElement> | undefined;
-}
-
-function PurePilotNotInstall(props: PilotNotInstallProps) {
-  const { onBtnInstallClick } = props;
+function PurePilotNotInstall() {
+  const handleBtnInstallClick = () => {
+    UtilsManager.clickTagA({
+      url: GlobalManager.urlInstallExtension,
+    });
+  };
 
   return (
     <div className="flex flex-col">
@@ -26,7 +30,7 @@ function PurePilotNotInstall(props: PilotNotInstallProps) {
         <Button
           variant="ghost"
           className="border border-[#D8DFF5] border-dashed h-11 bg-white"
-          onClick={onBtnInstallClick}
+          onClick={handleBtnInstallClick}
         >
           <IconExtension size={24} />
           <span className="text-[var(--color-primary)] font-semibold">

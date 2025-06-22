@@ -1,41 +1,173 @@
+import {
+  ICaseDocumentResultType,
+  ICaseItemType,
+  ICaseStreamParamsType,
+  ICreateCaseParamsType,
+  IOcrDocumentsParamsType,
+} from '@/types/case';
+import {
+  IGetWorkflowDefinitionsParamsType,
+  IGetWorkflowDetailParamsType,
+  IGetWorkflowListParamsType,
+  IWorkflowType,
+} from '@/types/casePilot';
+import { IMarkDocumentValid } from '@/types/document';
+import { IFilesPDFHighlightParamsType } from '@/types/file';
 import ApiRequest from '../axios';
-interface ICaseStreamParamsType {
-  caseId: string;
-}
+import {
+  mockCaseCreate,
+  mockCaseDetail,
+  mockCaseList,
+  mockCaseStream,
+  mockGetWorkflowDetail,
+  mockGetWorkflowList,
+  mockUploadDocument,
+  mockWorkflowDefinitions,
+} from '../mock/case';
 
-interface IOcrDocumentsParamsType {
-  caseId: string;
-  storageIds: string[];
-}
+const IS_MOCK_LIST: string[] = [
+  // 'createCase',
+  // 'getWorkflowDefinitions',
+  // 'queryCaseList',
+  // 'queryCaseDetail',
+  // 'getWorkflowList',
+  // 'caseStream',
+  // 'uploadDocument',
+];
 
-export const PilotApi = {
+const CaseApi = {
+  case: '/legalcase/cases',
+  caseDetail: '/legalcase/cases/:caseId',
   caseStream: '/legalcase/cases/:caseId/stream',
   documents: '/legalcase/cases/:caseId/documents',
+  // workflows: '/workflows/:workflowId',
+  // workflowsStep: '/workflows/:workflowId/steps/:stepKey',
 };
 
-const baseUrl = process.env.LOCAL_BASE_URL
-  ? `${process.env.LOCAL_BASE_URL}:7878`
-  : `${process.env.NEXT_PUBLIC_API_URL}/api`;
+const WorkflowApi = {
+  workflowsDefinitions: '/workflows/definitions',
+  workflowsList: '/workflows/user/:userId/case/:caseId',
+  workflowsDetail: '/workflows/:workflowId',
+};
 
-const IS_MOCK = true;
+const StorageApi = {
+  filesThirdPart: '/storage/v1/files/third-part',
+  filesPDFHighlight: '/storage/v1/files/pdf-highlight',
+};
 
-const caseStream = async (
+export const DocumentsApi = {
+  markValid: '/legalcase/cases/:caseId/documents/:documentId/mark-valid',
+  uploadSingle: '/legalcase/cases/:caseId/documents/single',
+  documents: '/legalcase/cases/:caseId/documents/:documentId',
+};
+
+// const baseUrl = process.env.LOCAL_BASE_URL
+//   ? `${process.env.LOCAL_BASE_URL}:7878`
+//   : `${process.env.NEXT_PUBLIC_API_URL}/api`;
+const baseUrl = `${process.env.NEXT_PUBLIC_API_URL}/api`;
+const baseUrlAi = `${process.env.NEXT_PUBLIC_API_URL}/api/ai`;
+
+export const createCase = async (
+  params: ICreateCaseParamsType
+): Promise<ICaseItemType> => {
+  const { clientName, visaType } = params;
+
+  if (IS_MOCK_LIST.includes('createCase')) {
+    return new Promise(resolve => {
+      resolve(mockCaseCreate as ICaseItemType);
+    });
+  }
+
+  return ApiRequest.post(`${baseUrl}${CaseApi.case}`, {
+    clientName,
+    visaType,
+  });
+};
+
+export const getWorkflowDefinitions = async (
+  params: IGetWorkflowDefinitionsParamsType
+): Promise<any> => {
+  if (IS_MOCK_LIST.includes('getWorkflowDefinitions')) {
+    return new Promise(resolve => {
+      resolve(mockWorkflowDefinitions);
+    });
+  }
+
+  return ApiRequest.get(`${baseUrlAi}${WorkflowApi.workflowsDefinitions}`, params);
+};
+
+export const queryCaseList = async (): Promise<{ content: ICaseItemType[] }> => {
+  if (IS_MOCK_LIST.includes('queryCaseList')) {
+    return new Promise(resolve => {
+      resolve({ content: mockCaseList });
+    });
+  }
+
+  return ApiRequest.get(`${baseUrl}${CaseApi.case}`);
+};
+
+export const queryCaseDetail = async (params: {
+  caseId: string;
+}): Promise<ICaseItemType> => {
+  const { caseId } = params || {};
+
+  if (IS_MOCK_LIST.includes('queryCaseDetail')) {
+    return new Promise(resolve => {
+      resolve(mockCaseDetail);
+    });
+  }
+
+  return ApiRequest.get(`${baseUrl}${CaseApi.caseDetail}`.replace(':caseId', caseId));
+};
+
+export const getWorkflowList = async (
+  params: IGetWorkflowListParamsType
+): Promise<IWorkflowType[]> => {
+  const { userId = '', caseId = '' } = params;
+
+  if (IS_MOCK_LIST.includes('getWorkflowList')) {
+    return new Promise(resolve => {
+      resolve(mockGetWorkflowList);
+    });
+  }
+
+  return ApiRequest.get(
+    `${baseUrlAi}${WorkflowApi.workflowsList}`
+      .replace(':userId', userId)
+      .replace(':caseId', caseId)
+  );
+};
+
+export const getWorkflowDetail = async (
+  params: IGetWorkflowDetailParamsType
+): Promise<IWorkflowType> => {
+  const { workflowId = '' } = params;
+
+  if (IS_MOCK_LIST.includes('getWorkflowDetail')) {
+    return new Promise(resolve => {
+      resolve(mockGetWorkflowDetail);
+    });
+  }
+
+  return ApiRequest.get(
+    `${baseUrlAi}${WorkflowApi.workflowsDetail}`.replace(':workflowId', workflowId)
+  );
+};
+
+export const caseStream = async (
   params: ICaseStreamParamsType,
   onRequest?: (controller: AbortController) => void,
   onProgress?: (text: string) => void
 ): Promise<{ cancel: () => void; request: Promise<null> }> => {
-  let res = '';
   const { caseId } = params;
   const controller = new AbortController();
   const request = new Promise<null>((resolve, reject) => {
-    if (IS_MOCK) {
-      onProgress?.(
-        `{"id":"44c6cd75-b7c4-4e27-b643-ab14c15ee3a0","title":"知识产权案例（已更新）","description":"这是一个更新后的知识产权侵权案例描述","profileId":"profile-123","clientId":null,"status":"ANALYZING","startDate":null,"endDate":null,"clientName":null,"profileName":null,"createdAt":"2025-05-19T09:34:05","updatedAt":"2025-05-19T09:34:49","documents":[{"id":"dee273b2-1bf7-4e16-a1df-33b6b03fddb0","title":"P60 2020.pdf","description":"Uploaded document","filePath":"http://127.0.0.1:8080/api/storage/v1/files/blob/ef89145a-fcc6-46d3-8368-05559f2386ef.pdf","fileType":"application/pdf","fileSize":747482,"storageId":"4cbe6be7-d8a2-4f4f-82c7-657cc3766674","caseId":"44c6cd75-b7c4-4e27-b643-ab14c15ee3a0","documentType":"P60","downloadUrl":null,"metadataJson":"{\\"tax_year_end\\": \\"Tax year to 5 April 2020\\", \\"document_type\\": \\"P60 End of Year Certificate\\", \\"employee_details\\": {\\"surname\\": \\"ROCHA\\", \\"forenames_or_initials\\": \\"LUCAS CAVALCANTI\\", \\"national_insurance_number\\": \\"SS 47 21 88 A\\"}, \\"employee_instructions\\": {\\"purpose\\": \\"Please keep this certificate in a safe place as you will need it if you have to fill in a tax return. You also also need it to to make a claim for tax credits and Universal Credit or to renew your claim.\\", \\"legal_requirement\\": \\"By law you are required to tell HM Revenue and Customs about any income that is not fully taxed, even if you are not sent a tax return.\\"}, \\"pay_and_income_tax_details\\": {\\"pay\\": {\\"total_for_year\\": \\"40187 04\\", \\"current_employment\\": \\"40187 04\\", \\"previous_employment\\": \\"0 00\\"}, \\"income_tax\\": {\\"total_for_year\\": \\"5535 40\\", \\"current_employment\\": \\"5535 40\\", \\"previous_employment\\": \\"0 00\\"}, \\"final_tax_code\\": \\"1250L\\"}, \\"national_insurance_contributions\\": {\\"in_this_employment\\": {\\"nic_letter\\": \\"A\\", \\"earnings_at_lel\\": \\"6144\\", \\"earnings_above_pt\\": \\"28422\\", \\"earnings_above_lel_to_pt\\": \\"2484\\"}}}","createdAt":"2025-05-23T16:17:36","updatedAt":"2025-05-23T16:17:46","createdBy":null},{"id":"9bf17755-2528-4e5b-a986-332b0fb20bcc","title":"P60 2020.pdf","description":"Uploaded document","filePath":"http://127.0.0.1:8080/api/storage/v1/files/blob/7975f820-a069-4dd2-8bb3-89ee4861a5a2.pdf","fileType":"application/pdf","fileSize":747482,"storageId":"67d4d22a-8a90-4516-b4cd-b50aa05f9b31","caseId":"44c6cd75-b7c4-4e27-b643-ab14c15ee3a0","documentType":"P60","downloadUrl":null,"metadataJson":"{\\"tax_year_end\\": \\"5 April 2020\\", \\"document_type\\": \\"P60 End of Year Certificate\\", \\"employee_details\\": {\\"surname\\": \\"ROCHA\\", \\"forenames_or_initials\\": \\"LUCAS CAVALCANTI\\", \\"national_insurance_number\\": \\"SS 47 21 88 A\\"}, \\"employee_instructions\\": {\\"purpose\\": \\"Please keep this certificate in a safe place as you will need it if you have to fill in a tax return. You also need it to make a claim for tax credits and Universal Credit or to renew your claim.\\\\nIt also helps you check that your employer is using the correct National Insurance number and deducting the right rate of National Insurance contributions.\\", \\"legal_requirement\\": \\"By law you are required to tell\\\\nHM Revenue and Customs about any income that is not fully taxed, even if you are not sent a tax return.\\"}, \\"pay_and_income_tax_details\\": {\\"pay\\": {\\"total_for_year\\": \\"40187 04\\", \\"current_employment\\": \\"40187 04\\", \\"previous_employment\\": \\"0 00\\"}, \\"income_tax\\": {\\"total_for_year\\": \\"5535 40\\", \\"current_employment\\": \\"5535 40\\", \\"previous_employment\\": \\"0 00\\"}, \\"final_tax_code\\": \\"1250L\\"}, \\"national_insurance_contributions\\": {\\"in_this_employment\\": {\\"nic_letter\\": \\"A\\", \\"earnings_at_lel\\": \\"6144\\", \\"earnings_above_pt\\": \\"28422\\", \\"earnings_above_lel_to_pt\\": \\"2484\\"}}}","createdAt":"2025-05-23T16:14:41","updatedAt":"2025-05-23T16:14:48","createdBy":null}],"documentsCount":2,"eventsCount":0}`
-      );
+    if (IS_MOCK_LIST.includes('caseStream')) {
+      onProgress?.(mockCaseStream);
       return;
     }
 
-    fetch(`${baseUrl}${PilotApi.caseStream}`.replace(':caseId', caseId), {
+    fetch(`${baseUrl}${CaseApi.caseStream}`.replace(':caseId', caseId), {
       method: 'GET',
       signal: controller.signal,
       credentials: 'include',
@@ -52,32 +184,42 @@ const caseStream = async (
         const reader = response.body?.getReader();
         const decoder = new TextDecoder();
 
-        function push() {
+        let buffer = '';
+        const push = () => {
           reader
             ?.read()
             .then(({ done, value }) => {
               if (done) {
+                if (buffer.trim()) {
+                  try {
+                    const lastMessage = buffer.trim();
+                    if (lastMessage.startsWith('data:')) {
+                      onProgress?.(lastMessage.slice(5).trim());
+                    }
+                  } catch (e) {
+                    console.error('解析最终数据失败:', e, '原始数据:', buffer);
+                  }
+                }
                 resolve(null);
                 return;
               }
 
               const chunk = decoder.decode(value, { stream: true });
-              const lines = chunk.split('\n');
+              buffer += chunk;
 
-              for (const line of lines) {
-                if (line.startsWith('data:')) {
-                  const data = line.split('data:')[1];
+              const messages = buffer.split('\n\n');
 
-                  console.log('line', line);
+              buffer = messages.pop() || '';
 
-                  if (data && data.trim()) {
-                    res += data;
-                    try {
-                      onProgress?.(res);
-                      res = '';
-                    } catch (e) {
-                      console.error('解析数据失败:', e, '原始数据:', data);
-                    }
+              for (const message of messages) {
+                if (!message.trim()) continue;
+
+                const data = message.replace(/^data:\s*/gm, '').trim();
+                if (data) {
+                  try {
+                    onProgress?.(data);
+                  } catch (e) {
+                    console.error('解析数据失败:', e, '原始数据:', data);
                   }
                 }
               }
@@ -91,7 +233,7 @@ const caseStream = async (
                 reject(error);
               }
             });
-        }
+        };
 
         push();
       })
@@ -109,19 +251,86 @@ const caseStream = async (
   };
 };
 
-const ocrDocuments = async (params: IOcrDocumentsParamsType): Promise<string[]> => {
+export const ocrDocuments = async (
+  params: IOcrDocumentsParamsType
+): Promise<string[]> => {
   const { caseId, storageIds = [] } = params;
+
+  return ApiRequest.post(`${baseUrl}${CaseApi.documents}`.replace(':caseId', caseId), {
+    storageIds,
+  });
+};
+
+export const uploadDocument = async (params: {
+  caseId: string;
+  files: File[];
+}): Promise<ICaseDocumentResultType> => {
+  const { caseId, files } = params || {};
+  const formData = new FormData();
+  files.forEach(file => {
+    formData.append('files', file);
+  });
+
+  if (IS_MOCK_LIST.includes('uploadDocument')) {
+    return new Promise(resolve => {
+      resolve(mockUploadDocument);
+    });
+  }
+
   return ApiRequest.post(
-    `${baseUrl}${PilotApi.documents}`.replace(':caseId', caseId),
-    {
-      storageIds,
-    },
+    `${baseUrl}${CaseApi.documents}`.replace(':caseId', caseId),
+    formData,
     {
       headers: {
-        Accept: 'application/json',
+        'Content-Type': 'multipart/form-data',
       },
     }
   );
 };
 
-export { caseStream, ocrDocuments };
+export const postFilesPDFHighlight = async (
+  params: IFilesPDFHighlightParamsType
+): Promise<BlobPart> => {
+  // const { fileId, highlightData } = params;
+
+  return ApiRequest.post(`${baseUrl}${StorageApi.filesPDFHighlight}`, params, {
+    headers: {
+      Accept: 'application/octet-stream',
+    },
+    responseType: 'blob',
+  });
+};
+
+export const markValid = async (
+  caseId: string,
+  documentId: string,
+  params: IMarkDocumentValid
+) => {
+  return ApiRequest.post(
+    `${baseUrl}${DocumentsApi.markValid.replace(':caseId', caseId).replace(':documentId', documentId)}`,
+    params
+  );
+};
+
+export const uploadDocumentSingle = async (caseId: string, params: { file: File }) => {
+  const { file } = params;
+
+  const formData = new FormData();
+  formData.append('file', file);
+
+  return ApiRequest.post(
+    `${baseUrl}${DocumentsApi.uploadSingle.replace(':caseId', caseId)}`,
+    formData,
+    {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    }
+  );
+};
+
+export const removeDocument = async (caseId: string, documentId: string) => {
+  return ApiRequest.delete(
+    `${baseUrl}${DocumentsApi.documents.replace(':caseId', caseId).replace(':documentId', documentId)}`
+  );
+};

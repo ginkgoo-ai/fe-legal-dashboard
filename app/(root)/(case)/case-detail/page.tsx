@@ -1,17 +1,33 @@
 'use client';
 
+import { ModalInstallExtension } from '@/components/case/modalInstallExtension';
+import { ModalNewWorkflow } from '@/components/case/modalNewWorkflow';
 import { PanelPilot } from '@/components/case/panelPilot';
 import { PanelProfileVault } from '@/components/case/panelProfileVault';
 import { PanelReference } from '@/components/case/panelReference';
 import { TagStatus } from '@/components/case/tagStatus';
+import LockManager from '@/customManager/LockManager';
 import UtilsManager from '@/customManager/UtilsManager';
+import { useEffectStrictMode } from '@/hooks/useEffectStrictMode';
+import { useEventManager } from '@/hooks/useEventManager';
+import { useStateCallback } from '@/hooks/useStateCallback';
 import { cn, parseCaseInfo } from '@/lib/utils';
-import { caseStream } from '@/service/api';
-import { ICaseItemType } from '@/types/case';
-import { Breadcrumb, Splitter } from 'antd';
+import {
+  caseStream,
+  getWorkflowDefinitions,
+  getWorkflowDetail,
+  getWorkflowList,
+  queryCaseDetail,
+} from '@/service/api/case';
+import { useCaseStore } from '@/store';
+import { useUserStore } from '@/store/userStore';
+import { IWorkflowType, PilotStatusEnum, WorkflowTypeEnum } from '@/types/casePilot';
+import { Breadcrumb, message as messageAntd, Splitter } from 'antd';
 import { ItemType } from 'antd/es/breadcrumb/Breadcrumb';
+import { produce } from 'immer';
+import { cloneDeep } from 'lodash';
 import { useSearchParams } from 'next/navigation';
-import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import './index.css';
 
 const breadcrumbItemsCasePortal = {
@@ -21,7 +37,7 @@ const breadcrumbItemsCasePortal = {
 
 const PANEL_SIZE_LIMIT = 200;
 const SIZE_REFERENCE_MIN = 70;
-const SIZE_PROFILEVAULT_MIN = 200;
+// const SIZE_PROFILEVAULT_MIN = 200;
 const SIZE_PILOT_MIN = 70;
 
 function CaseDetailContent() {
@@ -35,79 +51,383 @@ function CaseDetailContent() {
   const sizeReferenceRef = useRef(0);
   const sizePilotRef = useRef(0);
 
+  const cancelRef = useRef<null | (() => void)>(null);
+
   const [breadcrumbItems, setBreadcrumbItems] = useState<ItemType[]>([
     breadcrumbItemsCasePortal,
   ]);
 
+  const [isTransitionAll, setTransitionAll] = useState<boolean>(false);
   const [sizeReference, setSizeReference] = useState<number>(0);
   const [sizeProfileVault, setSizeProfileVault] = useState<number>(0);
   const [sizePilot, setSizePilot] = useState<number>(0);
+  const [isShowPilot, setShowPilot] = useState<boolean>(false);
 
-  const [caseInfo, setCaseInfo] = useState<ICaseItemType | null>(null);
+  const [workflowDefinitionId, setWorkflowDefinitionId] = useState<string>('');
+  const [currentWorkflowId, setCurrentWorkflowId] = useState<string>('');
+  const [pilotWorkflowList, setPilotWorkflowList] = useStateCallback<IWorkflowType[]>([]);
+  const [isModalNewWorkflowOpen, setModalNewWorkflowOpen] = useState<boolean>(false);
+  const [isModalInstallExtensionOpen, setModalInstallExtensionOpen] =
+    useState<boolean>(false);
+  // const [pilotInfo, setPilotInfo] = useState<IPilotType | null>(null);
+  // const [stepListItems, setStepListItems] = useState<IWorkflowStepType[]>([]);
+
+  const { setCaseInfo, caseInfo } = useCaseStore();
+  const { userInfo } = useUserStore();
 
   const isFoldReference = useMemo(() => {
     return sizeReference <= PANEL_SIZE_LIMIT;
   }, [sizeReference]);
 
-  const isFoldProfileVault = useMemo(() => {
-    return sizeProfileVault <= PANEL_SIZE_LIMIT;
-  }, [sizeProfileVault]);
-
   const isFoldPilot = useMemo(() => {
     return sizePilot <= PANEL_SIZE_LIMIT;
   }, [sizePilot]);
 
-  const registerCaseStream = useCallback(async () => {
-    try {
-      const { request } = await caseStream(
-        { caseId },
-        () => {
-          // 可以立即获取到 controller
-          // setRequestController({ cancel: () => controller.abort() });
-        },
-        res => {
-          // console.log('🚀 ~ res:', res);
-          // originalMessageLogRef.current = res;
+  const lockId = 'pilot-workflow-list';
 
-          try {
-            const data = JSON.parse(res);
+  const { emit } = useEventManager('ginkgoo-message', async message => {
+    // console.log('🚀 ~ useEventManager ~ data:', message);
 
-            setCaseInfo(parseCaseInfo(data));
-          } catch (error) {
-            console.warn('[Debug] Error parse message', error);
+    const { type: typeMsg } = message || {};
+
+    switch (typeMsg) {
+      case 'ginkgoo-background-all-polit-query-actived': {
+        const { pilotInfo: pilotInfoMsg } = message;
+        const { caseId: caseIdMsg, workflowId: workflowIdMsg } = pilotInfoMsg || {};
+
+        if (!!workflowIdMsg && caseIdMsg === caseId) {
+          setCurrentWorkflowId(workflowIdMsg);
+          setShowPilot(true);
+          window.postMessage({
+            type: 'ginkgoo-page-background-polit-query',
+            workflowId: workflowIdMsg,
+          });
+        }
+        break;
+      }
+      case 'ginkgoo-background-all-polit-query': {
+        console.log('ginkgoo-background-all-polit-query', message);
+        const { pilotInfo: pilotInfoMsg } = message;
+        const { workflowId: workflowIdMsg } = pilotInfoMsg || {};
+
+        console.log('Lock Check queryPolit 0 pilotInfoMsg', pilotInfoMsg);
+        await LockManager.acquireLock(lockId);
+        setPilotWorkflowList(
+          prev =>
+            cloneDeep(
+              produce(prev, draft => {
+                console.log('ginkgoo-background-all-polit-query', prev);
+                const indexWorkflow = draft.findIndex(item => {
+                  return item.workflow_instance_id === workflowIdMsg;
+                });
+                if (indexWorkflow >= 0) {
+                  draft[indexWorkflow].pilotInfo = pilotInfoMsg;
+                }
+              })
+            ),
+          () => {
+            LockManager.releaseLock(lockId);
+            console.log('Lock Check queryPolit 1 pilotInfoMsg', pilotInfoMsg);
           }
+        );
+        break;
+      }
+      case 'ginkgoo-background-all-case-update': {
+        const { pilotInfo: pilotInfoMsg } = message;
+        const { workflowId: workflowIdMsg, pilotStatus: pilotStatusMsg } =
+          pilotInfoMsg || {};
+
+        // setPilotInfo(pilotInfoMsg);
+        // if (stepsMsg?.length > 0) {
+        //   setStepListItems(stepsMsg.concat(stepListItemsDeclaration));
+        // }
+        if (pilotStatusMsg === PilotStatusEnum.START) {
+          refreshWorkflowList({
+            cb: () => {
+              window.postMessage({
+                type: 'ginkgoo-page-background-polit-query',
+                workflowId: workflowIdMsg,
+              });
+            },
+          });
+          setModalNewWorkflowOpen(false);
+          setCurrentWorkflowId(workflowIdMsg);
+          setShowPilot(true);
+        }
+
+        console.log('Lock Check caseUpdate 0 pilotInfoMsg', pilotInfoMsg);
+        await LockManager.acquireLock(lockId);
+        setPilotWorkflowList(
+          prev =>
+            cloneDeep(
+              produce(prev, draft => {
+                const indexWorkflow = draft.findIndex(item => {
+                  return item.workflow_instance_id === workflowIdMsg;
+                });
+                if (indexWorkflow >= 0) {
+                  draft[indexWorkflow].pilotInfo = pilotInfoMsg;
+                }
+              })
+            ),
+          () => {
+            LockManager.releaseLock(lockId);
+            console.log('Lock Check caseUpdate 1 pilotInfoMsg', pilotInfoMsg);
+          }
+        );
+
+        // if (
+        //   stepListCurrentMsg >= 0 &&
+        //   stepListItemsMsg?.length > 0 &&
+        //   !!stepListItemsMsg[stepListCurrentMsg]
+        // ) {
+        //   setTimeout(() => {
+        //     const { actioncurrent, actionlist } =
+        //       stepListItemsMsg[stepListCurrentMsg] || {};
+        //     if (actioncurrent >= 0 && actionlist?.length > 0) {
+        //       document
+        //         .getElementById(`action-item-${stepListCurrentMsg}-${actioncurrent}`)
+        //         ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        //     } else {
+        //       document
+        //         .getElementById(`step-item-${stepListCurrentMsg}`)
+        //         ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        //     }
+        //   }, 40);
+        // }
+        break;
+      }
+      case 'ginkgoo-background-all-workflow-detail-query': {
+        const { workflowInfo: workflowInfoMsg } = message || {};
+
+        console.log('Lock Check queryDetail 0 workflowInfoMsg', workflowInfoMsg);
+        await LockManager.acquireLock(lockId);
+        console.log('ginkgoo-background-all-workflow-detail-query 1', workflowInfoMsg);
+        setPilotWorkflowList(
+          prev =>
+            cloneDeep(
+              produce(prev, draft => {
+                const indexWorkflow = draft.findIndex(item => {
+                  return (
+                    item.workflow_instance_id === workflowInfoMsg?.workflow_instance_id
+                  );
+                });
+                if (indexWorkflow >= 0) {
+                  draft[indexWorkflow] = workflowInfoMsg;
+                }
+              })
+            ),
+          () => {
+            LockManager.releaseLock(lockId);
+            console.log('Lock Check queryDetail 1 workflowInfoMsg', workflowInfoMsg);
+          }
+        );
+        break;
+      }
+      case 'ginkgoo-background-all-case-done': {
+        const indexWorkflow = pilotWorkflowList.findIndex(item => {
+          return item.workflow_instance_id === currentWorkflowId;
+        });
+        if (indexWorkflow >= 0) {
+          window.document
+            .getElementById(`workflow-item-btn-download-${indexWorkflow}`)
+            ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        setCurrentWorkflowId('');
+        refreshWorkflowList();
+        break;
+      }
+      case 'ginkgoo-background-all-toast': {
+        const { typeToast, contentToast } = message || {};
+        messageAntd.open({
+          type: typeToast,
+          content: contentToast,
+        });
+        console.log('ginkgoo-background-all-toast', typeToast, contentToast);
+
+        break;
+      }
+      case 'ginkgoo-background-all-case-error': {
+        const { content } = message || {};
+        if (content) {
+          messageAntd.open({
+            content,
+            type: 'error',
+          });
+        }
+        // setPilotMode(PilotModeEnum.READY);
+        break;
+      }
+      default: {
+        break;
+      }
+    }
+  });
+
+  const refreshCaseDetail = async () => {
+    const resCaseDetail = await queryCaseDetail({
+      caseId,
+    });
+
+    if (resCaseDetail?.id) {
+      setCaseInfo(parseCaseInfo(resCaseDetail));
+      return;
+    }
+
+    messageAntd.open({
+      type: 'error',
+      content: 'RefreshCaseDetail Error',
+    });
+  };
+
+  const refreshWorkflowDefinitions = async () => {
+    const resWorkflowDefinitions = await getWorkflowDefinitions({
+      page: 1,
+      page_size: 1,
+      workflow_type: WorkflowTypeEnum.VISA,
+    });
+
+    if (resWorkflowDefinitions?.items?.length > 0) {
+      const item = resWorkflowDefinitions?.items[0];
+      setWorkflowDefinitionId(item.workflow_definition_id);
+      return;
+    }
+
+    messageAntd.open({
+      type: 'error',
+      content: 'RefreshWorkflowDefinitions Error',
+    });
+  };
+
+  const refreshWorkflowList = async (params?: { cb: () => void }) => {
+    const { cb } = params || {};
+    const resWorkflowList = await getWorkflowList({
+      userId: userInfo?.id || '',
+      caseId: caseId || '',
+    });
+
+    if (resWorkflowList?.length >= 0) {
+      console.log('Lock Check refreshWorkflowList 0 resWorkflowList', resWorkflowList);
+      await LockManager.acquireLock(lockId);
+      setPilotWorkflowList(
+        prev => {
+          return cloneDeep(
+            resWorkflowList?.map(itemNewWorkflow => {
+              const oldWorkflow = prev.find(itemOld => {
+                return (
+                  itemOld.workflow_instance_id === itemNewWorkflow.workflow_instance_id
+                );
+              });
+
+              return !!oldWorkflow
+                ? {
+                    ...oldWorkflow,
+                    ...itemNewWorkflow,
+                  }
+                : itemNewWorkflow;
+            })
+          );
+        },
+        () => {
+          LockManager.releaseLock(lockId);
+          cb?.();
+          console.log(
+            'Lock Check refreshWorkflowList 1 resWorkflowList',
+            resWorkflowList
+          );
         }
       );
-
-      await request;
-    } catch (err: any) {
-      if (err.name === 'AbortError' || err.name === 'CanceledError') {
-        // Common Error
-      } else {
-        // Cancel Error
-      }
-    } finally {
-      //
+      return;
     }
-  }, [caseId, setCaseInfo]);
 
-  useEffect(() => {
-    SIZE_REFERENCE_DEFAULT.current = window.innerWidth * 0.3;
-    SIZE_PROFILEVAULT_DEFAULT.current = window.innerWidth * 0.4;
-    SIZE_PILOT_DEFAULT.current = window.innerWidth * 0.3;
+    messageAntd.open({
+      type: 'error',
+      content: 'RefreshWorkflowList Error',
+    });
+  };
+
+  useEffectStrictMode(() => {
+    SIZE_REFERENCE_DEFAULT.current = window.innerWidth * 0.2;
+    SIZE_PROFILEVAULT_DEFAULT.current = window.innerWidth * 0.6;
+    SIZE_PILOT_DEFAULT.current = window.innerWidth * 0.2;
 
     setSizeReference(SIZE_REFERENCE_DEFAULT.current);
     setSizeProfileVault(SIZE_PROFILEVAULT_DEFAULT.current);
     setSizePilot(SIZE_PILOT_DEFAULT.current);
 
-    registerCaseStream();
+    refreshCaseDetail();
+    refreshWorkflowDefinitions();
+    refreshWorkflowList({
+      cb: () => {
+        window.postMessage({
+          type: 'ginkgoo-page-background-polit-query-actived',
+        });
+      },
+    });
+
+    const regCaseStream = async () => {
+      try {
+        const { cancel } = await caseStream(
+          { caseId },
+          () => {
+            // 可以立即获取到 controller
+            // setRequestController({ cancel: () => controller.abort() });
+          },
+          async res => {
+            console.log('🚀 ~ res:', res);
+            // originalMessageLogRef.current = res;
+
+            if (res.indexOf('event:documentStatusUpdate') === 0) {
+              refreshCaseDetail();
+
+              const dataStr = res.replace('event:documentStatusUpdate', '').trim();
+              try {
+                const data = JSON.parse(dataStr);
+                emit({
+                  type: 'event:documentStatusUpdate',
+                  data,
+                });
+              } catch (error) {
+                console.warn('[Debug] Error parse message', error);
+              }
+            } else if (res.indexOf('event:init') === 0) {
+              const dataStr = res.replace('event:init', '').trim();
+              try {
+                const data = JSON.parse(dataStr);
+                emit({
+                  type: 'event:init',
+                  data,
+                });
+              } catch (error) {
+                console.warn('[Debug] Error parse message', error);
+              }
+            }
+          }
+        );
+
+        cancelRef.current = cancel;
+        // await request;
+      } catch (err: any) {
+        if (err.name === 'AbortError' || err.name === 'CanceledError') {
+          // Common Error
+        } else {
+          // Cancel Error
+        }
+      } finally {
+        //
+      }
+    };
+
+    regCaseStream();
 
     window.addEventListener('resize', handleWindowResize);
 
     return () => {
+      if (cancelRef.current) {
+        cancelRef.current?.();
+      }
       window.removeEventListener('resize', handleWindowResize);
     };
-  }, [registerCaseStream]);
+  }, []);
 
   useEffect(() => {
     sizeReferenceRef.current = sizeReference;
@@ -117,6 +437,7 @@ function CaseDetailContent() {
     sizePilotRef.current = sizePilot;
   }, [sizePilot]);
 
+  // TODO: use for debug
   useEffect(() => {
     if (!caseInfo?.title) {
       return;
@@ -130,13 +451,24 @@ function CaseDetailContent() {
     ]);
   }, [caseInfo]);
 
+  useEffect(() => {
+    console.log('pilotWorkflowList', pilotWorkflowList);
+  }, [pilotWorkflowList]);
+
+  if (!caseId) {
+    UtilsManager.navigateBack();
+    return null;
+  }
+
   const handleSplitterResize = (sizes: number[]) => {
     // console.log('handleSplitterResize', sizes);
     const [left, mid, right] = sizes || [];
 
     setSizeReference(left);
     setSizeProfileVault(mid);
-    setSizePilot(right);
+    if (typeof right === 'number' && right >= 0) {
+      setSizePilot(right);
+    }
   };
 
   const handleBtnPanelLeftClick = () => {
@@ -147,8 +479,15 @@ function CaseDetailContent() {
       sizeReferenceTmp = SIZE_REFERENCE_DEFAULT.current;
     }
 
-    setSizeReference(sizeReferenceTmp);
-    setSizeProfileVault(window.innerWidth - sizeReferenceTmp - sizePilotRef.current);
+    setTransitionAll(true);
+    setTimeout(() => {
+      setSizeReference(sizeReferenceTmp);
+      setSizeProfileVault(window.innerWidth - sizeReferenceTmp - sizePilotRef.current);
+
+      setTimeout(() => {
+        setTransitionAll(false);
+      }, 200);
+    }, 60);
   };
 
   const handleBtnPanelRightClick = () => {
@@ -159,8 +498,15 @@ function CaseDetailContent() {
       sizePilotTmp = SIZE_PILOT_DEFAULT.current;
     }
 
-    setSizePilot(sizePilotTmp);
-    setSizeProfileVault(window.innerWidth - sizeReferenceRef.current - sizePilotTmp);
+    setTransitionAll(true);
+    setTimeout(() => {
+      setSizePilot(sizePilotTmp);
+      setSizeProfileVault(window.innerWidth - sizeReferenceRef.current - sizePilotTmp);
+
+      setTimeout(() => {
+        setTransitionAll(false);
+      }, 200);
+    }, 60);
   };
 
   const handleWindowResize = () => {
@@ -169,10 +515,95 @@ function CaseDetailContent() {
     );
   };
 
-  if (!caseId) {
-    UtilsManager.navigateBack();
-    return null;
-  }
+  const handleShowInstallExtension = () => {
+    setModalInstallExtensionOpen(true);
+  };
+
+  const handleShowNewWorkflow = () => {
+    if (workflowDefinitionId) {
+      setModalNewWorkflowOpen(true);
+    } else {
+      messageAntd.open({
+        type: 'error',
+        content: 'Missing required workflow definition ID.',
+      });
+      refreshWorkflowDefinitions();
+    }
+  };
+
+  const handleNewWorkflowFinish = async (values: Record<string, string>) => {
+    const { url } = values;
+
+    if (!workflowDefinitionId) {
+      messageAntd.open({
+        type: 'error',
+        content: 'Missing required workflow definition ID.',
+      });
+      refreshWorkflowDefinitions();
+      return;
+    }
+
+    // const url = "https://visas-immigration.service.gov.uk/next"; // test
+    // const url = "https://www.gov.uk/skilled-worker-visa/apply-from-outside-the-uk"; // start
+    // const url = "https://visas-immigration.service.gov.uk/resume/3a0bec84-a910-4f74-b4de-763b458e770e"; // return
+    // const url = "https://apply-to-visit-or-stay-in-the-uk.homeoffice.gov.uk/SKILLED_WORK/3434-4632-5724-0670/"; // uk
+
+    try {
+      window.postMessage({
+        type: 'ginkgoo-page-all-case-start',
+        url,
+        userId: userInfo?.id,
+        caseId,
+        workflowDefinitionId,
+      });
+    } catch (error) {
+      console.error('[Ginkgoo] Sidepanel handleCardClick error', error);
+    }
+  };
+
+  const handleQueryWorkflowDetail = async (params: { workflowId: string }) => {
+    const { workflowId } = params || {};
+    console.log('handleQueryWorkflowDetail');
+
+    const workflowInfoMsg = await getWorkflowDetail({
+      workflowId,
+    });
+
+    if (!workflowInfoMsg?.workflow_instance_id) {
+      messageAntd.open({
+        type: 'error',
+        content: 'Failed to get workflow detail.',
+      });
+      return;
+    }
+
+    console.log(
+      'Lock Check handleQueryWorkflowDetail 0 workflowInfoMsg',
+      workflowInfoMsg
+    );
+    await LockManager.acquireLock(lockId);
+
+    setPilotWorkflowList(
+      prev =>
+        cloneDeep(
+          produce(prev, draft => {
+            const indexWorkflow = draft.findIndex(item => {
+              return item.workflow_instance_id === workflowInfoMsg?.workflow_instance_id;
+            });
+            if (indexWorkflow >= 0) {
+              draft[indexWorkflow] = workflowInfoMsg;
+            }
+          })
+        ),
+      () => {
+        LockManager.releaseLock(lockId);
+        console.log(
+          'Lock Check handleQueryWorkflowDetail 1 workflowInfoMsg',
+          workflowInfoMsg
+        );
+      }
+    );
+  };
 
   return (
     <div className="box-border flex w-full flex-1 flex-col h-0 case-detail-wrap">
@@ -195,7 +626,6 @@ function CaseDetailContent() {
           )}
         </div>
       </div>
-
       {/* max-w-[var(--width-max)] px-[var(--width-padding)] */}
       <div className="flex h-0 w-full flex-1 flex-col px-6 py-6">
         {sizeReference && sizeProfileVault && sizePilot ? (
@@ -212,42 +642,67 @@ function CaseDetailContent() {
               min={SIZE_REFERENCE_MIN}
               size={sizeReference}
               className={cn('bg-white relative rounded-2xl flex-col flex h-full', {
-                'transition-all': false,
+                'transition-all': isTransitionAll,
               })}
             >
               <PanelReference
-                caseInfo={caseInfo}
+                caseId={caseId}
                 isFold={isFoldReference}
                 onBtnPanelLeftClick={handleBtnPanelLeftClick}
               />
             </Splitter.Panel>
             {/* Profile Vault */}
             <Splitter.Panel
-              min={SIZE_PROFILEVAULT_MIN}
+              // min={SIZE_PROFILEVAULT_MIN}
               size={sizeProfileVault}
-              className={cn('bg-white relative rounded-2xl flex-col flex h-full', {
-                'transition-all': false,
-              })}
+              className={cn(
+                'bg-white relative rounded-2xl flex-col flex h-full', // min-w-[870px]
+                {
+                  'transition-all': isTransitionAll,
+                }
+              )}
             >
-              <PanelProfileVault caseInfo={caseInfo} isFold={isFoldProfileVault} />
-            </Splitter.Panel>
-            {/* Pilot */}
-            <Splitter.Panel
-              min={SIZE_PILOT_MIN}
-              size={sizePilot}
-              className={cn('bg-white relative rounded-2xl flex-col flex h-full', {
-                'transition-all': false,
-              })}
-            >
-              <PanelPilot
+              <PanelProfileVault
                 caseInfo={caseInfo}
-                isFold={isFoldPilot}
-                onBtnPanelRightClick={handleBtnPanelRightClick}
+                currentWorkflowId={currentWorkflowId}
+                isFold={false}
+                onShowInstallExtension={handleShowInstallExtension}
+                onShowNewWorkflow={handleShowNewWorkflow}
               />
             </Splitter.Panel>
+            {/* Pilot */}
+            {isShowPilot ? (
+              <Splitter.Panel
+                min={SIZE_PILOT_MIN}
+                size={sizePilot}
+                className={cn('bg-white relative rounded-2xl flex-col flex h-full', {
+                  'transition-all': isTransitionAll,
+                })}
+              >
+                <PanelPilot
+                  caseInfo={caseInfo}
+                  currentWorkflowId={currentWorkflowId}
+                  pilotWorkflowList={pilotWorkflowList}
+                  isFold={isFoldPilot}
+                  onBtnPanelRightClick={handleBtnPanelRightClick}
+                  onQueryWorkflowDetail={handleQueryWorkflowDetail}
+                />
+              </Splitter.Panel>
+            ) : null}
           </Splitter>
         ) : null}
       </div>
+      {/* isModalInstallExtension isModalNewWorkflow */}
+      {/* Modal */}
+      <ModalInstallExtension
+        isOpen={isModalInstallExtensionOpen}
+        onOpenUpdate={setModalInstallExtensionOpen}
+      />
+      <ModalNewWorkflow
+        isOpen={isModalNewWorkflowOpen}
+        onOpenUpdate={setModalNewWorkflowOpen}
+        onFinish={handleNewWorkflowFinish}
+      />
     </div>
   );
 }

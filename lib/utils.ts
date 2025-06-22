@@ -1,4 +1,5 @@
-import { CaseStatusEnum, ChatMessagePart, ICaseItemType } from '@/types';
+import { CaseStatusEnum, ICaseItemType } from '@/types/case';
+import { ChatMessagePart } from '@/types/chat';
 import { type ClassValue, clsx } from 'clsx';
 import dayjs from 'dayjs';
 import { twMerge } from 'tailwind-merge';
@@ -20,6 +21,11 @@ const CONTENT_PATTERNS = {
 };
 
 const CASE_STATUS_MAP = {
+  [CaseStatusEnum.DOCUMENTATION_IN_PROGRESS]: {
+    colorBackground: '#EEE5FF',
+    colorText: '#8950FC',
+    text: 'Documentation in progress',
+  },
   [CaseStatusEnum.ANALYZING]: {
     colorBackground: '#EEE5FF',
     colorText: '#8950FC',
@@ -102,7 +108,8 @@ export const parseCaseInfo = (caseInfo: ICaseItemType): ICaseItemType => {
   return {
     ...caseInfo,
     caseStatusForFront:
-      CASE_STATUS_MAP[caseInfo.status] || CASE_STATUS_MAP[CaseStatusEnum.DEFAULT],
+      CASE_STATUS_MAP[caseInfo?.status as keyof typeof CASE_STATUS_MAP] ||
+      CASE_STATUS_MAP[CaseStatusEnum.DEFAULT],
     timestamp: +dayjs(),
   };
 };

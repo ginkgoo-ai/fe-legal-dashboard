@@ -81,9 +81,9 @@ export function FileUploadSimple({
         id={id ?? 'file-upload'}
       />
       <label htmlFor={id ?? 'file-upload'}>
-        <div className="w-full border border-[#D8DFF5] cursor-pointer hover:bg-[var(--color-primary-foreground)] border-dashed rounded-lg h-11 flex flex-row justify-center items-center gap-2">
+        <div className="w-full border border-[#D8DFF5] text-primary hover:text-primary-dark cursor-pointer hover:bg-[var(--color-primary-foreground)] border-dashed rounded-lg h-11 flex flex-row justify-center items-center gap-2">
           <IconFileUpload size={24} />
-          <span className="text-[var(--color-primary)] font-semibold">Add files</span>
+          <span className="font-semibold">Add files</span>
         </div>
       </label>
     </div>

@@ -1,3 +1,5 @@
+import { IWorkflowDummyDataType } from '@/types/casePilot';
+
 export enum FileStatus {
   UPLOADING = 'UPLOADING',
   ANALYSIS = 'ANALYSIS',
@@ -28,15 +30,15 @@ export interface ICloudFileType {
   id: string;
   originalName: string;
   storageName: string;
-  fileType: FileTypeEnum;
+  fileType: FileTypeEnum | string;
   fileSize: number;
   storagePath: string;
-  videoDuration?: number;
-  videoThumbnailId?: string;
-  videoThumbnailUrl?: string;
-  videoResolution?: string;
-  createdAt: string;
-  updatedAt: string;
+  videoDuration?: number | null;
+  videoThumbnailId?: string | null;
+  videoThumbnailUrl?: string | null;
+  videoResolution?: string | null;
+  createdAt: string | null;
+  updatedAt: string | null;
 }
 
 export interface IOcrFileType {
@@ -44,16 +46,42 @@ export interface IOcrFileType {
   title: string;
   description: string;
   filePath: string;
-  fileType: FileTypeEnum;
+  fileType: string; // FileTypeEnum;
   fileSize: number;
-  storageId: string;
+  storageId: string | null;
   caseId: string;
-  documentType: string;
-  downloadUrl: string;
-  metadataJson: string;
+  documentType: string | null;
+  downloadUrl: string | null;
+  metadataJson: string | null;
+  createdAt: string | null;
+  updatedAt: string | null;
+  createdBy: string | null;
+}
+
+export interface ICaseDocumentType {
+  success: boolean;
+  documentId: string;
+  caseId: string;
+  message: string;
+  filename: string;
+  fileSize: number;
+  fileType: string; // 'application/pdf';
+  receivedAt: string; // '2025-06-19T15:07:37.719299';
+  errorCode: null;
+  errorDetails: null;
+}
+
+export interface ICaseDocumentInitResultType {
   createdAt: string;
+  filename: string;
+  fileSize: number;
+  documentType: string;
+  documentCategory: string;
+  id: string;
+  fileType: string;
+  status: string; // 'REJECTED';
   updatedAt: string;
-  createdBy: string;
+  storageId: null;
 }
 
 export interface IFileItemType {
@@ -61,7 +89,25 @@ export interface IFileItemType {
   status: FileStatus;
   progress?: number; // ignore
   localFile?: File;
+  documentFile?: ICaseDocumentType;
+  documentInitResultFile?: ICaseDocumentInitResultType;
   cloudFile?: ICloudFileType;
   ocrFile?: IOcrFileType;
   ocrResult?: Record<string, string>[];
+}
+
+export interface IUploadDocumentEventType {
+  status: string;
+  documentId: string;
+  filename: string;
+}
+
+export interface IFilesThirdPartParamsType {
+  thirdPartUrl: string;
+  cookie: string;
+}
+
+export interface IFilesPDFHighlightParamsType {
+  fileId: string;
+  highlightData: IWorkflowDummyDataType[];
 }

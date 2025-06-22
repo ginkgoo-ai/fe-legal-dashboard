@@ -1,99 +1,139 @@
-import { Button } from '@/components/ui/button';
+'use client';
+
 import {
+  IconInfo,
   IconLoading,
   IconStepDeclaration,
   IconStepDot,
-  IconStepDown,
 } from '@/components/ui/icon';
 import { cn } from '@/lib/utils';
-import {
-  IActionItemType,
-  ICaseItemType,
-  IPilotType,
-  IStepItemType,
-  StepModeEnum,
-} from '@/types/case';
+import { IActionItemType } from '@/types/case';
+import { IWorkflowStepType, IWorkflowType } from '@/types/casePilot';
 import type { CollapseProps } from 'antd';
-import { Collapse, Steps, Tooltip } from 'antd';
+import { Alert, Button, Collapse, Spin } from 'antd';
 import { Check } from 'lucide-react';
-import Image from 'next/image';
-import { memo, useCallback, useEffect, useState } from 'react';
+import { memo, useEffect, useMemo, useState } from 'react';
 import './index.css';
-import { mockStepListItems } from './mock';
 
 interface PilotStepBodyProps {
-  caseInfo: ICaseItemType | null;
-  pilotInfo: IPilotType | null;
-  stepListCurrent: number;
-  stepListItems: IStepItemType[];
+  workflowInfo: IWorkflowType;
+  isCurrentWorkflow: boolean;
+  onCollapseChange?: (key: string) => void;
+  onContinueFilling?: (params: { actionlistPre: IActionItemType[] }) => void;
 }
 
 function PurePilotStepBody(props: PilotStepBodyProps) {
-  const { caseInfo, pilotInfo, stepListCurrent, stepListItems } = props;
+  const {
+    workflowInfo,
+    isCurrentWorkflow,
+    // onCollapseChange,
+    onContinueFilling,
+  } = props;
 
-  const [stepListActiveKeyBody, setStepListActiveKeyBody] = useState<string[]>([]);
-  const [stepListCurrentBody, setStepListCurrentBody] = useState<number>(3);
+  // const [stepListActiveKeyBody, setStepListActiveKeyBody] = useState<string[]>([]);
   const [stepListItemsBody, setStepListItemsBody] = useState<CollapseProps['items']>([]);
 
-  const handleCollapseChange = (key: string[]) => {
-    setStepListActiveKeyBody(key);
+  const workflowSteps = useMemo(() => {
+    let result: IWorkflowStepType[] | undefined = void 0;
+    if (Number(workflowInfo?.pilotInfo?.steps?.length) > 0) {
+      result = workflowInfo?.pilotInfo?.steps;
+    } else if (Number(workflowInfo.steps?.length) > 0) {
+      result = workflowInfo.steps;
+    }
+
+    return result;
+  }, [workflowInfo]);
+
+  const handleCollapseChange = () => {
+    // 找出 key 中比 stepListActiveKeyBody 多的元素
+    // const newKeys = key.filter(k => !stepListActiveKeyBody.includes(k));
+    // if (newKeys.length > 0) {
+    //   // 展开操作：如果有新增的 key, 且是可展开的项，则调用 onCollapseChange，并展开
+    //   const newKey = newKeys[0];
+    //   const newStep = workflowInfo?.steps?.find(item => {
+    //     return (
+    //       item.step_key === newKey &&
+    //       ['ACTIVE', 'COMPLETED_SUCCESS'].includes(item.status)
+    //     );
+    //   });
+    //   if (newStep) {
+    //     onCollapseChange?.(newKey);
+    //     setStepListActiveKeyBody(key);
+    //   }
+    // } else {
+    //   // 收起操作
+    //   setStepListActiveKeyBody(key);
+    // }
+    // setRefreshRenderTS(+dayjs());
   };
 
-  const handleBtnJumpClick = useCallback(async () => {
-    if (!!pilotInfo?.tabInfo?.url) {
+  // const handleContinueFilling = (params: { actionlistPre: IActionItemType[] }) => {
+  //   onContinueFilling?.(params);
+  // };
+
+  const handleBtnProceedToFormClick = () => {
+    if (!!workflowInfo.pilotInfo?.tabInfo?.id) {
       const messageJump = {
-        type: 'ginkgo-page-background-tab-update',
-        tabId: pilotInfo?.tabInfo?.id,
+        type: 'ginkgoo-page-background-tab-update',
+        tabId: workflowInfo.pilotInfo?.tabInfo?.id,
         updateProperties: { active: true },
       };
       window.postMessage(messageJump, window.location.origin);
 
       const messageOpenSidepanel = {
-        type: 'ginkgo-page-background-sidepanel-open',
+        type: 'ginkgoo-page-background-sidepanel-open',
         options: {
-          tabId: pilotInfo?.tabInfo?.id,
+          tabId: workflowInfo.pilotInfo?.tabInfo?.id,
         },
       };
       window.postMessage(messageOpenSidepanel, window.location.origin);
     }
-  }, [pilotInfo?.tabInfo?.url, pilotInfo?.tabInfo?.id]);
+  };
 
+  // update collapse
   useEffect(() => {
-    const calcStepLabel = (itemStep: IStepItemType, indexStep: number) => {
-      const isSelect = stepListActiveKeyBody.includes(String(indexStep));
+    console.log('PilotStepBodyProps', workflowSteps);
+
+    // console.log("PurePilotStepBody", stepListItems);
+    if (!workflowSteps) {
+      return;
+    }
+
+    const renderStepLabel = (itemStep: IWorkflowStepType, indexStep: number) => {
+      // const isSelect = stepListActiveKeyBody.includes(itemStep.step_key);
       return (
         <div
           id={`step-item-${indexStep}`}
-          className={cn('flex flex-row justify-between items-center gap-3', {
-            'border-bottom': !isSelect,
+          className={cn('flex w-full flex-row items-center justify-between gap-3', {
+            'border-bottom': indexStep < Number(workflowSteps?.length) - 1,
           })}
         >
-          <div className="flex flex-row gap-3.5 flex-1 w-0">
-            <div className="flex flex-row w-4 h-6 flex-[0_0_auto] justify-center items-center">
-              {itemStep.mode === StepModeEnum.DECLARATION ? (
+          <div className="flex w-0 flex-1 flex-row gap-3.5">
+            <div className="flex h-6 w-4 flex-[0_0_auto] flex-row items-center justify-center">
+              {itemStep.step_key === 'Declaration' ? (
                 <IconStepDeclaration size={16} />
               ) : (
                 <>
-                  {indexStep < stepListCurrentBody ? (
+                  {itemStep.status === 'COMPLETED_SUCCESS' ? (
                     <Check size={16} color="#00ff00" />
-                  ) : null}
-                  {indexStep === stepListCurrentBody ? (
+                  ) : isCurrentWorkflow && itemStep.status === 'ACTIVE' ? (
                     <IconLoading size={16} className="animate-spin" />
-                  ) : null}
-                  {indexStep > stepListCurrentBody ? <IconStepDot size={16} /> : null}
+                  ) : (
+                    <IconStepDot size={16} />
+                  )}
                 </>
               )}
             </div>
-            <div className="flex-1 w-0 truncate flex justify-start items-center gap-3">
-              <span>{itemStep.title}</span>
-              {itemStep.mode === StepModeEnum.DECLARATION ? (
-                <span className="flex-[0_0_auto] h-full text-xs mt-0.5 text-[#FF55CB] flex justify-center items-center">
+            <div className="flex w-0 flex-1 items-center justify-start gap-3">
+              <div className="truncate">{itemStep.name}</div>
+              {itemStep.step_key === 'Declaration' ? (
+                <div className="mt-0.5 flex h-full flex-[0_0_auto] items-center justify-center text-xs text-[#FF55CB]">
                   Confirm Declaration
-                </span>
+                </div>
               ) : null}
             </div>
           </div>
-          <div className="flex-[0_0_auto]">
+          {/* <div className="flex-[0_0_auto]">
             <IconStepDown
               size={10}
               color={isSelect ? '#0061FD' : '#98A1B7'}
@@ -101,143 +141,87 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
                 'rotate-180': isSelect,
               })}
             />
-          </div>
+          </div> */}
         </div>
       );
     };
 
-    const calcActionItem = (
-      item: IActionItemType,
-      indexStep: number,
-      indexAction: number
-    ) => {
-      const { type, selector } = item || {};
+    // const renderStepChildren = (itemStep: IWorkflowStepType, indexStep: number) => {
+    //   return null;
+    //   // if (itemStep.step_key === 'Declaration') {
+    //   //   return <PilotStepBodyDeclaration pilotInfo={workflowInfo.pilotInfo || null} />;
+    //   // }
 
-      return {
-        title: (
-          <div
-            id={`action-item-${indexStep}-${indexAction}`}
-            className="flex flex-row items-center gap-1"
-          >
-            <Tooltip placement="top" title={selector} mouseEnterDelay={1}>
-              <div className="flex-1 text-sm truncate text-[#B4B3B3]">{selector}</div>
-            </Tooltip>
-          </div>
-        ),
-        description: (
-          <div className="flex w-full flex-col">
-            <div className="flex flex-row text-sm gap-1 text-[#464E5F]">{type}</div>
-          </div>
-        ),
-      };
-    };
+    //   // if (itemStep.step_key !== 'Declaration' && !itemStep?.data) {
+    //   //   return null;
+    //   // }
 
-    const calcStepChildren = (itemStep: IStepItemType, indexStep: number) => {
-      return (
-        {
-          [StepModeEnum.ACTION]: (
-            <Steps
-              className="border-bottom"
-              progressDot
-              direction="vertical"
-              current={itemStep.actioncurrent}
-              items={itemStep.actionlist.map((itemAction, indexAction) =>
-                calcActionItem(itemAction, indexStep, indexAction)
-              )}
-            />
-          ),
-          [StepModeEnum.MANUAL]: null,
-          [StepModeEnum.FORM]: null,
-          [StepModeEnum.DECLARATION]: (
-            <div className="flex flex-row gap-1 bg-[#FF97DF1A] rounded-xl box-border pt-5 pl-6">
-              <div className="flex flex-col pb-2.5 box-border">
-                <div className="text-sm font-[600] text-[#FF55CB]">
-                  Manual Input Required
-                </div>
-                <div className="text-xs font-[400] text-[#FF97DF]">
-                  To ensure full compliance with legal standards, your personal attention
-                  is required for specific items in this form. The system will now direct
-                  you to the relevant section for your manual input and confirmation.
-                </div>
-                <Button
-                  variant="ghost"
-                  className="self-end border-dashed border border-[#FF55CB] bg-[#FFFFFF] w-[160px] h-[44px] mt-4"
-                  onClick={handleBtnJumpClick}
-                >
-                  <span className="text-[#FF55CB]">Proceed to Form</span>
-                </Button>
-              </div>
-              <Image
-                src="/imgDeclaration.webp"
-                className="flex-[0_0_auto] !w-[111px] !h-[107px] justify-self-end self-end"
-                alt="Declaration"
-                width={111}
-                height={107}
-              />
-            </div>
-          ),
-        }[itemStep.mode] || null
-      );
-    };
+    //   // return (
+    //   //   <div className="border-bottom">
+    //   //     {itemStep.step_key === 'Declaration' ? (
+    //   //       <PilotStepBodyDeclaration pilotInfo={workflowInfo.pilotInfo || null} />
+    //   //     ) : (
+    //   //       <PilotStepBodyNormal
+    //   //         itemStep={itemStep}
+    //   //         indexStep={indexStep}
+    //   //         onContinueFilling={handleContinueFilling}
+    //   //       />
+    //   //     )}
+    //   //   </div>
+    //   // );
+    // };
 
     setStepListItemsBody(
-      mockStepListItems.map((item, index) => {
+      workflowSteps.map((item, index) => {
         return {
-          key: index,
-          label: calcStepLabel(item, index),
+          key: item.step_key,
+          label: renderStepLabel(item, index),
           showArrow: false,
-          children: calcStepChildren(item, index),
+          children: null,
         };
       })
     );
-  }, [
-    caseInfo?.timestamp,
-    stepListActiveKeyBody,
-    stepListCurrentBody,
-    stepListItems,
-    handleBtnJumpClick,
-  ]);
+  }, [isCurrentWorkflow, workflowSteps, onContinueFilling]);
 
-  useEffect(() => {
-    setStepListActiveKeyBody(prev => {
-      const prevArray = Array.isArray(prev) ? prev : [prev];
-      const strStepListCurrent = String(stepListCurrent);
-
-      return prevArray.includes(strStepListCurrent)
-        ? prevArray
-        : [...prevArray, strStepListCurrent];
-    });
-
-    setStepListCurrentBody(stepListCurrent);
-  }, [stepListCurrent]);
-
-  // const handleBtnDownloadClick = async () => {
-  //   console.log('handleBtnDownloadClick', pilotInfo);
-  //   if (pilotInfo?.pdfUrl && pilotInfo?.cookiesStr) {
-  //     const headers = new AxiosHeaders();
-  //     // headers.set('Accept', 'application/octet-stream');
-  //     headers.set('withCredentials', true);
-  //     headers.set('Cookie', pilotInfo.cookiesStr);
-
-  //     const resDownloadCustomFile = await downloadCustomFile({
-  //       url: pilotInfo.pdfUrl,
-  //       headers,
-  //     });
-
-  //     // await saveBlob({ blobPart: resDownloadCustomFile });
-  //   }
-  // };
-
-  return (
-    <div className="relative w-full flex justify-start items-center rounded-lg border border-[#D8DFF5] box-border p-2">
+  return stepListItemsBody && stepListItemsBody.length > 0 ? (
+    <div className="relative box-border flex flex-col w-full items-center justify-start rounded-lg border border-[#D8DFF5] p-2">
       <Collapse
         className="w-full"
-        activeKey={stepListActiveKeyBody}
+        // activeKey={stepListActiveKeyBody}
         ghost
         items={stepListItemsBody}
         onChange={handleCollapseChange}
       />
+      {workflowInfo.pilotInfo?.tabInfo?.id ? (
+        <Alert
+          message={<div className="text-[#075985] text-base">Manual Input Required</div>}
+          icon={<IconInfo size={16} className="mt-1 mr-2" />}
+          description={
+            <div className="flex flex-col -ml-8 gap-2 items-start">
+              <div className="text-[#0369A1] text-sm">
+                To ensure full compliance with legal standards, your personal attention is
+                required for specific items in this form. The system will now direct you
+                to the relevant section for your manual input and confirmation.
+              </div>
+              <Button
+                color="primary"
+                variant="outlined"
+                onClick={handleBtnProceedToFormClick}
+              >
+                Proceed to Form
+              </Button>
+            </div>
+          }
+          type="info"
+          showIcon
+          closable
+        />
+      ) : null}
     </div>
+  ) : (
+    <Spin tip="Loading" size="small">
+      <div className="w-full h-20"></div>
+    </Spin>
   );
 }
 

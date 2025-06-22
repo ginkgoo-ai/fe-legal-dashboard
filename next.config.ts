@@ -7,6 +7,7 @@ const nextConfig: NextConfig = {
   experimental: {
     routerBFCache: false,
   },
+  reactStrictMode: true,
   env: {
     LOCAL_BASE_URL: process.env.LOCAL_BASE_URL,
   },

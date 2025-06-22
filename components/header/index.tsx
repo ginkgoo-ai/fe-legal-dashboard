@@ -3,7 +3,7 @@
 import GlobalManager from '@/customManager/GlobalManager';
 import { cn } from '@/lib/utils';
 import { useUserStore } from '@/store';
-import { ChevronDown, LogOut } from 'lucide-react';
+import { ChevronDown, LogOut, Palette } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -15,37 +15,37 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-  // DropdownMenuPortal,
-  // DropdownMenuRadioGroup,
-  // DropdownMenuRadioItem,
+  DropdownMenuPortal,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuSeparator,
-  // DropdownMenuSub,
-  // DropdownMenuSubContent,
-  // DropdownMenuSubTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu';
 
 const defaultAvatar = '/default.png';
 
-// const ThemeOptions = [
-//   {
-//     label: 'System',
-//     value: 'system',
-//   },
-//   {
-//     label: 'Light',
-//     value: 'light',
-//   },
-//   {
-//     label: 'Dark',
-//     value: 'dark',
-//   },
-// ];
+const ThemeOptions = [
+  {
+    label: 'System',
+    value: 'system',
+  },
+  {
+    label: 'Light',
+    value: 'light',
+  },
+  {
+    label: 'Dark',
+    value: 'dark',
+  },
+];
 
 const User = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { theme, setTheme } = useTheme();
-  const [_theme] = useState<any>(theme);
+  const [_theme, _setTheme] = useState<any>(theme);
   const { userInfo } = useUserStore();
   const handleOpenChange = (open: boolean) => {
     setIsOpen(open);
@@ -53,7 +53,7 @@ const User = () => {
 
   useEffect(() => {
     setTheme(_theme);
-  }, [setTheme, _theme]);
+  }, [_theme, setTheme]);
 
   return (
     <DropdownMenu onOpenChange={handleOpenChange}>
@@ -88,8 +88,8 @@ const User = () => {
             </Avatar>
           </div>
         </DropdownMenuLabel>
-        {/* <DropdownMenuSeparator /> */}
-        {/* <DropdownMenuSub>
+        <DropdownMenuSeparator />
+        <DropdownMenuSub>
           <DropdownMenuSubTrigger className="inline-flex w-full items-center gap-2">
             <Palette size={16} />
             Theme
@@ -107,7 +107,7 @@ const User = () => {
               </DropdownMenuRadioGroup>
             </DropdownMenuSubContent>
           </DropdownMenuPortal>
-        </DropdownMenuSub> */}
+        </DropdownMenuSub>
         <DropdownMenuSeparator />
         <LogoutTrigger>
           <DropdownMenuItem className="inline-flex w-full items-center gap-2">

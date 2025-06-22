@@ -1,4 +1,3 @@
-import { Button } from '@/components/ui/button';
 import {
   IconFile,
   IconFileStatusError,
@@ -12,6 +11,7 @@ import {
   IconFileTypeTXT,
 } from '@/components/ui/icon';
 import { FileStatus, FileTypeEnum, IFileItemType } from '@/types/file';
+import { Button } from 'antd';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import { X } from 'lucide-react';
@@ -39,7 +39,7 @@ dayjs.extend(utc);
 const getFileTypeMap = (params: { size: number; type: FileTypeEnum }): ReactElement => {
   const { size = 40, type } = params || {};
 
-  return {
+  const typeMap = {
     [FileTypeEnum.DOC]: <IconFileTypeDoc size={size} />,
     [FileTypeEnum.DOCX]: <IconFileTypeDoc size={size} />,
     [FileTypeEnum.XLS]: <IconFileTypeExcel size={size} />,
@@ -56,7 +56,9 @@ const getFileTypeMap = (params: { size: number; type: FileTypeEnum }): ReactElem
     [FileTypeEnum.ICO]: <IconFileTypeImage size={size} />,
     [FileTypeEnum.TXT]: <IconFileTypeTXT size={size} />,
     [FileTypeEnum.UNKNOW]: <IconFile size={size} />,
-  }[type];
+  };
+
+  return typeMap[type] || typeMap[FileTypeEnum.UNKNOW];
 };
 
 const fileStatusMap: Record<FileStatus, ReactElement> = {
@@ -71,6 +73,25 @@ const fileStatusColorMap: Record<FileStatus, string> = {
   [FileStatus.ANALYSIS]: '#0061FD',
   [FileStatus.DONE]: '#27CA40',
   [FileStatus.ERROR]: '#FF0C00',
+};
+
+const extMap: Record<string, FileTypeEnum> = {
+  doc: FileTypeEnum.DOC,
+  docx: FileTypeEnum.DOCX,
+  xls: FileTypeEnum.XLS,
+  xlsx: FileTypeEnum.XLSX,
+  ppt: FileTypeEnum.PPT,
+  pptx: FileTypeEnum.PPTX,
+  pdf: FileTypeEnum.PDF,
+  json: FileTypeEnum.JSON,
+  jpeg: FileTypeEnum.JPEG,
+  jpg: FileTypeEnum.JPEG,
+  png: FileTypeEnum.PNG,
+  gif: FileTypeEnum.GIF,
+  webp: FileTypeEnum.WEBP,
+  bmp: FileTypeEnum.BMP,
+  ico: FileTypeEnum.ICO,
+  txt: FileTypeEnum.TXT,
 };
 
 interface ItemFileProps {
@@ -88,24 +109,29 @@ function PureItemFile(props: ItemFileProps) {
   const [fileUpdate, setFileUpdate] = useState<string>('');
 
   useEffect(() => {
-    const { localFile, cloudFile, ocrFile } = file || {};
+    const { localFile, documentFile, documentInitResultFile } = file || {};
     let dayjsUpdate = dayjs();
     let fileNameTmp = '';
     let fileTypeTmp = FileTypeEnum.UNKNOW;
     let fileUpdateTmp = '';
 
-    if (ocrFile) {
-      fileNameTmp = ocrFile.title;
-      fileTypeTmp = ocrFile.fileType;
-      dayjsUpdate = dayjs.utc(ocrFile.updatedAt).local();
-    } else if (cloudFile) {
-      fileNameTmp = cloudFile.originalName;
-      fileTypeTmp = cloudFile.fileType;
-      dayjsUpdate = dayjs.utc(cloudFile.updatedAt).local();
+    if (documentInitResultFile) {
+      fileNameTmp = documentInitResultFile.filename;
+      fileTypeTmp = documentInitResultFile.fileType as FileTypeEnum;
+      dayjsUpdate = dayjs.utc(documentInitResultFile.updatedAt).local();
+    } else if (documentFile) {
+      fileNameTmp = documentFile.filename;
+      fileTypeTmp = documentFile.fileType as FileTypeEnum;
+      dayjsUpdate = dayjs.utc(documentFile.receivedAt).local();
     } else if (localFile) {
       fileNameTmp = localFile.name;
       fileTypeTmp = localFile.type as FileTypeEnum;
       dayjsUpdate = dayjs();
+    }
+
+    if (!fileTypeTmp && fileNameTmp) {
+      const ext = fileNameTmp.split('.').pop()?.toLowerCase();
+      fileTypeTmp = (ext && extMap[ext]) || FileTypeEnum.UNKNOW;
     }
 
     const now = dayjs();
@@ -187,9 +213,15 @@ function PureItemFile(props: ItemFileProps) {
         </div>
         {/* Status */}
         <div className="flex justify-center items-center">
-          <Button variant="ghost" onClick={handleBtnDeleteClick}>
-            <X size={20} color="#A1A1AA" />
-          </Button>
+          <Button
+            type="text"
+            icon={
+              <div className="flex justify-center items-center">
+                <X size={20} color="#A1A1AA" />
+              </div>
+            }
+            onClick={handleBtnDeleteClick}
+          />
         </div>
       </div>
     );
