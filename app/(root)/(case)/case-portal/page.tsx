@@ -59,7 +59,7 @@ export default function CasePortalPage() {
           New Case
         </Button>
       </div>
-      <div className="grid grid-cols-3 gap-x-8 gap-y-6 mt-[64px]">
+      <div className="grid lg:grid-cols-3 md:grid-cols-2 grid-cols-1 gap-x-8 gap-y-6 mt-[64px]">
         {caseList.map((itemCase, indexCase) => (
           <CardCase
             key={`case-${indexCase}`}

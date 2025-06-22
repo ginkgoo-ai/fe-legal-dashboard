@@ -8,11 +8,11 @@ import { IconFoldLeft } from '@/components/ui/icon';
 import LockManager from '@/customManager/LockManager';
 import { cn } from '@/lib/utils';
 import { uploadDocument } from '@/service/api/case';
-import { message as messageAntd } from 'antd';
+import { message as messageAntd, Spin } from 'antd';
 // import { uploadFiles } from '@/service/api/file';
 import { useEventManager } from '@/hooks/useEventManager';
 import { useStateCallback } from '@/hooks/useStateCallback';
-import { FileStatus, ICaseDocumentInitResultType, IFileItemType } from '@/types/file';
+import { FileStatus, IFileItemType } from '@/types/file';
 import { produce } from 'immer';
 import { cloneDeep } from 'lodash';
 import { memo } from 'react';
@@ -193,16 +193,24 @@ function PurePanelReference(props: PanelReferenceProps) {
           'pt-4': true,
         })}
       >
-        <div className="flex flex-col gap-8">
-          {fileList.map((itemFile, indexFile) => (
-            <ItemFile
-              key={`reference-item-${indexFile}`}
-              mode="Reference"
-              file={itemFile}
-              isFold={isFold}
-            />
-          ))}
-        </div>
+        {fileList.length > 0 ? (
+          <div className="flex flex-col gap-8">
+            {fileList.map((itemFile, indexFile) => (
+              <ItemFile
+                key={`reference-item-${indexFile}`}
+                mode="Reference"
+                file={itemFile}
+                isFold={isFold}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="w-full h-full flex flex-col justify-center items-center">
+            <Spin tip="Loading" size="small">
+              <div className="w-20 h-20"></div>
+            </Spin>
+          </div>
+        )}
       </div>
     </PanelContainer>
   );

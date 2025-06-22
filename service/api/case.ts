@@ -15,6 +15,7 @@ import { IMarkDocumentValid } from '@/types/document';
 import { IFilesPDFHighlightParamsType } from '@/types/file';
 import ApiRequest from '../axios';
 import {
+  mockCaseCreate,
   mockCaseDetail,
   mockCaseList,
   mockCaseStream,
@@ -25,11 +26,12 @@ import {
 } from '../mock/case';
 
 const IS_MOCK_LIST: string[] = [
+  // 'createCase',
   // 'getWorkflowDefinitions',
   // 'queryCaseList',
   // 'queryCaseDetail',
   // 'getWorkflowList',
-  'caseStream',
+  // 'caseStream',
   // 'uploadDocument',
 ];
 
@@ -65,8 +67,16 @@ export const DocumentsApi = {
 const baseUrl = `${process.env.NEXT_PUBLIC_API_URL}/api`;
 const baseUrlAi = `${process.env.NEXT_PUBLIC_API_URL}/api/ai`;
 
-export const createCase = async (params: ICreateCaseParamsType) => {
+export const createCase = async (
+  params: ICreateCaseParamsType
+): Promise<ICaseItemType> => {
   const { clientName, visaType } = params;
+
+  if (IS_MOCK_LIST.includes('createCase')) {
+    return new Promise(resolve => {
+      resolve(mockCaseCreate as ICaseItemType);
+    });
+  }
 
   return ApiRequest.post(`${baseUrl}${CaseApi.case}`, {
     clientName,

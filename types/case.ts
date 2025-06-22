@@ -30,7 +30,7 @@ export interface ICaseItemType {
   clientId: string | null;
   clientName: string | null;
   createdAt: string;
-  description: string;
+  description: string | null;
   documentChecklist: ICaseDocumentChecklistType;
   documents?: IOcrFileType[];
   documentsCount: number;
@@ -43,7 +43,7 @@ export interface ICaseItemType {
   startDate: string | null;
   status: string;
   title: string;
-  travelDate: null;
+  travelDate: string | null;
   updatedAt: string;
   visaType: string | null;
   caseStatusForFront?: {

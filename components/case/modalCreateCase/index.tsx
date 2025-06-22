@@ -11,7 +11,7 @@ import UtilsManager from '@/customManager/UtilsManager';
 import { createCase, uploadDocument } from '@/service/api/case';
 import { useUserStore } from '@/store/userStore';
 import { FileStatus, IFileItemType } from '@/types/file';
-import { Button, Form, Input, Modal, Select } from 'antd';
+import { Button, Form, Input, message as messageAntd, Modal, Select } from 'antd';
 import { produce } from 'immer';
 import { ChevronDown } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -63,14 +63,24 @@ function PureModalCreateCase(props: ModalCreateCaseProps) {
     const { clientName, visaType, document } = values || {};
 
     setLoadingSubmit(true);
-    const res = await createCase({
+    const resCreateCase = await createCase({
       clientName: clientName.trim(),
       visaType,
     });
-    setLoadingSubmit(false);
 
-    const caseId = '44c6cd75-b7c4-4e27-b643-ab14c15ee3a0';
-    console.log('handleFormFinish', res, document);
+    setTimeout(() => {
+      setLoadingSubmit(false);
+    }, 500);
+
+    if (!resCreateCase?.id) {
+      messageAntd.open({
+        type: 'error',
+        content: 'Create case failed.',
+      });
+      return;
+    }
+
+    // console.log('handleFormFinish', resCreateCase, document);
 
     const newFiles = document.map((file: File) => ({
       localId: uuid(),
@@ -78,7 +88,7 @@ function PureModalCreateCase(props: ModalCreateCaseProps) {
       localFile: file,
     }));
     const resUploadDocument = uploadDocument({
-      caseId,
+      caseId: resCreateCase.id,
       files: newFiles.map((file: IFileItemType) => file.localFile!),
     });
 
@@ -86,7 +96,7 @@ function PureModalCreateCase(props: ModalCreateCaseProps) {
 
     router.push(
       UtilsManager.router2url('/case-detail', {
-        caseId,
+        caseId: resCreateCase.id,
       })
     );
   };
