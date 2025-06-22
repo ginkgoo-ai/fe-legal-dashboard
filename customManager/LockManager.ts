@@ -13,6 +13,7 @@ class LockManager {
 
   async acquireLock(lockId: string) {
     while (this.lockMap.get(lockId)) {
+      console.log('LockManager acquireLock', lockId);
       await new Promise(resolve => setTimeout(resolve, 100));
     }
     this.lockMap.set(lockId, true);

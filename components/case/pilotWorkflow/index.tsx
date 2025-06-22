@@ -1,27 +1,30 @@
 'use client';
 
 import { PilotStepBody } from '@/components/case/pilotStepBody';
-import { IconCompleted } from '@/components/ui/icon';
+import { IconCompleted, IconIncompleted } from '@/components/ui/icon';
+import UtilsManager from '@/customManager/UtilsManager';
 import { cn } from '@/lib/utils';
+import { postFilesPDFHighlight } from '@/service/api/case';
 import { ICaseItemType } from '@/types/case';
 import { IWorkflowType } from '@/types/casePilot';
-import { Button } from 'antd';
+import { Button, message as messageAntd } from 'antd';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import { ChevronRight, Download } from 'lucide-react';
-import { memo, useMemo, useState } from 'react';
+import { memo, useEffect, useMemo, useState } from 'react';
 import './index.css';
 
 interface PilotWorkflowProps {
-  caseInfo: ICaseItemType;
+  caseInfo: ICaseItemType | null;
   workflowInfo: IWorkflowType;
+  indexWorkflow: number;
   isCurrentWorkflow: boolean;
 }
 
 dayjs.extend(utc);
 
 function PurePilotWorkflow(props: PilotWorkflowProps) {
-  const { caseInfo, workflowInfo, isCurrentWorkflow } = props;
+  const { caseInfo, workflowInfo, indexWorkflow, isCurrentWorkflow } = props;
 
   const [isFold, setFold] = useState<boolean>(true);
   const [isLoadingDownload, setLoadingDownload] = useState<boolean>(false);
@@ -30,7 +33,26 @@ function PurePilotWorkflow(props: PilotWorkflowProps) {
     return dayjs.utc(workflowInfo.updated_at).local().format('MMM DD, YYYY HH: mm');
   }, [workflowInfo]);
 
+  useEffect(() => {
+    if (isCurrentWorkflow) {
+      setFold(false);
+      window.document
+        .getElementById(`workflow-item-${indexWorkflow}`)
+        ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [isCurrentWorkflow]);
+
   const handleHeaderClick = () => {
+    if (isFold) {
+      // Query Workflow Detail
+      window.postMessage(
+        {
+          type: 'ginkgoo-page-background-workflow-detail-query',
+          workflowId: workflowInfo.workflow_instance_id,
+        },
+        window.location.origin
+      );
+    }
     setFold(prev => {
       return !prev;
     });
@@ -39,18 +61,40 @@ function PurePilotWorkflow(props: PilotWorkflowProps) {
   const handleBtnPDFDownloadClick = async () => {
     setLoadingDownload(true);
 
-    // Step1: Query Workflow Detail
+    // Step1: Query workflow Detail
 
-    // Step2: Download PDF
+    // Step2: Get PDF blob
+    const resFilesPDFHighlight = await postFilesPDFHighlight({
+      fileId: workflowInfo.progress_file_id || '',
+      highlightData: workflowInfo.dummy_data_usage || [],
+    });
+    // Step3: Download PDF file
+    console.log('handleBtnDownloadPdfClick', resFilesPDFHighlight);
+    if (resFilesPDFHighlight) {
+      UtilsManager.downloadBlob({
+        blobPart: resFilesPDFHighlight,
+        fileName: `${caseInfo?.clientName || ''}-${caseInfo?.visaType || ''}-${dayjs.utc(workflowInfo.updated_at).local().format('YYYYMMDDHHmmss')}.pdf`,
+      });
+    } else {
+      messageAntd.open({
+        content: 'Failed to download PDF file. Please try again later.',
+        type: 'error',
+      });
+    }
 
-    setLoadingDownload(false);
+    setTimeout(() => {
+      setLoadingDownload(false);
+    }, 200);
   };
 
   return (
-    <div className="relative w-full flex justify-center items-center overflow-hidden rounded-lg flex-[0_0_auto]">
+    <div
+      id={`workflow-item-${indexWorkflow}`}
+      className="relative w-full flex justify-center items-center overflow-hidden rounded-lg flex-[0_0_auto]"
+    >
       <div
         className={cn(
-          'workflow-wrap absolute left-[50%] top-[50%] min-h-full w-[200%] overflow-hidden rounded-lg pb-[100%]',
+          'workflow-wrap absolute left-[50%] top-[50%] min-h-full w-[300%] overflow-hidden rounded-lg pb-[300%]',
           {
             'animate-spin-workflow': isCurrentWorkflow,
           }
@@ -66,7 +110,7 @@ function PurePilotWorkflow(props: PilotWorkflowProps) {
               {workflowInfo.status === 'COMPLETED_SUCCESS' ? (
                 <IconCompleted size={40} />
               ) : (
-                <IconCompleted size={40} />
+                <IconIncompleted size={40} />
               )}
             </div>
             <div className="flex flex-col w-0 flex-1">
@@ -87,11 +131,18 @@ function PurePilotWorkflow(props: PilotWorkflowProps) {
             </div>
           </div>
 
-          {!isFold ? <PilotStepBody workflowInfo={workflowInfo} /> : null}
+          {!isFold ? (
+            <PilotStepBody
+              workflowInfo={workflowInfo}
+              isCurrentWorkflow={isCurrentWorkflow}
+            />
+          ) : null}
 
           <Button
+            id={`workflow-item-btn-download-${indexWorkflow}`}
             type="primary"
-            className="!h-9 flex-1"
+            className=""
+            disabled={!workflowInfo.progress_file_id}
             loading={isLoadingDownload}
             onClick={handleBtnPDFDownloadClick}
           >

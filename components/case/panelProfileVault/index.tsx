@@ -9,7 +9,7 @@ import { useExtensionsStore } from '@/store/extensionsStore';
 import { ICaseItemType } from '@/types/case';
 import { Button } from 'antd';
 import Image from 'next/image';
-import { memo, useRef } from 'react';
+import { memo, useEffect, useRef, useState } from 'react';
 
 interface PanelProfileVaultProps {
   caseInfo: ICaseItemType | null;
@@ -51,7 +51,15 @@ function PurePanelProfileVault(props: PanelProfileVaultProps) {
     },
   ]);
 
+  const [isLoadingExtensionStop, setLoadingExtensionStop] = useState<boolean>(false);
+
   const { extensionsInfo } = useExtensionsStore();
+
+  useEffect(() => {
+    if (!currentWorkflowId) {
+      setLoadingExtensionStop(false);
+    }
+  }, []);
 
   const handleBtnDraftEmailClick = () => {
     console.log('handleBtnDraftEmailClick');
@@ -67,6 +75,7 @@ function PurePanelProfileVault(props: PanelProfileVaultProps) {
   };
 
   const handleBtnExtensionStopClick = () => {
+    setLoadingExtensionStop(true);
     window.postMessage({
       type: 'ginkgoo-page-all-case-stop',
       workflowId: currentWorkflowId,
@@ -91,6 +100,7 @@ function PurePanelProfileVault(props: PanelProfileVaultProps) {
               <Button
                 type="primary"
                 className="h-9 flex-1"
+                loading={isLoadingExtensionStop}
                 onClick={handleBtnExtensionStopClick}
               >
                 <IconExtensionStop />

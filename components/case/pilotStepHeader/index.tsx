@@ -37,7 +37,7 @@ function PurePilotStepHeader(props: PilotStepHeaderProps) {
     });
     console.log('handleBtnDownloadPdfClick', resFilesPDFHighlight);
     if (resFilesPDFHighlight) {
-      UtilsManager.saveBlob({
+      UtilsManager.downloadBlob({
         blobPart: resFilesPDFHighlight,
       });
     }

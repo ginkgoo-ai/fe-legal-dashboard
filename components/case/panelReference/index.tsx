@@ -14,6 +14,7 @@ import { useEventManager } from '@/hooks/useEventManager';
 import { useStateCallback } from '@/hooks/useStateCallback';
 import { FileStatus, ICaseDocumentInitResultType, IFileItemType } from '@/types/file';
 import { produce } from 'immer';
+import { cloneDeep } from 'lodash';
 import { memo } from 'react';
 import { toast } from 'sonner';
 import { v4 as uuid } from 'uuid';
@@ -61,21 +62,23 @@ function PurePanelReference(props: PanelReferenceProps) {
 
           setFileList(
             prev =>
-              produce(prev, draft => {
-                const indexFile = draft.findIndex(file => {
-                  return file.documentFile?.documentId === documentId;
-                });
-                if (indexFile >= 0) {
-                  draft[indexFile].status =
-                    status === 'COMPLETED' ? FileStatus.DONE : FileStatus.ERROR;
-                } else {
-                  draft.push({
-                    localId: uuid(),
-                    status: status === 'COMPLETED' ? FileStatus.DONE : FileStatus.ERROR,
-                    documentFile: dataMsg,
+              cloneDeep(
+                produce(prev, draft => {
+                  const indexFile = draft.findIndex(file => {
+                    return file.documentFile?.documentId === documentId;
                   });
-                }
-              }),
+                  if (indexFile >= 0) {
+                    draft[indexFile].status =
+                      status === 'COMPLETED' ? FileStatus.DONE : FileStatus.ERROR;
+                  } else {
+                    draft.push({
+                      localId: uuid(),
+                      status: status === 'COMPLETED' ? FileStatus.DONE : FileStatus.ERROR,
+                      documentFile: dataMsg,
+                    });
+                  }
+                })
+              ),
             () => {
               LockManager.releaseLock(lockId);
             }

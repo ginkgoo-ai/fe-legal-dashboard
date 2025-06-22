@@ -1,61 +1,61 @@
 'use client';
 
 import { PilotStepBodyDeclaration } from '@/components/case/pilotStepBodyDeclaration';
-import { PilotStepBodyNormal } from '@/components/case/pilotStepBodyNormal';
-import {
-  IconLoading,
-  IconStepDeclaration,
-  IconStepDot,
-  IconStepDown,
-} from '@/components/ui/icon';
+import { IconLoading, IconStepDeclaration, IconStepDot } from '@/components/ui/icon';
 import { cn } from '@/lib/utils';
 import { IActionItemType } from '@/types/case';
 import { IWorkflowStepType, IWorkflowType } from '@/types/casePilot';
 import type { CollapseProps } from 'antd';
-import { Collapse } from 'antd';
-import dayjs from 'dayjs';
+import { Collapse, Spin } from 'antd';
 import { Check } from 'lucide-react';
-import { memo, useEffect, useState } from 'react';
+import { memo, useEffect, useMemo, useState } from 'react';
 import './index.css';
 
 interface PilotStepBodyProps {
   workflowInfo: IWorkflowType;
-  // pilotInfo: IPilotType | null;
-  // stepListItems: IWorkflowStepType[];
+  isCurrentWorkflow: boolean;
   onCollapseChange?: (key: string) => void;
   onContinueFilling?: (params: { actionlistPre: IActionItemType[] }) => void;
 }
 
 function PurePilotStepBody(props: PilotStepBodyProps) {
-  const { workflowInfo, onCollapseChange, onContinueFilling } = props;
-  const { pilotInfo = null } = workflowInfo || {};
+  const { workflowInfo, isCurrentWorkflow, onCollapseChange, onContinueFilling } = props;
 
-  const [refreshRenderTS, setRefreshRenderTS] = useState<number>(0);
   const [stepListActiveKeyBody, setStepListActiveKeyBody] = useState<string[]>([]);
   const [stepListItemsBody, setStepListItemsBody] = useState<CollapseProps['items']>([]);
 
-  const handleCollapseChange = (key: string[]) => {
-    // 找出 key 中比 stepListActiveKeyBody 多的元素
-    const newKeys = key.filter(k => !stepListActiveKeyBody.includes(k));
-    if (newKeys.length > 0) {
-      // 展开操作：如果有新增的 key, 且是可展开的项，则调用 onCollapseChange，并展开
-      const newKey = newKeys[0];
-      const newStep = pilotInfo?.steps?.find(item => {
-        return (
-          item.step_key === newKey &&
-          ['ACTIVE', 'COMPLETED_SUCCESS'].includes(item.status)
-        );
-      });
-      if (newStep) {
-        onCollapseChange?.(newKey);
-        setStepListActiveKeyBody(key);
-      }
-    } else {
-      // 收起操作
-      setStepListActiveKeyBody(key);
+  const workflowSteps = useMemo(() => {
+    let result: IWorkflowStepType[] | undefined = void 0;
+    if (Number(workflowInfo?.pilotInfo?.steps?.length) > 0) {
+      result = workflowInfo?.pilotInfo?.steps;
+    } else if (Number(workflowInfo.steps?.length) > 0) {
+      result = workflowInfo.steps;
     }
 
-    setRefreshRenderTS(+dayjs());
+    return result;
+  }, [workflowInfo]);
+
+  const handleCollapseChange = (key: string[]) => {
+    // 找出 key 中比 stepListActiveKeyBody 多的元素
+    // const newKeys = key.filter(k => !stepListActiveKeyBody.includes(k));
+    // if (newKeys.length > 0) {
+    //   // 展开操作：如果有新增的 key, 且是可展开的项，则调用 onCollapseChange，并展开
+    //   const newKey = newKeys[0];
+    //   const newStep = workflowInfo?.steps?.find(item => {
+    //     return (
+    //       item.step_key === newKey &&
+    //       ['ACTIVE', 'COMPLETED_SUCCESS'].includes(item.status)
+    //     );
+    //   });
+    //   if (newStep) {
+    //     onCollapseChange?.(newKey);
+    //     setStepListActiveKeyBody(key);
+    //   }
+    // } else {
+    //   // 收起操作
+    //   setStepListActiveKeyBody(key);
+    // }
+    // setRefreshRenderTS(+dayjs());
   };
 
   const handleContinueFilling = (params: { actionlistPre: IActionItemType[] }) => {
@@ -64,8 +64,10 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
 
   // update collapse
   useEffect(() => {
+    console.log('PilotStepBodyProps', workflowSteps);
+
     // console.log("PurePilotStepBody", stepListItems);
-    if (!pilotInfo?.steps) {
+    if (!workflowSteps) {
       return;
     }
 
@@ -77,7 +79,6 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
           className={cn('flex w-full flex-row items-center justify-between gap-3', {
             'border-bottom': !isSelect,
           })}
-          data-ts={refreshRenderTS}
         >
           <div className="flex w-0 flex-1 flex-row gap-3.5">
             <div className="flex h-6 w-4 flex-[0_0_auto] flex-row items-center justify-center">
@@ -87,11 +88,11 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
                 <>
                   {itemStep.status === 'COMPLETED_SUCCESS' ? (
                     <Check size={16} color="#00ff00" />
-                  ) : null}
-                  {itemStep.status === 'ACTIVE' ? (
+                  ) : isCurrentWorkflow && itemStep.status === 'ACTIVE' ? (
                     <IconLoading size={16} className="animate-spin" />
-                  ) : null}
-                  {itemStep.status === 'PENDING' ? <IconStepDot size={16} /> : null}
+                  ) : (
+                    <IconStepDot size={16} />
+                  )}
                 </>
               )}
             </div>
@@ -104,7 +105,7 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
               ) : null}
             </div>
           </div>
-          <div className="flex-[0_0_auto]">
+          {/* <div className="flex-[0_0_auto]">
             <IconStepDown
               size={10}
               color={isSelect ? '#0061FD' : '#98A1B7'}
@@ -112,33 +113,38 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
                 'rotate-180': isSelect,
               })}
             />
-          </div>
+          </div> */}
         </div>
       );
     };
 
     const renderStepChildren = (itemStep: IWorkflowStepType, indexStep: number) => {
-      if (itemStep.step_key !== 'Declaration' && !itemStep?.data) {
-        return null;
+      if (itemStep.step_key === 'Declaration') {
+        return <PilotStepBodyDeclaration pilotInfo={workflowInfo.pilotInfo || null} />;
       }
+      return null;
 
-      return (
-        <div className="border-bottom">
-          {itemStep.step_key === 'Declaration' ? (
-            <PilotStepBodyDeclaration pilotInfo={pilotInfo} />
-          ) : (
-            <PilotStepBodyNormal
-              itemStep={itemStep}
-              indexStep={indexStep}
-              onContinueFilling={handleContinueFilling}
-            />
-          )}
-        </div>
-      );
+      // if (itemStep.step_key !== 'Declaration' && !itemStep?.data) {
+      //   return null;
+      // }
+
+      // return (
+      //   <div className="border-bottom">
+      //     {itemStep.step_key === 'Declaration' ? (
+      //       <PilotStepBodyDeclaration pilotInfo={workflowInfo.pilotInfo || null} />
+      //     ) : (
+      //       <PilotStepBodyNormal
+      //         itemStep={itemStep}
+      //         indexStep={indexStep}
+      //         onContinueFilling={handleContinueFilling}
+      //       />
+      //     )}
+      //   </div>
+      // );
     };
 
     setStepListItemsBody(
-      pilotInfo?.steps.map((item, index) => {
+      workflowSteps.map((item, index) => {
         return {
           key: item.step_key,
           label: renderStepLabel(item, index),
@@ -147,7 +153,7 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
         };
       })
     );
-  }, [refreshRenderTS, pilotInfo?.steps, onContinueFilling]);
+  }, [isCurrentWorkflow, workflowSteps?.length, onContinueFilling]);
 
   return stepListItemsBody && stepListItemsBody.length > 0 ? (
     <div className="relative box-border flex w-full items-center justify-start rounded-lg border border-[#D8DFF5] p-2">
@@ -159,7 +165,11 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
         onChange={handleCollapseChange}
       />
     </div>
-  ) : null;
+  ) : (
+    <Spin tip="Loading" size="small">
+      <div className="w-full h-20"></div>
+    </Spin>
+  );
 }
 
 export const PilotStepBody = memo(PurePilotStepBody);

@@ -877,6 +877,34 @@ export const IconCompleted = ({ size = 16 }: IconProps) => {
   );
 };
 
+export const IconIncompleted = ({ size = 16 }: IconProps) => {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 32 32"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M16 0C24.8366 0 32 7.16344 32 16C32 24.8366 24.8366 32 16 32C7.16344 32 0 24.8366 0 16C0 7.16344 7.16344 0 16 0Z"
+        fill="#E0F2FE"
+      />
+      <g clipPath="url(#clip0_1060_7126)">
+        <path
+          d="M12 8C10.8969 8 10 8.89688 10 10V22C10 23.1031 10.8969 24 12 24H20C21.1031 24 22 23.1031 22 22V13H18C17.4469 13 17 12.5531 17 12V8H12ZM18 8V12H22L18 8ZM13.5 16H18.5C18.775 16 19 16.225 19 16.5C19 16.775 18.775 17 18.5 17H13.5C13.225 17 13 16.775 13 16.5C13 16.225 13.225 16 13.5 16ZM13.5 18H18.5C18.775 18 19 18.225 19 18.5C19 18.775 18.775 19 18.5 19H13.5C13.225 19 13 18.775 13 18.5C13 18.225 13.225 18 13.5 18ZM13.5 20H18.5C18.775 20 19 20.225 19 20.5C19 20.775 18.775 21 18.5 21H13.5C13.225 21 13 20.775 13 20.5C13 20.225 13.225 20 13.5 20Z"
+          fill="#3699FF"
+        />
+      </g>
+      <defs>
+        <clipPath id="clip0_1060_7126">
+          <path d="M10 8H22V24H10V8Z" fill="white" />
+        </clipPath>
+      </defs>
+    </svg>
+  );
+};
+
 export const IconPause = ({ size = 16 }: IconProps) => {
   return (
     <svg

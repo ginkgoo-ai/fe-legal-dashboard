@@ -116,7 +116,7 @@ class UtilsManager {
     window.URL.revokeObjectURL(url);
   };
 
-  saveBlob = (params: { blobPart: BlobPart; fileName?: string }) => {
+  downloadBlob = (params: { blobPart: BlobPart; fileName?: string }) => {
     const { blobPart, fileName } = params;
     const blob = new Blob([blobPart]);
 

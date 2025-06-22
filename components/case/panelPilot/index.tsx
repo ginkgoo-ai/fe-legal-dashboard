@@ -2,15 +2,13 @@
 
 import { PanelContainer } from '@/components/case/panelContainer';
 import { PilotWorkflow } from '@/components/case/pilotWorkflow';
-import { Button } from '@/components/ui/button';
-import { IconFoldRight } from '@/components/ui/icon';
 import { cn } from '@/lib/utils';
 import { ICaseItemType } from '@/types/case';
 import { IWorkflowType } from '@/types/casePilot';
 import { memo, useMemo } from 'react';
 
 interface PanelPanelPilotProps {
-  caseInfo: ICaseItemType;
+  caseInfo: ICaseItemType | null;
   currentWorkflowId: string;
   pilotWorkflowList: IWorkflowType[];
   isFold: boolean;
@@ -22,9 +20,11 @@ function PurePanelPilot(props: PanelPanelPilotProps) {
     props;
 
   const indexCurrentWorkflow = useMemo(() => {
-    return pilotWorkflowList.findIndex(item => {
+    const result = pilotWorkflowList.findIndex(item => {
       return item.workflow_instance_id === currentWorkflowId;
     });
+    // console.log('PurePanelPilot', currentWorkflowId, pilotWorkflowList, result);
+    return result;
   }, [currentWorkflowId, pilotWorkflowList]);
 
   // const handleStepCollapseChange = async (stepKey: string) => {
@@ -54,14 +54,14 @@ function PurePanelPilot(props: PanelPanelPilotProps) {
   return (
     <PanelContainer
       title="Pilot"
-      showTitle={!isFold}
-      renderTitleExtend={() => {
-        return (
-          <Button variant="ghost" onClick={onBtnPanelRightClick}>
-            <IconFoldRight size={24} />
-          </Button>
-        );
-      }}
+      showTitle={true}
+      // renderTitleExtend={() => {
+      //   return (
+      //     <Button variant="ghost" onClick={onBtnPanelRightClick}>
+      //       <IconFoldRight size={24} />
+      //     </Button>
+      //   );
+      // }}
     >
       <div
         className={cn('flex flex-col overflow-y-auto p-4 box-border flex-1 h-0 gap-3')}
@@ -72,6 +72,7 @@ function PurePanelPilot(props: PanelPanelPilotProps) {
               key={`workflow-item-${indexWorkflow}`}
               caseInfo={caseInfo}
               workflowInfo={itemWorkflow}
+              indexWorkflow={indexWorkflow}
               isCurrentWorkflow={indexCurrentWorkflow === indexWorkflow}
             />
           );
