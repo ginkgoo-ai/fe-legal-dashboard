@@ -2,14 +2,17 @@
 
 import { PanelContainer } from '@/components/case/panelContainer';
 import { PanelProfileVaultOverview } from '@/components/case/panelProfileVaultOverview';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { IconExtensionStart, IconExtensionStop } from '@/components/ui/icon';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { cn } from '@/lib/utils';
+import { camelToCapitalizedWords, cn } from '@/lib/utils';
 import { useExtensionsStore } from '@/store/extensionsStore';
 import { ICaseItemType } from '@/types/case';
-import { Button } from 'antd';
+import { Loader2Icon } from 'lucide-react';
 import Image from 'next/image';
-import { memo, useEffect, useRef, useState } from 'react';
+import { memo, useEffect, useState } from 'react';
+import { PanelProfileVaultDynamicTab } from '../panelProfileVaultDynamicTab';
+import { PanelProfileVaultRtxDialog } from '../panelProfileVaultRtxDialog';
 
 interface PanelProfileVaultProps {
   caseInfo: ICaseItemType | null;
@@ -28,31 +31,8 @@ function PurePanelProfileVault(props: PanelProfileVaultProps) {
     onShowNewWorkflow,
   } = props;
 
-  const tabList = useRef([
-    {
-      value: 'overview',
-      label: 'Overview',
-    },
-    {
-      value: 'applicantProfile',
-      label: 'Applicant Profile',
-    },
-    {
-      value: 'sponsorDetails',
-      label: 'Sponsor Details',
-    },
-    {
-      value: 'lawyer',
-      label: 'Lawyer',
-    },
-    {
-      value: 'caseSettings',
-      label: 'Case Settings',
-    },
-  ]);
-
   const [isLoadingExtensionStop, setLoadingExtensionStop] = useState<boolean>(false);
-
+  const [tabList, setTabList] = useState<any[]>([]);
   const { extensionsInfo } = useExtensionsStore();
 
   useEffect(() => {
@@ -61,9 +41,19 @@ function PurePanelProfileVault(props: PanelProfileVaultProps) {
     }
   }, [currentWorkflowId]);
 
-  const handleBtnDraftEmailClick = () => {
-    console.log('handleBtnDraftEmailClick');
-  };
+  useEffect(() => {
+    if (caseInfo?.profileData) {
+      const list = getTabList(caseInfo.profileData);
+      console.log(list);
+      setTabList([
+        {
+          label: 'Overview',
+          value: 'overview',
+        },
+        ...list,
+      ]);
+    }
+  }, [caseInfo]);
 
   const handleBtnExtensionStartClick = () => {
     if (!extensionsInfo?.version) {
@@ -82,6 +72,16 @@ function PurePanelProfileVault(props: PanelProfileVaultProps) {
     });
   };
 
+  const getTabList = (profileData: ICaseItemType['profileData']) => {
+    if (!profileData) return [];
+    return Object.keys(profileData).map(key => {
+      return {
+        value: key,
+        label: camelToCapitalizedWords(key),
+      };
+    });
+  };
+
   return (
     <PanelContainer
       title="Profile vault"
@@ -89,26 +89,35 @@ function PurePanelProfileVault(props: PanelProfileVaultProps) {
       renderTitleExtend={() => {
         return (
           <div className="mt-2 flex flex-row items-center justify-between gap-2.5">
-            <Button
-              type="default"
-              className="h-9 flex-1"
-              onClick={handleBtnDraftEmailClick}
-            >
-              <span className="font-bold">Draft email</span>
-            </Button>
+            <PanelProfileVaultRtxDialog>
+              <div
+                className={cn(
+                  buttonVariants({ variant: 'secondary', size: 'default' }),
+                  'h-9 flex-1'
+                )}
+              >
+                <span className="font-bold">Draft email</span>
+              </div>
+            </PanelProfileVaultRtxDialog>
             {!!currentWorkflowId ? (
               <Button
-                type="primary"
+                variant="default"
+                color="primary"
                 className="h-9 flex-1"
-                loading={isLoadingExtensionStop}
+                disabled={isLoadingExtensionStop}
                 onClick={handleBtnExtensionStopClick}
               >
-                <IconExtensionStop />
+                {isLoadingExtensionStop ? (
+                  <Loader2Icon className="animate-spin" />
+                ) : (
+                  <IconExtensionStop />
+                )}
                 <span className="font-bold">Stop auto-fill</span>
               </Button>
             ) : (
               <Button
-                type="primary"
+                variant="default"
+                color="primary"
                 className="h-9 flex-1"
                 onClick={handleBtnExtensionStartClick}
               >
@@ -127,13 +136,13 @@ function PurePanelProfileVault(props: PanelProfileVaultProps) {
           )}
         >
           <Tabs defaultValue="overview">
-            <TabsList className="rounded-full gap-x-2 bg-[#F1F1F4] mb-2">
-              {tabList.current.map(({ label, value }) => (
+            <TabsList className="rounded-full gap-x-2 bg-[#F1F1F4] mb-2 max-w-full overflow-x-auto justify-start snap-proximity snap-x">
+              {tabList.map(({ label, value }) => (
                 <TabsTrigger
                   value={value}
                   key={value}
                   className={cn(
-                    'rounded-full px-4 text-[#6B7280] data-[state="active"]:!text-white cursor-pointer'
+                    'rounded-full px-4 text-[#6B7280] data-[state="active"]:!text-white cursor-pointer snap-start'
                   )}
                 >
                   {label}
@@ -143,10 +152,16 @@ function PurePanelProfileVault(props: PanelProfileVaultProps) {
             <TabsContent value="overview">
               <PanelProfileVaultOverview {...caseInfo} />
             </TabsContent>
-            <TabsContent value="applicantProfile">UNDER CONSTRUCTION</TabsContent>
-            <TabsContent value="sponsorDetails">UNDER CONSTRUCTION</TabsContent>
-            <TabsContent value="lawyer">UNDER CONSTRUCTION</TabsContent>
-            <TabsContent value="caseSettings">UNDER CONSTRUCTION</TabsContent>
+            {tabList
+              .filter(tab => tab.value !== 'overview')
+              .map(({ value, label }) => (
+                <TabsContent value={value} key={value}>
+                  <PanelProfileVaultDynamicTab
+                    data={caseInfo?.profileData?.[value] as Record<string, unknown>}
+                    label={label}
+                  />
+                </TabsContent>
+              ))}
           </Tabs>
         </div>
       ) : (
@@ -154,7 +169,7 @@ function PurePanelProfileVault(props: PanelProfileVaultProps) {
           <Image
             src="/imgProfileVaultEmpty.png"
             width={220}
-            height={240}
+            height={238}
             alt="default"
             className="mb-4"
           ></Image>

@@ -52,6 +52,9 @@ export interface ICaseItemType {
     text: string;
   };
   timestamp?: number;
+  profileData?: {
+    [key: string]: unknown;
+  };
   [key: string]: unknown;
 }
 
@@ -190,7 +193,7 @@ export interface ICaseProfileChecklistType {
   completionPercentage: number;
   missingFieldsCount: number;
   profileId: string;
-  missingFields: ICaseProfileMissingField[];
+  missingFields: Record<string, ICaseProfileMissingField[]>;
   availableDummyData: Record<string, unknown>;
 }
 
