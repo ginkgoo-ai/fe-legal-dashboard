@@ -1322,7 +1322,7 @@ export const IconCheckGreen = ({ size = 16 }: IconProps) => {
   );
 };
 
-export const IconIssueCheck = ({ size = 16 }: IconProps) => {
+export const IconIssueCheck = ({ size = 16, className }: IconProps) => {
   return (
     <svg
       width={size}
@@ -1330,6 +1330,7 @@ export const IconIssueCheck = ({ size = 16 }: IconProps) => {
       viewBox="0 0 16 16"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
+      className={cn(className)}
     >
       <path
         d="M9.50017 1.83333C9.9604 1.3731 10.7066 1.37309 11.1668 1.83333C11.6271 2.29357 11.6271 3.03976 11.1668 3.49999L4.50019 10.1666C4.03995 10.6269 3.29376 10.6269 2.83353 10.1666C2.37329 9.7064 2.37329 8.96021 2.83353 8.49997L9.50017 1.83333Z"

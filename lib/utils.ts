@@ -113,3 +113,9 @@ export const parseCaseInfo = (caseInfo: ICaseItemType): ICaseItemType => {
     timestamp: +dayjs(),
   };
 };
+
+export const camelToCapitalizedWords = (str: string) => {
+  return str
+    .replace(/([a-z])([A-Z])|([A-Z])([A-Z][a-z])/g, '$1$3 $2$4')
+    .replace(/\b\w/g, match => match.toUpperCase());
+};
