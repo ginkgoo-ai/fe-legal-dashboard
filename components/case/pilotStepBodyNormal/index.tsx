@@ -28,12 +28,13 @@ function PurePilotStepBodyNormal(props: PilotStepBodyNormalProps) {
 
     itemStep.data?.form_data?.forEach(item => {
       if (item.question.type === 'interrupt') {
-        formDataNormalInterruptTmp.push();
+        formDataNormalInterruptTmp.push(item);
       } else {
-        formDataNormalStepTmp.push();
+        formDataNormalStepTmp.push(item);
       }
     });
-    setFormDataNormalStep(formDataNormalStepTmp);
+
+    // setFormDataNormalStep(formDataNormalStepTmp);
     setFormDataNormalInterrupt(formDataNormalInterruptTmp);
   }, [itemStep]);
 

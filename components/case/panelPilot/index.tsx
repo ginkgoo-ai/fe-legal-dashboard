@@ -44,20 +44,6 @@ function PurePanelPilot(props: PanelPanelPilotProps) {
   //   window.postMessage(message, window.location.origin);
   // };
 
-  // const handleStepContinueFilling = (params: { actionlistPre: IActionItemType[] }) => {
-  //   const { actionlistPre } = params || {};
-
-  //   try {
-  //     window.postMessage({
-  //       type: 'ginkgoo-page-all-case-start',
-  //       pilotId: pilotInfo?.id,
-  //       actionlistPre,
-  //     });
-  //   } catch (error) {
-  //     console.error('[Ginkgoo] Sidepanel handleContinueFilling error', error);
-  //   }
-  // };
-
   return (
     <PanelContainer
       title="Pilot"

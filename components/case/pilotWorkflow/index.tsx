@@ -45,7 +45,7 @@ function PurePilotWorkflow(props: PilotWorkflowProps) {
       setFold(false);
       window.document
         .getElementById(`workflow-item-${indexWorkflow}`)
-        ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   }, [isCurrentWorkflow, indexWorkflow]);
 
@@ -103,7 +103,7 @@ function PurePilotWorkflow(props: PilotWorkflowProps) {
     >
       <div
         className={cn(
-          'workflow-wrap absolute left-[50%] top-[50%] min-h-full w-[300%] overflow-hidden rounded-lg pb-[300%]',
+          'workflow-wrap absolute left-[50%] top-[50%] min-w-full h-[800%] overflow-hidden rounded-lg pr-[800%]',
           {
             'animate-spin-workflow': isCurrentWorkflow,
           }
@@ -124,7 +124,8 @@ function PurePilotWorkflow(props: PilotWorkflowProps) {
             </div>
             <div className="flex flex-col w-0 flex-1">
               <span className="text-[#4E4E4E] text-sm truncate w-full">
-                {caseInfo?.clientName || ''} - {caseInfo?.visaType || ''}
+                {caseInfo?.clientName || ''} - {caseInfo?.visaType || ''} -{' '}
+                {workflowInfo.pilotInfo?.pilotStatus || ''}
               </span>
               <div className="text-[#98A1B7] text-sm truncate w-full">
                 {workflowUpdateTime}
