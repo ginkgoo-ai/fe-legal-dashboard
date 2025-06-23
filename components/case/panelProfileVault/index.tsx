@@ -88,7 +88,7 @@ function PurePanelProfileVault(props: PanelProfileVaultProps) {
       showTitle={!isFold}
       renderTitleExtend={() => {
         return (
-          <div className="mt-2 flex flex-row items-center justify-between gap-2.5">
+          <div className="flex flex-row items-center justify-between gap-2.5">
             <PanelProfileVaultRtxDialog>
               <div
                 className={cn(

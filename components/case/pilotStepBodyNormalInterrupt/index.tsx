@@ -128,6 +128,7 @@ function PurePilotStepBodyNormalInterrupt(props: PilotStepBodyNormalInterruptPro
                             value={itemAnswer.selector}
                           >
                             {itemAnswer.name}
+                            {/* {itemAnswer.value} */}
                           </Radio>
                         );
                       }

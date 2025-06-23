@@ -17705,7 +17705,7 @@ export const mockCaseDetail: ICaseItemType = {
     totalFields: 0,
     completedFields: 0,
     missingFieldsCount: 0,
-    missingFields: [],
+    missingFields: {},
     availableDummyData: {},
   },
   documentChecklist: {

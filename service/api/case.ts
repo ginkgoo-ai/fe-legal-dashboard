@@ -74,7 +74,7 @@ export const createCase = async (
 
   if (IS_MOCK_LIST.includes('createCase')) {
     return new Promise(resolve => {
-      resolve(mockCaseCreate as ICaseItemType);
+      resolve(mockCaseCreate as any);
     });
   }
 

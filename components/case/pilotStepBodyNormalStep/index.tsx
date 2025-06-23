@@ -46,7 +46,6 @@ function PurePilotStepBodyNormalStep(props: PilotStepBodyNormalStepProps) {
 
   return (
     <Steps
-      className="border-bottom"
       progressDot
       direction="vertical"
       current={0}

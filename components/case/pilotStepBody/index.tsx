@@ -7,19 +7,20 @@ import {
   IconStepDot,
 } from '@/components/ui/icon';
 import { cn } from '@/lib/utils';
+import { useUserStore } from '@/store/userStore';
 import { IActionItemType } from '@/types/case';
-import { IWorkflowStepType, IWorkflowType } from '@/types/casePilot';
+import { IWorkflowStepType, IWorkflowType, PilotStatusEnum } from '@/types/casePilot';
 import type { CollapseProps } from 'antd';
 import { Alert, Button, Collapse, Spin } from 'antd';
 import { Check } from 'lucide-react';
 import { memo, useEffect, useMemo, useState } from 'react';
+import { PilotStepBodyNormal } from '../pilotStepBodyNormal';
 import './index.css';
 
 interface PilotStepBodyProps {
   workflowInfo: IWorkflowType;
   isCurrentWorkflow: boolean;
   onCollapseChange?: (key: string) => void;
-  onContinueFilling?: (params: { actionlistPre: IActionItemType[] }) => void;
 }
 
 function PurePilotStepBody(props: PilotStepBodyProps) {
@@ -27,11 +28,13 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
     workflowInfo,
     isCurrentWorkflow,
     // onCollapseChange,
-    onContinueFilling,
   } = props;
 
-  // const [stepListActiveKeyBody, setStepListActiveKeyBody] = useState<string[]>([]);
+  const [refreshRenderTS, setRefreshRenderTS] = useState<number>(0);
+  const [stepListActiveKeyBody, setStepListActiveKeyBody] = useState<string>('');
   const [stepListItemsBody, setStepListItemsBody] = useState<CollapseProps['items']>([]);
+
+  const { userInfo } = useUserStore();
 
   const workflowSteps = useMemo(() => {
     let result: IWorkflowStepType[] | undefined = void 0;
@@ -44,32 +47,44 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
     return result;
   }, [workflowInfo]);
 
-  const handleCollapseChange = () => {
-    // 找出 key 中比 stepListActiveKeyBody 多的元素
-    // const newKeys = key.filter(k => !stepListActiveKeyBody.includes(k));
-    // if (newKeys.length > 0) {
-    //   // 展开操作：如果有新增的 key, 且是可展开的项，则调用 onCollapseChange，并展开
-    //   const newKey = newKeys[0];
-    //   const newStep = workflowInfo?.steps?.find(item => {
-    //     return (
-    //       item.step_key === newKey &&
-    //       ['ACTIVE', 'COMPLETED_SUCCESS'].includes(item.status)
-    //     );
-    //   });
-    //   if (newStep) {
-    //     onCollapseChange?.(newKey);
-    //     setStepListActiveKeyBody(key);
-    //   }
-    // } else {
-    //   // 收起操作
-    //   setStepListActiveKeyBody(key);
-    // }
-    // setRefreshRenderTS(+dayjs());
-  };
-
-  // const handleContinueFilling = (params: { actionlistPre: IActionItemType[] }) => {
-  //   onContinueFilling?.(params);
+  // const handleCollapseChange = () => {
+  //   // 找出 key 中比 stepListActiveKeyBody 多的元素
+  //   // const newKeys = key.filter(k => !stepListActiveKeyBody.includes(k));
+  //   // if (newKeys.length > 0) {
+  //   //   // 展开操作：如果有新增的 key, 且是可展开的项，则调用 onCollapseChange，并展开
+  //   //   const newKey = newKeys[0];
+  //   //   const newStep = workflowInfo?.steps?.find(item => {
+  //   //     return (
+  //   //       item.step_key === newKey &&
+  //   //       ['ACTIVE', 'COMPLETED_SUCCESS'].includes(item.status)
+  //   //     );
+  //   //   });
+  //   //   if (newStep) {
+  //   //     onCollapseChange?.(newKey);
+  //   //     setStepListActiveKeyBody(key);
+  //   //   }
+  //   // } else {
+  //   //   // 收起操作
+  //   //   setStepListActiveKeyBody(key);
+  //   // }
+  //   //
+  //   // setRefreshRenderTS(+dayjs());
+  //   // setStepListActiveKeyBody(key);
   // };
+
+  const handleContinueFilling = (params: { actionlistPre: IActionItemType[] }) => {
+    const { actionlistPre } = params || {};
+
+    try {
+      window.postMessage({
+        type: 'ginkgoo-page-all-case-start',
+        pilotId: workflowInfo?.pilotInfo?.id,
+        actionlistPre,
+      });
+    } catch (error) {
+      console.error('[Ginkgoo] Sidepanel handleContinueFilling error', error);
+    }
+  };
 
   const handleBtnProceedToFormClick = () => {
     if (!!workflowInfo.pilotInfo?.tabInfo?.id) {
@@ -100,10 +115,10 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
     }
 
     const renderStepLabel = (itemStep: IWorkflowStepType, indexStep: number) => {
-      // const isSelect = stepListActiveKeyBody.includes(itemStep.step_key);
+      const isSelect = stepListActiveKeyBody.includes(itemStep.step_key);
       return (
         <div
-          id={`step-item-${indexStep}`}
+          id={`step-item-${itemStep.step_key}`}
           className={cn('flex w-full flex-row items-center justify-between gap-3', {
             'border-bottom': indexStep < Number(workflowSteps?.length) - 1,
           })}
@@ -116,7 +131,8 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
                 <>
                   {itemStep.status === 'COMPLETED_SUCCESS' ? (
                     <Check size={16} color="#00ff00" />
-                  ) : isCurrentWorkflow && itemStep.status === 'ACTIVE' ? (
+                  ) : isCurrentWorkflow &&
+                    itemStep.step_key === workflowInfo.current_step_key ? (
                     <IconLoading size={16} className="animate-spin" />
                   ) : (
                     <IconStepDot size={16} />
@@ -146,30 +162,17 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
       );
     };
 
-    // const renderStepChildren = (itemStep: IWorkflowStepType, indexStep: number) => {
-    //   return null;
-    //   // if (itemStep.step_key === 'Declaration') {
-    //   //   return <PilotStepBodyDeclaration pilotInfo={workflowInfo.pilotInfo || null} />;
-    //   // }
-
-    //   // if (itemStep.step_key !== 'Declaration' && !itemStep?.data) {
-    //   //   return null;
-    //   // }
-
-    //   // return (
-    //   //   <div className="border-bottom">
-    //   //     {itemStep.step_key === 'Declaration' ? (
-    //   //       <PilotStepBodyDeclaration pilotInfo={workflowInfo.pilotInfo || null} />
-    //   //     ) : (
-    //   //       <PilotStepBodyNormal
-    //   //         itemStep={itemStep}
-    //   //         indexStep={indexStep}
-    //   //         onContinueFilling={handleContinueFilling}
-    //   //       />
-    //   //     )}
-    //   //   </div>
-    //   // );
-    // };
+    const renderStepChildren = (itemStep: IWorkflowStepType, indexStep: number) => {
+      return (
+        <div className="border-bottom">
+          <PilotStepBodyNormal
+            itemStep={itemStep}
+            indexStep={indexStep}
+            onContinueFilling={handleContinueFilling}
+          />
+        </div>
+      );
+    };
 
     setStepListItemsBody(
       workflowSteps.map((item, index) => {
@@ -177,20 +180,60 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
           key: item.step_key,
           label: renderStepLabel(item, index),
           showArrow: false,
-          children: null,
+          children: renderStepChildren(item, index),
         };
       })
     );
-  }, [isCurrentWorkflow, workflowSteps, onContinueFilling]);
+  }, [isCurrentWorkflow, refreshRenderTS, workflowSteps]);
+
+  useEffect(() => {
+    if (workflowInfo?.pilotInfo?.pilotStatus === PilotStatusEnum.HOLD) {
+      const currentStep = workflowSteps?.find(itemStep => {
+        return itemStep.step_key === workflowInfo?.current_step_key;
+      });
+
+      // console.log(
+      //   'workflowInfo?.pilotInfo?.pilotStatus 0',
+      //   workflowInfo?.current_step_key,
+      //   currentStep
+      // );
+      const isInterrupt = currentStep?.data?.form_data?.some(itemFormData => {
+        return itemFormData.question.type === 'interrupt';
+      });
+
+      console.log('workflowInfo?.pilotInfo?.pilotStatus 1', isInterrupt);
+
+      if (isInterrupt) {
+        setStepListActiveKeyBody(workflowInfo?.current_step_key);
+        // setStepListActiveKeyBody(prev => {
+        //   const currentKey = workflowInfo?.current_step_key;
+        //   if (!currentKey) {
+        //     return prev;
+        //   }
+        //   const newKeys = Array.from(new Set([...(prev || []), currentKey]));
+
+        //   console.log('workflowInfo?.pilotInfo?.pilotStatus 2', newKeys);
+        //   return newKeys;
+        // });
+      }
+
+      setTimeout(() => {
+        window.document
+          .getElementById(`step-item-${workflowInfo?.current_step_key}`)
+          ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 500);
+    }
+  }, [workflowInfo, workflowSteps]);
 
   return stepListItemsBody && stepListItemsBody.length > 0 ? (
     <div className="relative box-border flex flex-col w-full items-center justify-start rounded-lg border border-[#D8DFF5] p-2">
       <Collapse
+        data-ts={refreshRenderTS}
         className="w-full"
-        // activeKey={stepListActiveKeyBody}
+        activeKey={stepListActiveKeyBody}
         ghost
         items={stepListItemsBody}
-        onChange={handleCollapseChange}
+        // onChange={handleCollapseChange}
       />
       {workflowInfo.pilotInfo?.tabInfo?.id ? (
         <Alert
