@@ -8,6 +8,7 @@ import { IPilotType } from '@/types/casePilot';
 import { memo, useMemo } from 'react';
 
 interface PanelPanelPilotProps {
+  pageTabInfo: Record<string, unknown>;
   caseInfo: ICaseItemType | null;
   currentWorkflowId: string;
   pilotList: IPilotType[];
@@ -18,6 +19,7 @@ interface PanelPanelPilotProps {
 
 function PurePanelPilot(props: PanelPanelPilotProps) {
   const {
+    pageTabInfo,
     caseInfo,
     currentWorkflowId,
     pilotList,
@@ -36,7 +38,7 @@ function PurePanelPilot(props: PanelPanelPilotProps) {
 
   // const handleStepCollapseChange = async (stepKey: string) => {
   //   const message = {
-  //     type: 'ginkgoo-page-background-polit-step-query',
+  //     type: 'ginkgoo-page-background-pilot-step-query',
   //     workflowId: pilotWorkflowList,
   //     stepKey,
   //   };
@@ -63,6 +65,7 @@ function PurePanelPilot(props: PanelPanelPilotProps) {
           return (
             <PilotWorkflow
               key={`pilot-item-${indexPilot}`}
+              pageTabInfo={pageTabInfo}
               caseInfo={caseInfo}
               pilotInfo={itemPilot}
               indexPilot={indexPilot}

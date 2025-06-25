@@ -6,6 +6,7 @@ import {
   IconStepDeclaration,
   IconStepDot,
 } from '@/components/ui/icon';
+import { useEventManager } from '@/hooks/useEventManager';
 import { cn } from '@/lib/utils';
 import { IActionItemType } from '@/types/case';
 import { IPilotType, IWorkflowStepType, PilotStatusEnum } from '@/types/casePilot';
@@ -17,6 +18,7 @@ import { PilotStepBodyNormal } from '../pilotStepBodyNormal';
 import './index.css';
 
 interface PilotStepBodyProps {
+  pageTabInfo: Record<string, unknown>;
   pilotInfo: IPilotType;
   isCurrentPilot: boolean;
   onCollapseChange?: (key: string) => void;
@@ -24,11 +26,13 @@ interface PilotStepBodyProps {
 
 function PurePilotStepBody(props: PilotStepBodyProps) {
   const {
+    pageTabInfo,
     pilotInfo,
     isCurrentPilot,
     // onCollapseChange,
   } = props;
 
+  const [isShowLoginTip, setShowLoginTip] = useState<boolean>(false);
   const [stepListActiveKeyBody, setStepListActiveKeyBody] = useState<string>('');
   const [stepListItemsBody, setStepListItemsBody] = useState<CollapseProps['items']>([]);
 
@@ -38,43 +42,43 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
     return result;
   }, [pilotInfo]);
 
-  // const handleCollapseChange = () => {
-  //   // 找出 key 中比 stepListActiveKeyBody 多的元素
-  //   // const newKeys = key.filter(k => !stepListActiveKeyBody.includes(k));
-  //   // if (newKeys.length > 0) {
-  //   //   // 展开操作：如果有新增的 key, 且是可展开的项，则调用 onCollapseChange，并展开
-  //   //   const newKey = newKeys[0];
-  //   //   const newStep = workflowInfo?.steps?.find(item => {
-  //   //     return (
-  //   //       item.step_key === newKey &&
-  //   //       ['ACTIVE', 'COMPLETED_SUCCESS'].includes(item.status)
-  //   //     );
-  //   //   });
-  //   //   if (newStep) {
-  //   //     onCollapseChange?.(newKey);
-  //   //     setStepListActiveKeyBody(key);
-  //   //   }
-  //   // } else {
-  //   //   // 收起操作
-  //   //   setStepListActiveKeyBody(key);
-  //   // }
-  //   //
-  //   // setRefreshRenderTS(+dayjs());
-  //   // setStepListActiveKeyBody(key);
-  // };
+  useEventManager('ginkgoo-message', message => {
+    const { type: typeMsg } = message;
+
+    switch (typeMsg) {
+      case 'ginkgoo-background-all-auth-check': {
+        const { value: valueMsg } = message;
+
+        setShowLoginTip(!valueMsg);
+        break;
+      }
+      default: {
+        break;
+      }
+    }
+  });
 
   const handleContinueFilling = (params: { actionlistPre: IActionItemType[] }) => {
     const { actionlistPre } = params || {};
 
-    try {
-      window.postMessage({
-        type: 'ginkgoo-page-all-case-start',
-        pilotId: pilotInfo?.pilotId,
-        actionlistPre,
-      });
-    } catch (error) {
-      console.error('[Ginkgoo] Sidepanel handleContinueFilling error', error);
+    if (isShowLoginTip) {
+      window.postMessage(
+        {
+          type: 'ginkgoo-page-background-sidepanel-open',
+          options: {
+            tabId: pageTabInfo?.id,
+          },
+        },
+        window.location.origin
+      );
+      return;
     }
+
+    window.postMessage({
+      type: 'ginkgoo-page-all-pilot-start',
+      pilotId: pilotInfo?.pilotId,
+      actionlistPre,
+    });
   };
 
   const handleBtnProceedToFormClick = () => {

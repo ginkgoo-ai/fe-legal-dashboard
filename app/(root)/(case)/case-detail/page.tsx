@@ -25,6 +25,7 @@ import { useUserStore } from '@/store/userStore';
 import { IPilotType, PilotStatusEnum, WorkflowTypeEnum } from '@/types/casePilot';
 import { Breadcrumb, message as messageAntd, Splitter } from 'antd';
 import { ItemType } from 'antd/es/breadcrumb/Breadcrumb';
+import dayjs from 'dayjs';
 import { produce } from 'immer';
 import { cloneDeep } from 'lodash';
 import { useSearchParams } from 'next/navigation';
@@ -57,6 +58,7 @@ function CaseDetailContent() {
   const [breadcrumbItems, setBreadcrumbItems] = useState<ItemType[]>([
     breadcrumbItemsCasePortal,
   ]);
+  const [pageTabInfo, setPageTabInfo] = useState<Record<string, unknown>>({});
 
   const [isTransitionAll, setTransitionAll] = useState<boolean>(false);
   const [sizeReference, setSizeReference] = useState<number>(0);
@@ -92,78 +94,47 @@ function CaseDetailContent() {
     const { type: typeMsg } = message || {};
 
     switch (typeMsg) {
-      case 'ginkgoo-background-all-polit-query-actived': {
+      case 'ginkgoo-background-all-tab-query': {
+        const { value: valueMsg } = message;
+
+        setPageTabInfo(valueMsg);
+        break;
+      }
+      case 'ginkgoo-background-all-pilot-update': {
+        console.log('ginkgoo-background-all-pilot-update', message);
         const { pilotInfo: pilotInfoMsg } = message;
         const {
+          pilotStatus: pilotStatusMsg,
           pilotCaseInfo: pilotCaseInfoMsg,
           pilotWorkflowInfo: pilotWorkflowInfoMsg,
         } = pilotInfoMsg || {};
         const { id: caseIdMsg } = pilotCaseInfoMsg || {};
         const { workflow_instance_id: workflowIdMsg } = pilotWorkflowInfoMsg || {};
 
-        if (!!workflowIdMsg && caseIdMsg === caseId) {
-          setCurrentWorkflowId(workflowIdMsg);
-          setShowPilot(true);
-          window.postMessage({
-            type: 'ginkgoo-page-background-polit-query',
-            workflowId: workflowIdMsg,
-          });
+        if (caseIdMsg !== caseId || !pilotCaseInfoMsg) {
+          break;
         }
-        break;
-      }
-      case 'ginkgoo-background-all-polit-query': {
-        console.log('ginkgoo-background-all-polit-query', message);
-        const { pilotInfo: pilotInfoMsg } = message;
-        const { pilotWorkflowInfo: pilotWorkflowInfoMsg } = pilotInfoMsg || {};
-        const { workflow_instance_id: workflowIdMsg } = pilotWorkflowInfoMsg || {};
 
-        console.log('Lock Check queryPolit 0 pilotInfoMsg', pilotInfoMsg);
-        await LockManager.acquireLock(lockId);
-        setPilotList(
-          prev =>
-            cloneDeep(
-              produce(prev, draft => {
-                console.log('ginkgoo-background-all-polit-query', prev);
-                const indexWorkflow = draft.findIndex(item => {
-                  return item.pilotWorkflowInfo?.workflow_instance_id === workflowIdMsg;
-                });
-                if (indexWorkflow >= 0) {
-                  draft[indexWorkflow] = pilotInfoMsg;
-                }
-              })
-            ),
-          () => {
-            LockManager.releaseLock(lockId);
-            console.log('Lock Check queryPolit 1 pilotInfoMsg', pilotInfoMsg);
-          }
-        );
-        break;
-      }
-      case 'ginkgoo-background-all-case-update': {
-        const { pilotInfo: pilotInfoMsg } = message;
-        const { pilotStatus: pilotStatusMsg } = pilotInfoMsg || {};
-        const { pilotWorkflowInfo: pilotWorkflowInfoMsg } = pilotInfoMsg || {};
-        const { workflow_instance_id: workflowIdMsg } = pilotWorkflowInfoMsg || {};
-
-        // setPilotInfo(pilotInfoMsg);
-        // if (stepsMsg?.length > 0) {
-        //   setStepListItems(stepsMsg.concat(stepListItemsDeclaration));
-        // }
         if (pilotStatusMsg === PilotStatusEnum.START) {
           refreshWorkflowList({
             cb: () => {
               window.postMessage({
-                type: 'ginkgoo-page-background-polit-query',
+                type: 'ginkgoo-page-background-pilot-query',
                 workflowId: workflowIdMsg,
               });
             },
           });
           setModalNewWorkflowOpen(false);
-          setCurrentWorkflowId(workflowIdMsg);
+        }
+
+        if (!!workflowIdMsg) {
           setShowPilot(true);
         }
 
-        console.log('Lock Check caseUpdate 0 pilotInfoMsg', pilotInfoMsg);
+        setCurrentWorkflowId(
+          pilotStatusMsg === PilotStatusEnum.HOLD ? '' : workflowIdMsg
+        );
+
         await LockManager.acquireLock(lockId);
         setPilotList(
           prev =>
@@ -173,69 +144,24 @@ function CaseDetailContent() {
                   return item.pilotWorkflowInfo?.workflow_instance_id === workflowIdMsg;
                 });
                 if (indexWorkflow >= 0) {
-                  draft[indexWorkflow] = pilotInfoMsg;
+                  draft[indexWorkflow] = {
+                    ...pilotInfoMsg,
+                    pilotRefreshTS: +dayjs(),
+                  };
                 }
               })
             ),
           () => {
             LockManager.releaseLock(lockId);
-            console.log('Lock Check caseUpdate 1 pilotInfoMsg', pilotInfoMsg);
           }
         );
-
-        // if (
-        //   stepListCurrentMsg >= 0 &&
-        //   stepListItemsMsg?.length > 0 &&
-        //   !!stepListItemsMsg[stepListCurrentMsg]
-        // ) {
-        //   setTimeout(() => {
-        //     const { actioncurrent, actionlist } =
-        //       stepListItemsMsg[stepListCurrentMsg] || {};
-        //     if (actioncurrent >= 0 && actionlist?.length > 0) {
-        //       document
-        //         .getElementById(`action-item-${stepListCurrentMsg}-${actioncurrent}`)
-        //         ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        //     } else {
-        //       document
-        //         .getElementById(`step-item-${stepListCurrentMsg}`)
-        //         ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        //     }
-        //   }, 40);
-        // }
         break;
       }
-      // case 'ginkgoo-background-all-workflow-detail-query': {
-      //   const { workflowInfo: workflowInfoMsg } = message || {};
-
-      //   console.log('Lock Check queryDetail 0 workflowInfoMsg', workflowInfoMsg);
-      //   await LockManager.acquireLock(lockId);
-      //   console.log('ginkgoo-background-all-workflow-detail-query 1', workflowInfoMsg);
-      //   setPilotList(
-      //     prev =>
-      //       cloneDeep(
-      //         produce(prev, draft => {
-      //           const indexWorkflow = draft.findIndex(item => {
-      //             return (
-      //               item?.pilotWorkflowInfo?.workflow_instance_id ===
-      //               workflowInfoMsg?.workflow_instance_id
-      //             );
-      //           });
-      //           if (indexWorkflow >= 0) {
-      //             draft[indexWorkflow].pilotWorkflowInfo = workflowInfoMsg;
-      //           }
-      //         })
-      //       ),
-      //     () => {
-      //       LockManager.releaseLock(lockId);
-      //       console.log('Lock Check queryDetail 1 workflowInfoMsg', workflowInfoMsg);
-      //     }
-      //   );
-      //   break;
-      // }
-      case 'ginkgoo-background-all-case-done': {
+      case 'ginkgoo-background-all-pilot-done': {
         const indexWorkflow = pilotList.findIndex(itemPilot => {
           return itemPilot.pilotWorkflowInfo?.workflow_instance_id === currentWorkflowId;
         });
+
         if (indexWorkflow >= 0) {
           window.document
             .getElementById(`workflow-item-btn-download-${indexWorkflow}`)
@@ -247,23 +173,12 @@ function CaseDetailContent() {
       }
       case 'ginkgoo-background-all-toast': {
         const { typeToast, contentToast } = message || {};
+
         messageAntd.open({
           type: typeToast,
           content: contentToast,
         });
         console.log('ginkgoo-background-all-toast', typeToast, contentToast);
-
-        break;
-      }
-      case 'ginkgoo-background-all-case-error': {
-        const { content } = message || {};
-        if (content) {
-          messageAntd.open({
-            content,
-            type: 'error',
-          });
-        }
-        // setPilotMode(PilotModeEnum.READY);
         break;
       }
       default: {
@@ -307,7 +222,7 @@ function CaseDetailContent() {
     });
   };
 
-  const refreshWorkflowList = async (params?: { cb: () => void }) => {
+  const refreshWorkflowList = async (params?: { cb?: () => void }) => {
     const { cb } = params || {};
     const resWorkflowList = await getWorkflowList({
       userId: userInfo?.id || '',
@@ -315,7 +230,6 @@ function CaseDetailContent() {
     });
 
     if (resWorkflowList?.length >= 0) {
-      console.log('Lock Check refreshWorkflowList 0 resWorkflowList', resWorkflowList);
       await LockManager.acquireLock(lockId);
       setPilotList(
         prev => {
@@ -328,12 +242,6 @@ function CaseDetailContent() {
                 );
               });
 
-              // return !!oldWorkflow
-              //   ? {
-              //       ...oldWorkflow,
-              //       ...itemNewWorkflow,
-              //     }
-              //   : itemNewWorkflow;
               return {
                 pilotId: itemNewWorkflow.workflow_instance_id,
                 pilotTimer: null,
@@ -347,7 +255,8 @@ function CaseDetailContent() {
                 pilotCsrfToken: '',
                 pilotCaseInfo: caseInfo,
                 pilotWorkflowInfo: itemNewWorkflow,
-                ...oldPilot,
+                ...(oldPilot || {}),
+                pilotRefreshTS: +dayjs(),
               };
             })
           );
@@ -355,10 +264,6 @@ function CaseDetailContent() {
         () => {
           LockManager.releaseLock(lockId);
           cb?.();
-          console.log(
-            'Lock Check refreshWorkflowList 1 resWorkflowList',
-            resWorkflowList
-          );
         }
       );
       return;
@@ -384,7 +289,7 @@ function CaseDetailContent() {
     refreshWorkflowList({
       cb: () => {
         window.postMessage({
-          type: 'ginkgoo-page-background-polit-query-actived',
+          type: 'ginkgoo-page-background-pilot-query',
         });
       },
     });
@@ -444,6 +349,13 @@ function CaseDetailContent() {
 
     regCaseStream();
 
+    window.postMessage(
+      {
+        type: 'ginkgoo-page-background-tab-query',
+      },
+      window.location.origin
+    );
+
     window.addEventListener('resize', handleWindowResize);
   };
 
@@ -466,7 +378,6 @@ function CaseDetailContent() {
     sizePilotRef.current = sizePilot;
   }, [sizePilot]);
 
-  // TODO: use for debug
   useEffect(() => {
     if (!caseInfo?.title) {
       return;
@@ -481,8 +392,8 @@ function CaseDetailContent() {
   }, [caseInfo]);
 
   useEffect(() => {
-    console.log('pilotList', pilotList);
-  }, [pilotList]);
+    console.log('currentWorkflowId', currentWorkflowId);
+  }, [currentWorkflowId]);
 
   if (!caseId) {
     UtilsManager.navigateBack();
@@ -579,7 +490,7 @@ function CaseDetailContent() {
 
     try {
       window.postMessage({
-        type: 'ginkgoo-page-all-case-start',
+        type: 'ginkgoo-page-all-pilot-start',
         url,
         caseInfo,
         workflowDefinitionId,
@@ -711,6 +622,7 @@ function CaseDetailContent() {
                 })}
               >
                 <PanelPilot
+                  pageTabInfo={pageTabInfo}
                   caseInfo={caseInfo}
                   currentWorkflowId={currentWorkflowId}
                   pilotList={pilotList}
@@ -731,6 +643,7 @@ function CaseDetailContent() {
       />
       <ModalNewWorkflow
         isOpen={isModalNewWorkflowOpen}
+        pageTabInfo={pageTabInfo}
         onOpenUpdate={setModalNewWorkflowOpen}
         onFinish={handleNewWorkflowFinish}
       />
