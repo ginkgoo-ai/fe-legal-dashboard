@@ -3,43 +3,33 @@
 import { IconFormItemLink } from '@/components/ui/icon';
 import { useEventManager } from '@/hooks/useEventManager';
 import { Button, Form, Input, Modal, message as messageAntd } from 'antd';
-import { memo, useEffect, useRef, useState } from 'react';
+import { memo, useEffect, useState } from 'react';
 
 interface ModalNewWorkflowProps {
   isOpen: boolean;
+  pageTabInfo: Record<string, unknown>;
   onOpenUpdate: (value: boolean) => void;
   onFinish: (values: Record<string, string>) => void;
 }
 
 function PureModalNewWorkflow(props: ModalNewWorkflowProps) {
-  const { isOpen = false, onOpenUpdate, onFinish } = props;
-
-  const refTabInfo = useRef<any>(null);
+  const { isOpen = false, pageTabInfo, onOpenUpdate, onFinish } = props;
 
   const [loadingContinue, setLoadingContinue] = useState<boolean>(false);
-
   const [isShowLoginTip, setShowLoginTip] = useState<boolean>(false);
 
   useEventManager('ginkgoo-message', message => {
     const { type: typeMsg } = message;
 
     switch (typeMsg) {
-      case 'ginkgoo-background-all-tab-query': {
-        const { value: valueMsg } = message;
-
-        console.log('useEventManager ginkgoo-background-all-tab-query', message);
-        refTabInfo.current = valueMsg;
-        break;
-      }
       case 'ginkgoo-background-all-auth-check': {
         const { value: valueMsg } = message;
 
-        console.log('useEventManager ginkgoo-background-all-auth-check', message);
         setShowLoginTip(!valueMsg);
         setLoadingContinue(false);
         break;
       }
-      case 'ginkgoo-background-all-case-no-match-page': {
+      case 'ginkgoo-background-all-pilot-no-match-page': {
         const { typeToast, contentToast } = message || {};
         messageAntd.open({
           type: typeToast,
@@ -65,12 +55,6 @@ function PureModalNewWorkflow(props: ModalNewWorkflowProps) {
         },
         window.location.origin
       );
-      window.postMessage(
-        {
-          type: 'ginkgoo-page-background-tab-query',
-        },
-        window.location.origin
-      );
     }
   }, [isOpen]);
 
@@ -79,29 +63,20 @@ function PureModalNewWorkflow(props: ModalNewWorkflowProps) {
   };
 
   const handleFormFinish = (values: any) => {
-    setLoadingContinue(true);
     if (isShowLoginTip) {
       handleBtnLoginClick();
-
-      window.postMessage(
-        {
-          type: 'ginkgoo-page-background-auth-check',
-        },
-        window.location.origin
-      );
       return;
     }
+    setLoadingContinue(true);
     onFinish?.(values);
   };
 
   const handleBtnLoginClick = () => {
-    console.log('handleBtnLoginClick');
-
     window.postMessage(
       {
         type: 'ginkgoo-page-background-sidepanel-open',
         options: {
-          tabId: refTabInfo.current?.id,
+          tabId: pageTabInfo?.id,
         },
       },
       window.location.origin

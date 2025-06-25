@@ -19,7 +19,7 @@ function PurePilotStepBodyNormalInterrupt(props: PilotStepBodyNormalInterruptPro
   const formRef = useRef<any>(null);
 
   const handleFormFinish = (values: any) => {
-    // console.log("handleFormFinish", values);
+    // console.log('handleFormFinish', values);
 
     const actionlistPre: IActionItemType[] = formDataNormal
       .map((itemQuestion, indexQuestion) => {

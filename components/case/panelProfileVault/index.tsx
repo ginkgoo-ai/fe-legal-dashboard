@@ -67,7 +67,7 @@ function PurePanelProfileVault(props: PanelProfileVaultProps) {
   const handleBtnExtensionStopClick = () => {
     setLoadingExtensionStop(true);
     window.postMessage({
-      type: 'ginkgoo-page-all-case-stop',
+      type: 'ginkgoo-page-all-pilot-stop',
       workflowId: currentWorkflowId,
     });
   };

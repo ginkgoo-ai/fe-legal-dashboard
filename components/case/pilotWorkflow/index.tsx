@@ -16,6 +16,7 @@ import { memo, useEffect, useMemo, useState } from 'react';
 import './index.css';
 
 interface PilotWorkflowProps {
+  pageTabInfo: Record<string, unknown>;
   caseInfo: ICaseItemType | null;
   pilotInfo: IPilotType;
   indexPilot: number;
@@ -26,8 +27,14 @@ interface PilotWorkflowProps {
 dayjs.extend(utc);
 
 function PurePilotWorkflow(props: PilotWorkflowProps) {
-  const { caseInfo, pilotInfo, indexPilot, isCurrentPilot, onQueryWorkflowDetail } =
-    props;
+  const {
+    pageTabInfo,
+    caseInfo,
+    pilotInfo,
+    indexPilot,
+    isCurrentPilot,
+    onQueryWorkflowDetail,
+  } = props;
 
   const [isFold, setFold] = useState<boolean>(true);
   const [isLoadingDownload, setLoadingDownload] = useState<boolean>(false);
@@ -50,13 +57,6 @@ function PurePilotWorkflow(props: PilotWorkflowProps) {
 
   const handleHeaderClick = () => {
     if (isFold) {
-      // window.postMessage(
-      //   {
-      //     type: 'ginkgoo-page-background-workflow-detail-query',
-      //     workflowId: workflowInfo.workflow_instance_id,
-      //   },
-      //   window.location.origin
-      // );
       onQueryWorkflowDetail?.({
         workflowId: pilotInfo.pilotWorkflowInfo?.workflow_instance_id || '',
       });
@@ -141,7 +141,11 @@ function PurePilotWorkflow(props: PilotWorkflowProps) {
           </div>
 
           {!isFold ? (
-            <PilotStepBody pilotInfo={pilotInfo} isCurrentPilot={isCurrentPilot} />
+            <PilotStepBody
+              pageTabInfo={pageTabInfo}
+              pilotInfo={pilotInfo}
+              isCurrentPilot={isCurrentPilot}
+            />
           ) : null}
 
           <Button

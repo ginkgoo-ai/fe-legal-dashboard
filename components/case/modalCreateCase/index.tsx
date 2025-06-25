@@ -88,7 +88,7 @@ function PureModalCreateCase(props: ModalCreateCaseProps) {
       status: FileStatus.UPLOADING,
       localFile: file,
     }));
-    uploadDocument({
+    await uploadDocument({
       caseId: resCreateCase.id,
       files: newFiles.map((file: IFileItemType) => file.localFile!),
     });
