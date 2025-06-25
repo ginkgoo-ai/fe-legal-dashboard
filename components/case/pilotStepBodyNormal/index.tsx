@@ -15,9 +15,7 @@ interface PilotStepBodyNormalProps {
 function PurePilotStepBodyNormal(props: PilotStepBodyNormalProps) {
   const { itemStep, indexStep, onContinueFilling } = props;
 
-  const [formDataNormalStep, setFormDataNormalStep] = useState<
-    IWorkflowStepDataFormDataType[]
-  >([]);
+  const [formDataNormalStep] = useState<IWorkflowStepDataFormDataType[]>([]);
   const [formDataNormalInterrupt, setFormDataNormalInterrupt] = useState<
     IWorkflowStepDataFormDataType[]
   >([]);

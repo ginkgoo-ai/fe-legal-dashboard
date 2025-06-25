@@ -28,12 +28,12 @@ function PurePilotStepHeader(props: PilotStepHeaderProps) {
 
   const handleBtnDownloadPdfClick = async () => {
     console.log('handleBtnDownloadPdfClick');
-    if (!pilotInfo?.progress_file_id) {
+    if (!pilotInfo?.pilotWorkflowInfo?.progress_file_id) {
       return;
     }
     const resFilesPDFHighlight = await postFilesPDFHighlight({
-      fileId: pilotInfo?.progress_file_id || '',
-      highlightData: pilotInfo?.dummy_data_usage || '',
+      fileId: pilotInfo?.pilotWorkflowInfo?.progress_file_id || '',
+      highlightData: pilotInfo?.pilotWorkflowInfo?.dummy_data_usage || [],
     });
     console.log('handleBtnDownloadPdfClick', resFilesPDFHighlight);
     if (resFilesPDFHighlight) {
@@ -49,10 +49,10 @@ function PurePilotStepHeader(props: PilotStepHeaderProps) {
 
   const handleBtnViewClick = () => {
     console.log('handleBtnViewClick');
-    if (!!pilotInfo?.tabInfo?.url) {
+    if (!!pilotInfo?.pilotTabInfo?.id) {
       const messageJump = {
         type: 'ginkgoo-page-background-tab-update',
-        tabId: pilotInfo?.tabInfo?.id,
+        tabId: pilotInfo?.pilotTabInfo?.id,
         updateProperties: { active: true },
       };
       window.postMessage(messageJump, window.location.origin);

@@ -4,15 +4,15 @@ import { PanelContainer } from '@/components/case/panelContainer';
 import { PilotWorkflow } from '@/components/case/pilotWorkflow';
 import { cn } from '@/lib/utils';
 import { ICaseItemType } from '@/types/case';
-import { IWorkflowType } from '@/types/casePilot';
+import { IPilotType } from '@/types/casePilot';
 import { memo, useMemo } from 'react';
 
 interface PanelPanelPilotProps {
   caseInfo: ICaseItemType | null;
   currentWorkflowId: string;
-  pilotWorkflowList: IWorkflowType[];
-  isFold: boolean;
-  onBtnPanelRightClick: () => void;
+  pilotList: IPilotType[];
+  isFold?: boolean;
+  onBtnPanelRightClick?: () => void;
   onQueryWorkflowDetail: (params: { workflowId: string }) => void;
 }
 
@@ -20,19 +20,19 @@ function PurePanelPilot(props: PanelPanelPilotProps) {
   const {
     caseInfo,
     currentWorkflowId,
-    pilotWorkflowList,
+    pilotList,
     // isFold,
     // onBtnPanelRightClick,
     onQueryWorkflowDetail,
   } = props;
 
-  const indexCurrentWorkflow = useMemo(() => {
-    const result = pilotWorkflowList.findIndex(item => {
-      return item.workflow_instance_id === currentWorkflowId;
+  const indexCurrentPilot = useMemo(() => {
+    const result = pilotList.findIndex(item => {
+      return item.pilotWorkflowInfo?.workflow_instance_id === currentWorkflowId;
     });
     // console.log('PurePanelPilot', currentWorkflowId, pilotWorkflowList, result);
     return result;
-  }, [currentWorkflowId, pilotWorkflowList]);
+  }, [currentWorkflowId, pilotList]);
 
   // const handleStepCollapseChange = async (stepKey: string) => {
   //   const message = {
@@ -59,14 +59,14 @@ function PurePanelPilot(props: PanelPanelPilotProps) {
       <div
         className={cn('flex flex-col overflow-y-auto p-4 box-border flex-1 h-0 gap-3')}
       >
-        {pilotWorkflowList.map((itemWorkflow, indexWorkflow) => {
+        {pilotList.map((itemPilot, indexPilot) => {
           return (
             <PilotWorkflow
-              key={`workflow-item-${indexWorkflow}`}
+              key={`pilot-item-${indexPilot}`}
               caseInfo={caseInfo}
-              workflowInfo={itemWorkflow}
-              indexWorkflow={indexWorkflow}
-              isCurrentWorkflow={indexCurrentWorkflow === indexWorkflow}
+              pilotInfo={itemPilot}
+              indexPilot={indexPilot}
+              isCurrentPilot={indexCurrentPilot === indexPilot}
               onQueryWorkflowDetail={onQueryWorkflowDetail}
             />
           );
