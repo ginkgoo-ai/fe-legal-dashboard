@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils';
 import { uploadDocument } from '@/service/api/case';
 import { message as messageAntd, Spin } from 'antd';
 // import { uploadFiles } from '@/service/api/file';
+import { MESSAGE } from '@/config/message';
 import { useEventManager } from '@/hooks/useEventManager';
 import { useStateCallback } from '@/hooks/useStateCallback';
 import { FileStatus, ICaseDocumentInitResultType, IFileItemType } from '@/types/file';
@@ -119,7 +120,7 @@ function PurePanelReference(props: PanelReferenceProps) {
     } else {
       messageAntd.open({
         type: 'error',
-        content: 'Upload file failed.',
+        content: MESSAGE.TOAST_UPLOAD_FILE_FAILED,
       });
       setFileList(prev =>
         produce(prev, draft => {

@@ -6,6 +6,7 @@ import { PanelPilot } from '@/components/case/panelPilot';
 import { PanelProfileVault } from '@/components/case/panelProfileVault';
 import { PanelReference } from '@/components/case/panelReference';
 import { TagStatus } from '@/components/case/tagStatus';
+import { MESSAGE } from '@/config/message';
 import LockManager from '@/customManager/LockManager';
 import UtilsManager from '@/customManager/UtilsManager';
 import { useEffectStrictMode } from '@/hooks/useEffectStrictMode';
@@ -283,7 +284,7 @@ function CaseDetailContent() {
 
     messageAntd.open({
       type: 'error',
-      content: 'RefreshCaseDetail Error',
+      content: MESSAGE.TOAST_REFRESH_CASE_DETAIL_FAILED,
     });
   };
 
@@ -302,7 +303,7 @@ function CaseDetailContent() {
 
     messageAntd.open({
       type: 'error',
-      content: 'RefreshWorkflowDefinitions Error',
+      content: MESSAGE.TOAST_REFRESH_WORKFLOW_DEFINITIONS_FAILED,
     });
   };
 
@@ -320,12 +321,12 @@ function CaseDetailContent() {
         prev => {
           return cloneDeep(
             resWorkflowList?.map(itemNewWorkflow => {
-              // const oldWorkflow = prev.find(itemOld => {
-              //   return (
-              //     itemOld.pilotWorkflowInfo?.workflow_instance_id ===
-              //     itemNewWorkflow.workflow_instance_id
-              //   );
-              // });
+              const oldPilot = prev.find(itemOld => {
+                return (
+                  itemOld.pilotWorkflowInfo?.workflow_instance_id ===
+                  itemNewWorkflow.workflow_instance_id
+                );
+              });
 
               // return !!oldWorkflow
               //   ? {
@@ -346,6 +347,7 @@ function CaseDetailContent() {
                 pilotCsrfToken: '',
                 pilotCaseInfo: caseInfo,
                 pilotWorkflowInfo: itemNewWorkflow,
+                ...oldPilot,
               };
             })
           );
@@ -364,7 +366,7 @@ function CaseDetailContent() {
 
     messageAntd.open({
       type: 'error',
-      content: 'RefreshWorkflowList Error',
+      content: MESSAGE.TOAST_REFRESH_WORKFLOW_LIST_FAILED,
     });
   };
 
@@ -552,7 +554,7 @@ function CaseDetailContent() {
     } else {
       messageAntd.open({
         type: 'error',
-        content: 'Missing required workflow definition ID.',
+        content: MESSAGE.TOAST_WORKFLOW_DEFINITIONS_MISSING,
       });
       refreshWorkflowDefinitions();
     }
@@ -564,7 +566,7 @@ function CaseDetailContent() {
     if (!workflowDefinitionId) {
       messageAntd.open({
         type: 'error',
-        content: 'Missing required workflow definition ID.',
+        content: MESSAGE.TOAST_WORKFLOW_DEFINITIONS_MISSING,
       });
       refreshWorkflowDefinitions();
       return;
@@ -598,7 +600,7 @@ function CaseDetailContent() {
     if (!resWorkflowDetail?.workflow_instance_id) {
       messageAntd.open({
         type: 'error',
-        content: 'Failed to get workflow detail.',
+        content: MESSAGE.TOAST_REFRESH_WORKFLOW_DETAIL_FAILED,
       });
       return;
     }

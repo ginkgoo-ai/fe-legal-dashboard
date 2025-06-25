@@ -2,6 +2,7 @@
 
 import { PilotStepBody } from '@/components/case/pilotStepBody';
 import { IconCompleted, IconIncompleted } from '@/components/ui/icon';
+import { MESSAGE } from '@/config/message';
 import UtilsManager from '@/customManager/UtilsManager';
 import { cn } from '@/lib/utils';
 import { postFilesPDFHighlight } from '@/service/api/case';
@@ -84,8 +85,8 @@ function PurePilotWorkflow(props: PilotWorkflowProps) {
       });
     } else {
       messageAntd.open({
-        content: 'Failed to download PDF file. Please try again later.',
         type: 'error',
+        content: MESSAGE.TOAST_DOWNLOAD_PDF_FILE_FAILED,
       });
     }
 

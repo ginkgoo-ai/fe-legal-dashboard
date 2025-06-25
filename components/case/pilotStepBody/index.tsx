@@ -33,7 +33,7 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
   const [stepListItemsBody, setStepListItemsBody] = useState<CollapseProps['items']>([]);
 
   const workflowSteps = useMemo(() => {
-    let result = pilotInfo?.pilotWorkflowInfo?.steps;
+    const result = pilotInfo?.pilotWorkflowInfo?.steps;
 
     return result;
   }, [pilotInfo]);
@@ -106,7 +106,7 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
     }
 
     const renderStepLabel = (itemStep: IWorkflowStepType, indexStep: number) => {
-      const isSelect = stepListActiveKeyBody.includes(itemStep.step_key);
+      // const isSelect = stepListActiveKeyBody.includes(itemStep.step_key);
       return (
         <div
           id={`step-item-${itemStep.step_key}`}
@@ -176,45 +176,28 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
         };
       })
     );
-  }, [isCurrentPilot, workflowSteps]);
+  }, [isCurrentPilot, workflowSteps, pilotInfo]);
 
   useEffect(() => {
     if (pilotInfo?.pilotStatus === PilotStatusEnum.HOLD) {
       const currentStep = workflowSteps?.find(itemStep => {
         return itemStep.step_key === pilotInfo.pilotWorkflowInfo?.current_step_key;
       });
-
-      // console.log(
-      //   'workflowInfo?.pilotInfo?.pilotStatus 0',
-      //   workflowInfo?.current_step_key,
-      //   currentStep
-      // );
       const isInterrupt = currentStep?.data?.form_data?.some(itemFormData => {
         return itemFormData.question.type === 'interrupt';
       });
 
-      console.log('workflowInfo?.pilotInfo?.pilotStatus 1', isInterrupt);
-
       if (isInterrupt) {
         setStepListActiveKeyBody(pilotInfo.pilotWorkflowInfo?.current_step_key || '');
-        // setStepListActiveKeyBody(prev => {
-        //   const currentKey = workflowInfo?.current_step_key;
-        //   if (!currentKey) {
-        //     return prev;
-        //   }
-        //   const newKeys = Array.from(new Set([...(prev || []), currentKey]));
-
-        //   console.log('workflowInfo?.pilotInfo?.pilotStatus 2', newKeys);
-        //   return newKeys;
-        // });
+        setTimeout(() => {
+          window.document
+            .getElementById(`step-item-${pilotInfo?.pilotWorkflowInfo?.current_step_key}`)
+            ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 500);
+        return;
       }
-
-      setTimeout(() => {
-        window.document
-          .getElementById(`step-item-${pilotInfo?.pilotWorkflowInfo?.current_step_key}`)
-          ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }, 500);
     }
+    setStepListActiveKeyBody('');
   }, [pilotInfo, workflowSteps]);
 
   return stepListItemsBody && stepListItemsBody.length > 0 ? (

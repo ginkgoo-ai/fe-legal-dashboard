@@ -3,11 +3,13 @@
 import { CardCase } from '@/components/case/cardCase';
 import { ModalCreateCase } from '@/components/case/modalCreateCase';
 import { Button } from '@/components/ui/button';
+import { MESSAGE } from '@/config/message';
 import UtilsManager from '@/customManager/UtilsManager';
 import { parseCaseInfo } from '@/lib';
 import { queryCaseList } from '@/service/api/case';
 import { useUserStore } from '@/store/userStore';
 import { ICaseItemType } from '@/types/case';
+import { message as messageAntd } from 'antd';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
@@ -20,6 +22,13 @@ export default function CasePortalPage() {
 
   const init = async () => {
     const res = await queryCaseList();
+
+    if (!res.content) {
+      messageAntd.open({
+        type: 'error',
+        content: MESSAGE.TOAST_REFRESH_CASE_LIST_FAILED,
+      });
+    }
 
     setCaseList(
       res.content.map(item => {
