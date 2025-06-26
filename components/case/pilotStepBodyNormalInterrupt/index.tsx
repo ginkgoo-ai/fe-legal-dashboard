@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { IActionItemType } from '@/types/case';
 import { IWorkflowStepDataFormDataType } from '@/types/casePilot';
 import { Checkbox, Form, Input, Radio, Select } from 'antd';
-import { memo } from 'react';
+import { memo, useRef } from 'react';
 import './index.css';
 
 interface PilotStepBodyNormalInterruptProps {
@@ -16,9 +16,10 @@ interface PilotStepBodyNormalInterruptProps {
 
 function PurePilotStepBodyNormalInterrupt(props: PilotStepBodyNormalInterruptProps) {
   const { formDataNormal, stepKey, indexStep, onContinueFilling } = props;
+  const formRef = useRef<any>(null);
 
   const handleFormFinish = (values: any) => {
-    // console.log("handleFormFinish", values);
+    // console.log('handleFormFinish', values);
 
     const actionlistPre: IActionItemType[] = formDataNormal
       .map((itemQuestion, indexQuestion) => {
@@ -73,10 +74,14 @@ function PurePilotStepBodyNormalInterrupt(props: PilotStepBodyNormalInterruptPro
       });
 
     onContinueFilling?.({ actionlistPre });
+
+    // form reset
+    formRef.current?.resetFields();
   };
 
   return (
     <Form
+      ref={formRef}
       className="pilot-step-body-form-wrap"
       name={stepKey}
       layout="vertical"
@@ -128,6 +133,7 @@ function PurePilotStepBodyNormalInterrupt(props: PilotStepBodyNormalInterruptPro
                             value={itemAnswer.selector}
                           >
                             {itemAnswer.name}
+                            {/* {itemAnswer.value} */}
                           </Radio>
                         );
                       }

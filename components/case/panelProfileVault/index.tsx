@@ -9,6 +9,7 @@ import { camelToCapitalizedWords, cn } from '@/lib/utils';
 import { getMissingFieldEmailTemplate } from '@/service/api';
 import { useExtensionsStore } from '@/store/extensionsStore';
 import { ICaseItemType } from '@/types/case';
+import { IPilotType, PilotStatusEnum } from '@/types/casePilot';
 import { Loader2Icon } from 'lucide-react';
 import Image from 'next/image';
 import { memo, useEffect, useState } from 'react';
@@ -17,7 +18,7 @@ import { PanelProfileVaultRtxDialog } from '../panelProfileVaultRtxDialog';
 
 interface PanelProfileVaultProps {
   caseInfo: ICaseItemType | null;
-  currentWorkflowId: string;
+  pilotInfoCurrent: IPilotType | null;
   isFold: boolean;
   onShowInstallExtension: () => void;
   onShowNewWorkflow: () => void;
@@ -26,7 +27,7 @@ interface PanelProfileVaultProps {
 function PurePanelProfileVault(props: PanelProfileVaultProps) {
   const {
     caseInfo = null,
-    currentWorkflowId,
+    pilotInfoCurrent = null,
     isFold,
     onShowInstallExtension,
     onShowNewWorkflow,
@@ -38,10 +39,10 @@ function PurePanelProfileVault(props: PanelProfileVaultProps) {
   const { extensionsInfo } = useExtensionsStore();
 
   useEffect(() => {
-    if (!currentWorkflowId) {
+    if (!pilotInfoCurrent?.pilotWorkflowInfo?.workflow_instance_id) {
       setLoadingExtensionStop(false);
     }
-  }, [currentWorkflowId]);
+  }, [pilotInfoCurrent?.pilotWorkflowInfo?.workflow_instance_id]);
 
   useEffect(() => {
     if (caseInfo?.profileData) {
@@ -75,8 +76,8 @@ function PurePanelProfileVault(props: PanelProfileVaultProps) {
   const handleBtnExtensionStopClick = () => {
     setLoadingExtensionStop(true);
     window.postMessage({
-      type: 'ginkgoo-page-all-case-stop',
-      workflowId: currentWorkflowId,
+      type: 'ginkgoo-page-all-pilot-stop',
+      workflowId: pilotInfoCurrent?.pilotWorkflowInfo?.workflow_instance_id,
     });
   };
 
@@ -113,7 +114,18 @@ function PurePanelProfileVault(props: PanelProfileVaultProps) {
                 <span className="font-bold">Draft email</span>
               </div>
             </PanelProfileVaultRtxDialog>
-            {!!currentWorkflowId ? (
+            {!pilotInfoCurrent ||
+            pilotInfoCurrent?.pilotStatus === PilotStatusEnum.HOLD ? (
+              <Button
+                variant="default"
+                color="primary"
+                className="h-9 flex-1"
+                onClick={handleBtnExtensionStartClick}
+              >
+                <IconExtensionStart />
+                <span className="font-bold">Start auto-fill</span>
+              </Button>
+            ) : (
               <Button
                 variant="default"
                 color="primary"
@@ -127,16 +139,6 @@ function PurePanelProfileVault(props: PanelProfileVaultProps) {
                   <IconExtensionStop />
                 )}
                 <span className="font-bold">Stop auto-fill</span>
-              </Button>
-            ) : (
-              <Button
-                variant="default"
-                color="primary"
-                className="h-9 flex-1"
-                onClick={handleBtnExtensionStartClick}
-              >
-                <IconExtensionStart />
-                <span className="font-bold">Start auto-fill</span>
               </Button>
             )}
           </div>

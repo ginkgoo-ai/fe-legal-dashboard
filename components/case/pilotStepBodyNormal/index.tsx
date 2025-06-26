@@ -15,9 +15,7 @@ interface PilotStepBodyNormalProps {
 function PurePilotStepBodyNormal(props: PilotStepBodyNormalProps) {
   const { itemStep, indexStep, onContinueFilling } = props;
 
-  const [formDataNormalStep, setFormDataNormalStep] = useState<
-    IWorkflowStepDataFormDataType[]
-  >([]);
+  const [formDataNormalStep] = useState<IWorkflowStepDataFormDataType[]>([]);
   const [formDataNormalInterrupt, setFormDataNormalInterrupt] = useState<
     IWorkflowStepDataFormDataType[]
   >([]);
@@ -28,12 +26,13 @@ function PurePilotStepBodyNormal(props: PilotStepBodyNormalProps) {
 
     itemStep.data?.form_data?.forEach(item => {
       if (item.question.type === 'interrupt') {
-        formDataNormalInterruptTmp.push();
+        formDataNormalInterruptTmp.push(item);
       } else {
-        formDataNormalStepTmp.push();
+        formDataNormalStepTmp.push(item);
       }
     });
-    setFormDataNormalStep(formDataNormalStepTmp);
+
+    // setFormDataNormalStep(formDataNormalStepTmp);
     setFormDataNormalInterrupt(formDataNormalInterruptTmp);
   }, [itemStep]);
 

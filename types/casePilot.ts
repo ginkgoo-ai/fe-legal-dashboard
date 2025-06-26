@@ -1,3 +1,5 @@
+import { ICaseItemType } from './case';
+
 export enum PilotStatusEnum {
   INIT = 'INIT',
   OPEN = 'OPEN',
@@ -32,20 +34,19 @@ export enum WorkflowTypeEnum {
 }
 
 export interface IPilotType {
-  id: string;
-  caseId: string;
-  workflowId: string;
-  fill_data: Record<string, unknown>;
-  progress_file_id: string;
-  dummy_data_usage: IWorkflowDummyDataType[];
-  tabInfo: Record<string, unknown>;
-  timer: NodeJS.Timeout | null;
+  pilotId: string;
+  pilotTimer: NodeJS.Timeout | null;
+  pilotTabInfo: Record<string, unknown>;
   pilotStatus: PilotStatusEnum;
-  steps: IWorkflowStepType[];
-  repeatHash: string;
-  repeatCurrent: number;
-  pdfUrl: string;
-  cookiesStr: string;
+  pilotLastMessage: string;
+  pilotRepeatHash: string;
+  pilotRepeatCurrent: number;
+  pilotThirdPartUrl: string;
+  pilotCookie: string;
+  pilotCsrfToken: string;
+  pilotCaseInfo: ICaseItemType | null;
+  pilotWorkflowInfo: IWorkflowType | null;
+  pilotRefreshTS?: number;
 }
 
 export interface IStepResultType {

@@ -6,6 +6,7 @@ import { PanelPilot } from '@/components/case/panelPilot';
 import { PanelProfileVault } from '@/components/case/panelProfileVault';
 import { PanelReference } from '@/components/case/panelReference';
 import { TagStatus } from '@/components/case/tagStatus';
+import { MESSAGE } from '@/config/message';
 import LockManager from '@/customManager/LockManager';
 import UtilsManager from '@/customManager/UtilsManager';
 import { useEffectStrictMode } from '@/hooks/useEffectStrictMode';
@@ -23,7 +24,7 @@ import {
 import { useCaseStore } from '@/store';
 import { useProfileStore } from '@/store/profileStore';
 import { useUserStore } from '@/store/userStore';
-import { IWorkflowType, PilotStatusEnum, WorkflowTypeEnum } from '@/types/casePilot';
+import { IPilotType, PilotStatusEnum, WorkflowTypeEnum } from '@/types/casePilot';
 import { Breadcrumb, message as messageAntd, Splitter } from 'antd';
 import { ItemType } from 'antd/es/breadcrumb/Breadcrumb';
 import { produce } from 'immer';
@@ -58,6 +59,7 @@ function CaseDetailContent() {
   const [breadcrumbItems, setBreadcrumbItems] = useState<ItemType[]>([
     breadcrumbItemsCasePortal,
   ]);
+  const [pageTabInfo, setPageTabInfo] = useState<Record<string, unknown>>({});
 
   const [isTransitionAll, setTransitionAll] = useState<boolean>(false);
   const [sizeReference, setSizeReference] = useState<number>(0);
@@ -66,8 +68,8 @@ function CaseDetailContent() {
   const [isShowPilot, setShowPilot] = useState<boolean>(false);
 
   const [workflowDefinitionId, setWorkflowDefinitionId] = useState<string>('');
-  const [currentWorkflowId, setCurrentWorkflowId] = useState<string>('');
-  const [pilotWorkflowList, setPilotWorkflowList] = useStateCallback<IWorkflowType[]>([]);
+  const [pilotInfoCurrent, setPilotInfoCurrent] = useState<IPilotType | null>(null);
+  const [pilotList, setPilotList] = useStateCallback<IPilotType[]>([]);
   const [isModalNewWorkflowOpen, setModalNewWorkflowOpen] = useState<boolean>(false);
   const [isModalInstallExtensionOpen, setModalInstallExtensionOpen] =
     useState<boolean>(false);
@@ -94,170 +96,108 @@ function CaseDetailContent() {
     const { type: typeMsg } = message || {};
 
     switch (typeMsg) {
-      case 'ginkgoo-background-all-polit-query-actived': {
-        const { pilotInfo: pilotInfoMsg } = message;
-        const { caseId: caseIdMsg, workflowId: workflowIdMsg } = pilotInfoMsg || {};
+      case 'ginkgoo-background-all-tab-query': {
+        const { value: valueMsg } = message;
 
-        if (!!workflowIdMsg && caseIdMsg === caseId) {
-          setCurrentWorkflowId(workflowIdMsg);
-          setShowPilot(true);
-          window.postMessage({
-            type: 'ginkgoo-page-background-polit-query',
-            workflowId: workflowIdMsg,
-          });
+        setPageTabInfo(valueMsg);
+        break;
+      }
+      case 'ginkgoo-background-all-pilot-update': {
+        console.log('ginkgoo-background-all-pilot-update', message);
+        const { pilotInfo: pilotInfoMsg } = message;
+        const {
+          pilotStatus: pilotStatusMsg,
+          pilotCaseInfo: pilotCaseInfoMsg,
+          pilotWorkflowInfo: pilotWorkflowInfoMsg,
+        } = pilotInfoMsg || {};
+        const { id: caseIdMsg } = pilotCaseInfoMsg || {};
+        const { workflow_instance_id: workflowIdMsg } = pilotWorkflowInfoMsg || {};
+
+        if (caseIdMsg !== caseId || !pilotCaseInfoMsg) {
+          break;
         }
-        break;
-      }
-      case 'ginkgoo-background-all-polit-query': {
-        console.log('ginkgoo-background-all-polit-query', message);
-        const { pilotInfo: pilotInfoMsg } = message;
-        const { workflowId: workflowIdMsg } = pilotInfoMsg || {};
 
-        console.log('Lock Check queryPolit 0 pilotInfoMsg', pilotInfoMsg);
-        await LockManager.acquireLock(lockId);
-        setPilotWorkflowList(
-          prev =>
-            cloneDeep(
-              produce(prev, draft => {
-                console.log('ginkgoo-background-all-polit-query', prev);
-                const indexWorkflow = draft.findIndex(item => {
-                  return item.workflow_instance_id === workflowIdMsg;
-                });
-                if (indexWorkflow >= 0) {
-                  draft[indexWorkflow].pilotInfo = pilotInfoMsg;
-                }
-              })
-            ),
-          () => {
-            LockManager.releaseLock(lockId);
-            console.log('Lock Check queryPolit 1 pilotInfoMsg', pilotInfoMsg);
-          }
-        );
-        break;
-      }
-      case 'ginkgoo-background-all-case-update': {
-        const { pilotInfo: pilotInfoMsg } = message;
-        const { workflowId: workflowIdMsg, pilotStatus: pilotStatusMsg } =
-          pilotInfoMsg || {};
+        if (!!workflowIdMsg) {
+          setShowPilot(true);
+          setPilotInfoCurrent(pilotInfoMsg);
+        }
 
-        // setPilotInfo(pilotInfoMsg);
-        // if (stepsMsg?.length > 0) {
-        //   setStepListItems(stepsMsg.concat(stepListItemsDeclaration));
-        // }
         if (pilotStatusMsg === PilotStatusEnum.START) {
           refreshWorkflowList({
             cb: () => {
               window.postMessage({
-                type: 'ginkgoo-page-background-polit-query',
+                type: 'ginkgoo-page-background-pilot-query',
                 workflowId: workflowIdMsg,
               });
             },
           });
           setModalNewWorkflowOpen(false);
-          setCurrentWorkflowId(workflowIdMsg);
-          setShowPilot(true);
+          break;
         }
 
-        console.log('Lock Check caseUpdate 0 pilotInfoMsg', pilotInfoMsg);
         await LockManager.acquireLock(lockId);
-        setPilotWorkflowList(
+        setPilotList(
           prev =>
             cloneDeep(
               produce(prev, draft => {
-                const indexWorkflow = draft.findIndex(item => {
-                  return item.workflow_instance_id === workflowIdMsg;
+                const indexPilot = draft.findIndex(item => {
+                  return item?.pilotWorkflowInfo?.workflow_instance_id === workflowIdMsg;
                 });
-                if (indexWorkflow >= 0) {
-                  draft[indexWorkflow].pilotInfo = pilotInfoMsg;
+                if (indexPilot >= 0) {
+                  draft[indexPilot] = pilotInfoMsg;
                 }
               })
             ),
           () => {
             LockManager.releaseLock(lockId);
-            console.log('Lock Check caseUpdate 1 pilotInfoMsg', pilotInfoMsg);
           }
         );
-
-        // if (
-        //   stepListCurrentMsg >= 0 &&
-        //   stepListItemsMsg?.length > 0 &&
-        //   !!stepListItemsMsg[stepListCurrentMsg]
-        // ) {
-        //   setTimeout(() => {
-        //     const { actioncurrent, actionlist } =
-        //       stepListItemsMsg[stepListCurrentMsg] || {};
-        //     if (actioncurrent >= 0 && actionlist?.length > 0) {
-        //       document
-        //         .getElementById(`action-item-${stepListCurrentMsg}-${actioncurrent}`)
-        //         ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        //     } else {
-        //       document
-        //         .getElementById(`step-item-${stepListCurrentMsg}`)
-        //         ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        //     }
-        //   }, 40);
-        // }
         break;
       }
-      case 'ginkgoo-background-all-workflow-detail-query': {
-        const { workflowInfo: workflowInfoMsg } = message || {};
+      case 'ginkgoo-background-all-pilot-done': {
+        const { pilotInfo: pilotInfoMsg } = message;
+        const { pilotWorkflowInfo: pilotWorkflowInfoMsg } = pilotInfoMsg || {};
+        const { workflow_instance_id: workflowIdMsg } = pilotWorkflowInfoMsg || {};
 
-        console.log('Lock Check queryDetail 0 workflowInfoMsg', workflowInfoMsg);
         await LockManager.acquireLock(lockId);
-        console.log('ginkgoo-background-all-workflow-detail-query 1', workflowInfoMsg);
-        setPilotWorkflowList(
+        setPilotList(
           prev =>
-            cloneDeep(
-              produce(prev, draft => {
-                const indexWorkflow = draft.findIndex(item => {
-                  return (
-                    item.workflow_instance_id === workflowInfoMsg?.workflow_instance_id
-                  );
-                });
-                if (indexWorkflow >= 0) {
-                  draft[indexWorkflow] = workflowInfoMsg;
-                }
-              })
-            ),
+            produce(prev, draft => {
+              const indexPilot = draft.findIndex(itemPilot => {
+                return (
+                  itemPilot?.pilotWorkflowInfo?.workflow_instance_id === workflowIdMsg
+                );
+              });
+
+              console.log('ginkgoo-background-all-pilot-done', workflowIdMsg, indexPilot);
+
+              if (indexPilot >= 0) {
+                window.document
+                  .getElementById(`workflow-item-btn-download-${indexPilot}`)
+                  ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                setPilotInfoCurrent(pilotInfoMsg);
+                draft[indexPilot] = pilotInfoMsg;
+              }
+            }),
           () => {
             LockManager.releaseLock(lockId);
-            console.log('Lock Check queryDetail 1 workflowInfoMsg', workflowInfoMsg);
+            setTimeout(() => {
+              refreshWorkflowList();
+            }, 200);
           }
         );
-        break;
-      }
-      case 'ginkgoo-background-all-case-done': {
-        const indexWorkflow = pilotWorkflowList.findIndex(item => {
-          return item.workflow_instance_id === currentWorkflowId;
-        });
-        if (indexWorkflow >= 0) {
-          window.document
-            .getElementById(`workflow-item-btn-download-${indexWorkflow}`)
-            ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-        setCurrentWorkflowId('');
-        refreshWorkflowList();
+
         break;
       }
       case 'ginkgoo-background-all-toast': {
         const { typeToast, contentToast } = message || {};
+
         messageAntd.open({
           type: typeToast,
           content: contentToast,
         });
         console.log('ginkgoo-background-all-toast', typeToast, contentToast);
-
-        break;
-      }
-      case 'ginkgoo-background-all-case-error': {
-        const { content } = message || {};
-        if (content) {
-          messageAntd.open({
-            content,
-            type: 'error',
-          });
-        }
-        // setPilotMode(PilotModeEnum.READY);
         break;
       }
       case 'update-case-detail': {
@@ -282,7 +222,7 @@ function CaseDetailContent() {
 
     messageAntd.open({
       type: 'error',
-      content: 'RefreshCaseDetail Error',
+      content: MESSAGE.TOAST_REFRESH_CASE_DETAIL_FAILED,
     });
   };
 
@@ -301,11 +241,11 @@ function CaseDetailContent() {
 
     messageAntd.open({
       type: 'error',
-      content: 'RefreshWorkflowDefinitions Error',
+      content: MESSAGE.TOAST_REFRESH_WORKFLOW_DEFINITIONS_FAILED,
     });
   };
 
-  const refreshWorkflowList = async (params?: { cb: () => void }) => {
+  const refreshWorkflowList = async (params?: { cb?: () => void }) => {
     const { cb } = params || {};
     const resWorkflowList = await getWorkflowList({
       userId: userInfo?.id || '',
@@ -313,34 +253,41 @@ function CaseDetailContent() {
     });
 
     if (resWorkflowList?.length >= 0) {
-      console.log('Lock Check refreshWorkflowList 0 resWorkflowList', resWorkflowList);
       await LockManager.acquireLock(lockId);
-      setPilotWorkflowList(
+      setPilotList(
         prev => {
-          return cloneDeep(
-            resWorkflowList?.map(itemNewWorkflow => {
-              const oldWorkflow = prev.find(itemOld => {
-                return (
-                  itemOld.workflow_instance_id === itemNewWorkflow.workflow_instance_id
-                );
-              });
+          return resWorkflowList?.map(itemNewWorkflow => {
+            const oldPilot = prev.find(itemOld => {
+              return (
+                itemOld?.pilotWorkflowInfo?.workflow_instance_id ===
+                itemNewWorkflow.workflow_instance_id
+              );
+            });
 
-              return !!oldWorkflow
-                ? {
-                    ...oldWorkflow,
-                    ...itemNewWorkflow,
-                  }
-                : itemNewWorkflow;
-            })
-          );
+            return {
+              pilotId: itemNewWorkflow.workflow_instance_id,
+              pilotTimer: null,
+              pilotTabInfo: {},
+              pilotStatus: PilotStatusEnum.HOLD,
+              pilotLastMessage: '',
+              pilotRepeatHash: '',
+              pilotRepeatCurrent: 0,
+              pilotThirdPartUrl: '',
+              pilotCookie: '',
+              pilotCsrfToken: '',
+              ...(oldPilot || {}),
+              pilotCaseInfo: caseInfo,
+              pilotWorkflowInfo: {
+                ...oldPilot?.pilotWorkflowInfo,
+                ...(itemNewWorkflow || {}),
+              },
+              // pilotRefreshTS: +dayjs(),
+            };
+          });
         },
         () => {
           LockManager.releaseLock(lockId);
           cb?.();
-          console.log(
-            'Lock Check refreshWorkflowList 1 resWorkflowList',
-            resWorkflowList
-          );
         }
       );
       return;
@@ -348,11 +295,11 @@ function CaseDetailContent() {
 
     messageAntd.open({
       type: 'error',
-      content: 'RefreshWorkflowList Error',
+      content: MESSAGE.TOAST_REFRESH_WORKFLOW_LIST_FAILED,
     });
   };
 
-  useEffectStrictMode(() => {
+  const init = async () => {
     SIZE_REFERENCE_DEFAULT.current = window.innerWidth * 0.2;
     SIZE_PROFILEVAULT_DEFAULT.current = window.innerWidth * 0.6;
     SIZE_PILOT_DEFAULT.current = window.innerWidth * 0.2;
@@ -361,13 +308,13 @@ function CaseDetailContent() {
     setSizeProfileVault(SIZE_PROFILEVAULT_DEFAULT.current);
     setSizePilot(SIZE_PILOT_DEFAULT.current);
 
-    refreshCaseDetail();
+    await refreshCaseDetail();
     getProfileVaultSchema();
     refreshWorkflowDefinitions();
     refreshWorkflowList({
       cb: () => {
         window.postMessage({
-          type: 'ginkgoo-page-background-polit-query-actived',
+          type: 'ginkgoo-page-background-pilot-query',
         });
       },
     });
@@ -427,7 +374,18 @@ function CaseDetailContent() {
 
     regCaseStream();
 
+    window.postMessage(
+      {
+        type: 'ginkgoo-page-background-tab-query',
+      },
+      window.location.origin
+    );
+
     window.addEventListener('resize', handleWindowResize);
+  };
+
+  useEffectStrictMode(() => {
+    init();
 
     return () => {
       if (cancelRef.current) {
@@ -445,7 +403,6 @@ function CaseDetailContent() {
     sizePilotRef.current = sizePilot;
   }, [sizePilot]);
 
-  // TODO: use for debug
   useEffect(() => {
     if (!caseInfo?.title) {
       return;
@@ -458,10 +415,6 @@ function CaseDetailContent() {
       },
     ]);
   }, [caseInfo]);
-
-  useEffect(() => {
-    console.log('pilotWorkflowList', pilotWorkflowList);
-  }, [pilotWorkflowList]);
 
   if (!caseId) {
     UtilsManager.navigateBack();
@@ -533,7 +486,7 @@ function CaseDetailContent() {
     } else {
       messageAntd.open({
         type: 'error',
-        content: 'Missing required workflow definition ID.',
+        content: MESSAGE.TOAST_WORKFLOW_DEFINITIONS_MISSING,
       });
       refreshWorkflowDefinitions();
     }
@@ -545,7 +498,7 @@ function CaseDetailContent() {
     if (!workflowDefinitionId) {
       messageAntd.open({
         type: 'error',
-        content: 'Missing required workflow definition ID.',
+        content: MESSAGE.TOAST_WORKFLOW_DEFINITIONS_MISSING,
       });
       refreshWorkflowDefinitions();
       return;
@@ -558,10 +511,9 @@ function CaseDetailContent() {
 
     try {
       window.postMessage({
-        type: 'ginkgoo-page-all-case-start',
+        type: 'ginkgoo-page-all-pilot-start',
         url,
-        userId: userInfo?.id,
-        caseId,
+        caseInfo,
         workflowDefinitionId,
       });
     } catch (error) {
@@ -573,41 +525,44 @@ function CaseDetailContent() {
     const { workflowId } = params || {};
     console.log('handleQueryWorkflowDetail');
 
-    const workflowInfoMsg = await getWorkflowDetail({
+    const resWorkflowDetail = await getWorkflowDetail({
       workflowId,
     });
 
-    if (!workflowInfoMsg?.workflow_instance_id) {
+    if (!resWorkflowDetail?.workflow_instance_id) {
       messageAntd.open({
         type: 'error',
-        content: 'Failed to get workflow detail.',
+        content: MESSAGE.TOAST_REFRESH_WORKFLOW_DETAIL_FAILED,
       });
       return;
     }
 
     console.log(
-      'Lock Check handleQueryWorkflowDetail 0 workflowInfoMsg',
-      workflowInfoMsg
+      'Lock Check handleQueryWorkflowDetail 0 resWorkflowDetail',
+      resWorkflowDetail
     );
     await LockManager.acquireLock(lockId);
 
-    setPilotWorkflowList(
+    setPilotList(
       prev =>
         cloneDeep(
           produce(prev, draft => {
-            const indexWorkflow = draft.findIndex(item => {
-              return item.workflow_instance_id === workflowInfoMsg?.workflow_instance_id;
+            const indexPilot = draft.findIndex(item => {
+              return (
+                item?.pilotWorkflowInfo?.workflow_instance_id ===
+                resWorkflowDetail?.workflow_instance_id
+              );
             });
-            if (indexWorkflow >= 0) {
-              draft[indexWorkflow] = workflowInfoMsg;
+            if (indexPilot >= 0) {
+              draft[indexPilot].pilotWorkflowInfo = resWorkflowDetail;
             }
           })
         ),
       () => {
         LockManager.releaseLock(lockId);
         console.log(
-          'Lock Check handleQueryWorkflowDetail 1 workflowInfoMsg',
-          workflowInfoMsg
+          'Lock Check handleQueryWorkflowDetail 1 resWorkflowDetail',
+          resWorkflowDetail
         );
       }
     );
@@ -681,7 +636,7 @@ function CaseDetailContent() {
             >
               <PanelProfileVault
                 caseInfo={caseInfo}
-                currentWorkflowId={currentWorkflowId}
+                pilotInfoCurrent={pilotInfoCurrent}
                 isFold={false}
                 onShowInstallExtension={handleShowInstallExtension}
                 onShowNewWorkflow={handleShowNewWorkflow}
@@ -697,9 +652,10 @@ function CaseDetailContent() {
                 })}
               >
                 <PanelPilot
+                  pageTabInfo={pageTabInfo}
                   caseInfo={caseInfo}
-                  currentWorkflowId={currentWorkflowId}
-                  pilotWorkflowList={pilotWorkflowList}
+                  pilotInfoCurrent={pilotInfoCurrent}
+                  pilotList={pilotList}
                   isFold={isFoldPilot}
                   onBtnPanelRightClick={handleBtnPanelRightClick}
                   onQueryWorkflowDetail={handleQueryWorkflowDetail}
@@ -717,6 +673,7 @@ function CaseDetailContent() {
       />
       <ModalNewWorkflow
         isOpen={isModalNewWorkflowOpen}
+        pageTabInfo={pageTabInfo}
         onOpenUpdate={setModalNewWorkflowOpen}
         onFinish={handleNewWorkflowFinish}
       />

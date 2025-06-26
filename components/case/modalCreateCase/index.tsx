@@ -7,6 +7,7 @@ import {
   IconFormItemLayer,
   IconFormItemVisaType,
 } from '@/components/ui/icon';
+import { MESSAGE } from '@/config/message';
 import UtilsManager from '@/customManager/UtilsManager';
 import { createCase, uploadDocument } from '@/service/api/case';
 import { useUserStore } from '@/store/userStore';
@@ -75,7 +76,7 @@ function PureModalCreateCase(props: ModalCreateCaseProps) {
     if (!resCreateCase?.id) {
       messageAntd.open({
         type: 'error',
-        content: 'Create case failed.',
+        content: MESSAGE.TOAST_CREATE_CASE_FAILED,
       });
       return;
     }
@@ -87,7 +88,7 @@ function PureModalCreateCase(props: ModalCreateCaseProps) {
       status: FileStatus.UPLOADING,
       localFile: file,
     }));
-    uploadDocument({
+    await uploadDocument({
       caseId: resCreateCase.id,
       files: newFiles.map((file: IFileItemType) => file.localFile!),
     });

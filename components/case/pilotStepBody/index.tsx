@@ -6,76 +6,81 @@ import {
   IconStepDeclaration,
   IconStepDot,
 } from '@/components/ui/icon';
+import { useEventManager } from '@/hooks/useEventManager';
 import { cn } from '@/lib/utils';
 import { IActionItemType } from '@/types/case';
-import { IWorkflowStepType, IWorkflowType } from '@/types/casePilot';
+import { IPilotType, IWorkflowStepType, PilotStatusEnum } from '@/types/casePilot';
 import type { CollapseProps } from 'antd';
 import { Alert, Button, Collapse, Spin } from 'antd';
 import { Check } from 'lucide-react';
-import { memo, useEffect, useMemo, useState } from 'react';
+import { memo, useCallback, useEffect, useState } from 'react';
+import { PilotStepBodyNormal } from '../pilotStepBodyNormal';
 import './index.css';
 
 interface PilotStepBodyProps {
-  workflowInfo: IWorkflowType;
-  isCurrentWorkflow: boolean;
+  pageTabInfo: Record<string, unknown>;
+  pilotInfo: IPilotType;
   onCollapseChange?: (key: string) => void;
-  onContinueFilling?: (params: { actionlistPre: IActionItemType[] }) => void;
 }
 
 function PurePilotStepBody(props: PilotStepBodyProps) {
   const {
-    workflowInfo,
-    isCurrentWorkflow,
+    pageTabInfo,
+    pilotInfo,
     // onCollapseChange,
-    onContinueFilling,
   } = props;
 
-  // const [stepListActiveKeyBody, setStepListActiveKeyBody] = useState<string[]>([]);
+  const [isShowLoginTip, setShowLoginTip] = useState<boolean>(false);
+  const [stepListActiveKeyBody, setStepListActiveKeyBody] = useState<string>('');
   const [stepListItemsBody, setStepListItemsBody] = useState<CollapseProps['items']>([]);
 
-  const workflowSteps = useMemo(() => {
-    let result: IWorkflowStepType[] | undefined = void 0;
-    if (Number(workflowInfo?.pilotInfo?.steps?.length) > 0) {
-      result = workflowInfo?.pilotInfo?.steps;
-    } else if (Number(workflowInfo.steps?.length) > 0) {
-      result = workflowInfo.steps;
+  useEventManager('ginkgoo-message', message => {
+    const { type: typeMsg } = message;
+
+    switch (typeMsg) {
+      case 'ginkgoo-background-all-auth-check': {
+        const { value: valueMsg } = message;
+
+        setShowLoginTip(!valueMsg);
+        break;
+      }
+      default: {
+        break;
+      }
     }
+  });
 
-    return result;
-  }, [workflowInfo]);
+  const handleContinueFilling = useCallback(
+    (params: { actionlistPre: IActionItemType[] }) => {
+      const { actionlistPre } = params || {};
 
-  const handleCollapseChange = () => {
-    // 找出 key 中比 stepListActiveKeyBody 多的元素
-    // const newKeys = key.filter(k => !stepListActiveKeyBody.includes(k));
-    // if (newKeys.length > 0) {
-    //   // 展开操作：如果有新增的 key, 且是可展开的项，则调用 onCollapseChange，并展开
-    //   const newKey = newKeys[0];
-    //   const newStep = workflowInfo?.steps?.find(item => {
-    //     return (
-    //       item.step_key === newKey &&
-    //       ['ACTIVE', 'COMPLETED_SUCCESS'].includes(item.status)
-    //     );
-    //   });
-    //   if (newStep) {
-    //     onCollapseChange?.(newKey);
-    //     setStepListActiveKeyBody(key);
-    //   }
-    // } else {
-    //   // 收起操作
-    //   setStepListActiveKeyBody(key);
-    // }
-    // setRefreshRenderTS(+dayjs());
-  };
+      if (isShowLoginTip) {
+        window.postMessage(
+          {
+            type: 'ginkgoo-page-background-sidepanel-open',
+            options: {
+              tabId: pageTabInfo?.id,
+            },
+          },
+          window.location.origin
+        );
+        return;
+      }
 
-  // const handleContinueFilling = (params: { actionlistPre: IActionItemType[] }) => {
-  //   onContinueFilling?.(params);
-  // };
+      window.postMessage({
+        type: 'ginkgoo-page-all-pilot-start',
+        pilotId: pilotInfo?.pilotId,
+        actionlistPre,
+      });
+    },
+    [isShowLoginTip, pageTabInfo?.id, pilotInfo?.pilotId]
+  );
 
   const handleBtnProceedToFormClick = () => {
-    if (!!workflowInfo.pilotInfo?.tabInfo?.id) {
+    if (!!pilotInfo?.pilotTabInfo?.id) {
       const messageJump = {
         type: 'ginkgoo-page-background-tab-update',
-        tabId: workflowInfo.pilotInfo?.tabInfo?.id,
+        tabId: pilotInfo?.pilotTabInfo?.id,
         updateProperties: { active: true },
       };
       window.postMessage(messageJump, window.location.origin);
@@ -83,7 +88,7 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
       const messageOpenSidepanel = {
         type: 'ginkgoo-page-background-sidepanel-open',
         options: {
-          tabId: workflowInfo.pilotInfo?.tabInfo?.id,
+          tabId: pilotInfo?.pilotTabInfo?.id,
         },
       };
       window.postMessage(messageOpenSidepanel, window.location.origin);
@@ -92,10 +97,8 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
 
   // update collapse
   useEffect(() => {
-    console.log('PilotStepBodyProps', workflowSteps);
-
-    // console.log("PurePilotStepBody", stepListItems);
-    if (!workflowSteps) {
+    // console.log('PilotStepBodyProps', pilotInfo?.pilotWorkflowInfo?.steps);
+    if (!pilotInfo?.pilotWorkflowInfo?.steps) {
       return;
     }
 
@@ -103,9 +106,10 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
       // const isSelect = stepListActiveKeyBody.includes(itemStep.step_key);
       return (
         <div
-          id={`step-item-${indexStep}`}
+          id={`step-item-${itemStep.step_key}`}
           className={cn('flex w-full flex-row items-center justify-between gap-3', {
-            'border-bottom': indexStep < Number(workflowSteps?.length) - 1,
+            'border-bottom':
+              indexStep < Number(pilotInfo?.pilotWorkflowInfo?.steps?.length) - 1,
           })}
         >
           <div className="flex w-0 flex-1 flex-row gap-3.5">
@@ -116,7 +120,9 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
                 <>
                   {itemStep.status === 'COMPLETED_SUCCESS' ? (
                     <Check size={16} color="#00ff00" />
-                  ) : isCurrentWorkflow && itemStep.status === 'ACTIVE' ? (
+                  ) : pilotInfo?.pilotStatus !== PilotStatusEnum.HOLD &&
+                    itemStep.step_key ===
+                      pilotInfo.pilotWorkflowInfo?.current_step_key ? (
                     <IconLoading size={16} className="animate-spin" />
                   ) : (
                     <IconStepDot size={16} />
@@ -146,53 +152,62 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
       );
     };
 
-    // const renderStepChildren = (itemStep: IWorkflowStepType, indexStep: number) => {
-    //   return null;
-    //   // if (itemStep.step_key === 'Declaration') {
-    //   //   return <PilotStepBodyDeclaration pilotInfo={workflowInfo.pilotInfo || null} />;
-    //   // }
-
-    //   // if (itemStep.step_key !== 'Declaration' && !itemStep?.data) {
-    //   //   return null;
-    //   // }
-
-    //   // return (
-    //   //   <div className="border-bottom">
-    //   //     {itemStep.step_key === 'Declaration' ? (
-    //   //       <PilotStepBodyDeclaration pilotInfo={workflowInfo.pilotInfo || null} />
-    //   //     ) : (
-    //   //       <PilotStepBodyNormal
-    //   //         itemStep={itemStep}
-    //   //         indexStep={indexStep}
-    //   //         onContinueFilling={handleContinueFilling}
-    //   //       />
-    //   //     )}
-    //   //   </div>
-    //   // );
-    // };
+    const renderStepChildren = (itemStep: IWorkflowStepType, indexStep: number) => {
+      return (
+        <div className="border-bottom">
+          <PilotStepBodyNormal
+            itemStep={itemStep}
+            indexStep={indexStep}
+            onContinueFilling={handleContinueFilling}
+          />
+        </div>
+      );
+    };
 
     setStepListItemsBody(
-      workflowSteps.map((item, index) => {
+      pilotInfo?.pilotWorkflowInfo?.steps?.map((itemStep, indexStep) => {
         return {
-          key: item.step_key,
-          label: renderStepLabel(item, index),
+          key: itemStep.step_key,
+          label: renderStepLabel(itemStep, indexStep),
           showArrow: false,
-          children: null,
+          children: renderStepChildren(itemStep, indexStep),
         };
       })
     );
-  }, [isCurrentWorkflow, workflowSteps, onContinueFilling]);
+  }, [pilotInfo, handleContinueFilling]);
+
+  useEffect(() => {
+    if (pilotInfo?.pilotStatus === PilotStatusEnum.HOLD) {
+      const currentStep = pilotInfo?.pilotWorkflowInfo?.steps?.find(itemStep => {
+        return itemStep.step_key === pilotInfo.pilotWorkflowInfo?.current_step_key;
+      });
+      const isInterrupt = currentStep?.data?.form_data?.some(itemFormData => {
+        return itemFormData.question.type === 'interrupt';
+      });
+
+      if (isInterrupt && pilotInfo.pilotWorkflowInfo?.current_step_key) {
+        setStepListActiveKeyBody(pilotInfo.pilotWorkflowInfo?.current_step_key || '');
+        setTimeout(() => {
+          window.document
+            .getElementById(`step-item-${pilotInfo?.pilotWorkflowInfo?.current_step_key}`)
+            ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 500);
+        return;
+      }
+    }
+    setStepListActiveKeyBody('');
+  }, [pilotInfo]);
 
   return stepListItemsBody && stepListItemsBody.length > 0 ? (
     <div className="relative box-border flex flex-col w-full items-center justify-start rounded-lg border border-[#D8DFF5] p-2">
       <Collapse
         className="w-full"
-        // activeKey={stepListActiveKeyBody}
+        activeKey={stepListActiveKeyBody}
         ghost
         items={stepListItemsBody}
-        onChange={handleCollapseChange}
+        // onChange={handleCollapseChange}
       />
-      {workflowInfo.pilotInfo?.tabInfo?.id ? (
+      {pilotInfo?.pilotTabInfo?.id ? (
         <Alert
           message={<div className="text-[#075985] text-base">Manual Input Required</div>}
           icon={<IconInfo size={16} className="mt-1 mr-2" />}
