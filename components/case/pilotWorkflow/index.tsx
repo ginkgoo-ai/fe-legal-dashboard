@@ -75,7 +75,7 @@ function PurePilotWorkflow(props: PilotWorkflowProps) {
     } else {
       isFoldInit.current = true;
     }
-  }, [pilotInfo, pilotInfoCurrent, indexPilot]);
+  }, [pilotInfo, isCurrentPilot, indexPilot]);
 
   const handleHeaderClick = () => {
     if (isFold) {

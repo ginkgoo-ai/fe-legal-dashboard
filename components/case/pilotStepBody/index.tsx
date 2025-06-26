@@ -13,7 +13,7 @@ import { IPilotType, IWorkflowStepType, PilotStatusEnum } from '@/types/casePilo
 import type { CollapseProps } from 'antd';
 import { Alert, Button, Collapse, Spin } from 'antd';
 import { Check } from 'lucide-react';
-import { memo, useEffect, useMemo, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { PilotStepBodyNormal } from '../pilotStepBodyNormal';
 import './index.css';
 
@@ -56,28 +56,31 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
     }
   });
 
-  const handleContinueFilling = (params: { actionlistPre: IActionItemType[] }) => {
-    const { actionlistPre } = params || {};
+  const handleContinueFilling = useCallback(
+    (params: { actionlistPre: IActionItemType[] }) => {
+      const { actionlistPre } = params || {};
 
-    if (isShowLoginTip) {
-      window.postMessage(
-        {
-          type: 'ginkgoo-page-background-sidepanel-open',
-          options: {
-            tabId: pageTabInfo?.id,
+      if (isShowLoginTip) {
+        window.postMessage(
+          {
+            type: 'ginkgoo-page-background-sidepanel-open',
+            options: {
+              tabId: pageTabInfo?.id,
+            },
           },
-        },
-        window.location.origin
-      );
-      return;
-    }
+          window.location.origin
+        );
+        return;
+      }
 
-    window.postMessage({
-      type: 'ginkgoo-page-all-pilot-start',
-      pilotId: pilotInfo?.pilotId,
-      actionlistPre,
-    });
-  };
+      window.postMessage({
+        type: 'ginkgoo-page-all-pilot-start',
+        pilotId: pilotInfo?.pilotId,
+        actionlistPre,
+      });
+    },
+    [isShowLoginTip, pageTabInfo?.id, pilotInfo?.pilotId]
+  );
 
   const handleBtnProceedToFormClick = () => {
     if (!!pilotInfo?.pilotTabInfo?.id) {
@@ -100,9 +103,7 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
 
   // update collapse
   useEffect(() => {
-    console.log('PilotStepBodyProps', workflowSteps);
-
-    // console.log("PurePilotStepBody", stepListItems);
+    // console.log('PilotStepBodyProps', workflowSteps);
     if (!workflowSteps) {
       return;
     }
@@ -178,7 +179,7 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
         };
       })
     );
-  }, [workflowSteps, pilotInfo]);
+  }, [workflowSteps, pilotInfo, handleContinueFilling]);
 
   useEffect(() => {
     if (pilotInfo?.pilotStatus === PilotStatusEnum.HOLD) {
