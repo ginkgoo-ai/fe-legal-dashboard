@@ -29,7 +29,7 @@ function PureModalInstallExtension(props: ModalInstallExtensionProps) {
     setTimeout(() => {
       setLoadingInstall(false);
       onOpenUpdate?.(false);
-    }, 1000);
+    }, 2000);
   };
 
   return (

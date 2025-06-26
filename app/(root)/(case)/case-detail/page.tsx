@@ -123,6 +123,7 @@ function CaseDetailContent() {
         }
 
         if (pilotStatusMsg === PilotStatusEnum.START) {
+          setModalNewWorkflowOpen(false);
           refreshWorkflowList({
             cb: () => {
               window.postMessage({
@@ -131,7 +132,6 @@ function CaseDetailContent() {
               });
             },
           });
-          setModalNewWorkflowOpen(false);
           break;
         }
 

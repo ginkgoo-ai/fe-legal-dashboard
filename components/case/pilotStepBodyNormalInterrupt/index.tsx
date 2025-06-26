@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { IActionItemType } from '@/types/case';
 import { IWorkflowStepDataFormDataType } from '@/types/casePilot';
-import { Checkbox, Form, Input, Radio, Select } from 'antd';
+import { Checkbox, Form, Input, Radio, Select, Tooltip } from 'antd';
 import { memo, useRef } from 'react';
 import './index.css';
 
@@ -95,6 +95,7 @@ function PurePilotStepBodyNormalInterrupt(props: PilotStepBodyNormalInterruptPro
       {formDataNormal?.map((itemQuestion, indexQuestion) => {
         const typeQuestion =
           itemQuestion?.question?.answer?.type?.toLocaleLowerCase() || '';
+        const { confidence, reasoning } = itemQuestion?._metadata || {};
 
         if (!(itemQuestion?.question?.answer?.data?.length > 0)) {
           return null;
@@ -104,7 +105,27 @@ function PurePilotStepBodyNormalInterrupt(props: PilotStepBodyNormalInterruptPro
           <Form.Item
             key={`pilot-step-body-form-${indexQuestion}`}
             label={
-              <div className="w-full truncate">{itemQuestion.question.data.name}</div>
+              <div className="flex w-full flex-row items-center">
+                <Tooltip
+                  color="#e0e0e0"
+                  title={() => {
+                    return (
+                      <div className="flex flex-col gap-1">
+                        <div className="text-xs break-all">
+                          <span className="font-bold text-[#333] mr-1">confidence:</span>
+                          <span className="text-[#555]">{confidence}</span>
+                        </div>
+                        <div className="text-xs break-all">
+                          <span className="font-bold text-[#333] mr-1">reasoning:</span>
+                          <span className="text-[#555]">{reasoning}</span>
+                        </div>
+                      </div>
+                    );
+                  }}
+                >
+                  <div className="flex-1 truncate">{itemQuestion.question.data.name}</div>
+                </Tooltip>
+              </div>
             }
             name={`question-${indexQuestion}-${indexStep}`}
             // rules={[{ required: true, message: "This field is required." }]}
