@@ -7,20 +7,20 @@ import UtilsManager from '@/customManager/UtilsManager';
 import { cn } from '@/lib/utils';
 import { postFilesPDFHighlight } from '@/service/api/case';
 import { ICaseItemType } from '@/types/case';
-import { IPilotType } from '@/types/casePilot';
+import { IPilotType, PilotStatusEnum } from '@/types/casePilot';
 import { Button, message as messageAntd } from 'antd';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import { ChevronRight, Download } from 'lucide-react';
-import { memo, useEffect, useMemo, useState } from 'react';
+import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import './index.css';
 
 interface PilotWorkflowProps {
   pageTabInfo: Record<string, unknown>;
   caseInfo: ICaseItemType | null;
   pilotInfo: IPilotType;
+  pilotInfoCurrent: IPilotType | null;
   indexPilot: number;
-  isCurrentPilot: boolean;
   onQueryWorkflowDetail: (params: { workflowId: string }) => void;
 }
 
@@ -31,12 +31,15 @@ function PurePilotWorkflow(props: PilotWorkflowProps) {
     pageTabInfo,
     caseInfo,
     pilotInfo,
+    pilotInfoCurrent,
     indexPilot,
-    isCurrentPilot,
     onQueryWorkflowDetail,
   } = props;
 
+  const isFoldInit = useRef<boolean>(true);
+
   const [isFold, setFold] = useState<boolean>(true);
+  const [isDisableBtnDownload, setDisableBtnDownload] = useState<boolean>(true);
   const [isLoadingDownload, setLoadingDownload] = useState<boolean>(false);
 
   const workflowUpdateTime = useMemo(() => {
@@ -44,16 +47,35 @@ function PurePilotWorkflow(props: PilotWorkflowProps) {
       .utc(pilotInfo.pilotWorkflowInfo?.updated_at)
       .local()
       .format('MMM DD, YYYY HH: mm');
-  }, [pilotInfo]);
+  }, [pilotInfo.pilotWorkflowInfo?.updated_at]);
+
+  const isCurrentPilot = useMemo(() => {
+    return (
+      pilotInfo?.pilotWorkflowInfo?.workflow_instance_id ===
+      pilotInfoCurrent?.pilotWorkflowInfo?.workflow_instance_id
+    );
+  }, [
+    pilotInfo?.pilotWorkflowInfo?.workflow_instance_id,
+    pilotInfoCurrent?.pilotWorkflowInfo?.workflow_instance_id,
+  ]);
 
   useEffect(() => {
-    if (isCurrentPilot) {
-      setFold(false);
-      window.document
-        .getElementById(`workflow-item-${indexPilot}`)
-        ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    setDisableBtnDownload(!pilotInfo.pilotWorkflowInfo?.progress_file_id);
+  }, [pilotInfo.pilotWorkflowInfo?.progress_file_id]);
+
+  useEffect(() => {
+    if (isCurrentPilot && pilotInfo?.pilotStatus !== PilotStatusEnum.HOLD) {
+      if (isFoldInit.current) {
+        isFoldInit.current = false;
+        setFold(false);
+        window.document
+          .getElementById(`workflow-item-${indexPilot}`)
+          ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    } else {
+      isFoldInit.current = true;
     }
-  }, [isCurrentPilot, indexPilot]);
+  }, [pilotInfo, isCurrentPilot, indexPilot]);
 
   const handleHeaderClick = () => {
     if (isFold) {
@@ -104,7 +126,8 @@ function PurePilotWorkflow(props: PilotWorkflowProps) {
         className={cn(
           'workflow-wrap absolute left-[50%] top-[50%] min-w-full h-[800%] overflow-hidden rounded-lg pr-[800%]',
           {
-            'animate-spin-workflow': isCurrentPilot,
+            'animate-spin-workflow':
+              isCurrentPilot && pilotInfo?.pilotStatus !== PilotStatusEnum.HOLD,
           }
         )}
       ></div>
@@ -141,18 +164,14 @@ function PurePilotWorkflow(props: PilotWorkflowProps) {
           </div>
 
           {!isFold ? (
-            <PilotStepBody
-              pageTabInfo={pageTabInfo}
-              pilotInfo={pilotInfo}
-              isCurrentPilot={isCurrentPilot}
-            />
+            <PilotStepBody pageTabInfo={pageTabInfo} pilotInfo={pilotInfo} />
           ) : null}
 
           <Button
             id={`pilot-item-btn-download-${indexPilot}`}
             type="primary"
             className=""
-            disabled={!pilotInfo.pilotWorkflowInfo?.progress_file_id}
+            disabled={isDisableBtnDownload}
             loading={isLoadingDownload}
             onClick={handleBtnPDFDownloadClick}
           >

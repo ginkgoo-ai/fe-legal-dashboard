@@ -3,7 +3,7 @@
 import GlobalManager from '@/customManager/GlobalManager';
 import UtilsManager from '@/customManager/UtilsManager';
 import { Button, Modal } from 'antd';
-import { memo } from 'react';
+import { memo, useState } from 'react';
 
 interface ModalInstallExtensionProps {
   isOpen: boolean;
@@ -13,15 +13,23 @@ interface ModalInstallExtensionProps {
 function PureModalInstallExtension(props: ModalInstallExtensionProps) {
   const { isOpen = false, onOpenUpdate } = props;
 
+  const [isLoadingInstall, setLoadingInstall] = useState<boolean>(false);
+
   const handleBtnCancel = () => {
     onOpenUpdate?.(false);
   };
 
   const handleBtnSubmit = () => {
+    setLoadingInstall(true);
+
     UtilsManager.clickTagA({
       url: GlobalManager.urlInstallExtension,
     });
-    onOpenUpdate?.(false);
+
+    setTimeout(() => {
+      setLoadingInstall(false);
+      onOpenUpdate?.(false);
+    }, 1000);
   };
 
   return (
@@ -45,7 +53,12 @@ function PureModalInstallExtension(props: ModalInstallExtensionProps) {
         <Button type="default" className="!h-[44px] flex-1" onClick={handleBtnCancel}>
           <span className="font-bold">Cancel</span>
         </Button>
-        <Button type="primary" className="!h-[44px] flex-1" onClick={handleBtnSubmit}>
+        <Button
+          type="primary"
+          className="!h-[44px] flex-1"
+          loading={isLoadingInstall}
+          onClick={handleBtnSubmit}
+        >
           <span className="font-bold">Install Extension</span>
         </Button>
       </div>
