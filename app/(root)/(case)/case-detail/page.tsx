@@ -270,7 +270,10 @@ function CaseDetailContent() {
               pilotCsrfToken: '',
               ...(oldPilot || {}),
               pilotCaseInfo: caseInfo,
-              pilotWorkflowInfo: itemNewWorkflow,
+              pilotWorkflowInfo: {
+                ...oldPilot?.pilotWorkflowInfo,
+                ...(itemNewWorkflow || {}),
+              },
               // pilotRefreshTS: +dayjs(),
             };
           });
