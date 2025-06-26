@@ -20,7 +20,6 @@ import './index.css';
 interface PilotStepBodyProps {
   pageTabInfo: Record<string, unknown>;
   pilotInfo: IPilotType;
-  isCurrentPilot: boolean;
   onCollapseChange?: (key: string) => void;
 }
 
@@ -28,7 +27,6 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
   const {
     pageTabInfo,
     pilotInfo,
-    isCurrentPilot,
     // onCollapseChange,
   } = props;
 
@@ -126,7 +124,7 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
                 <>
                   {itemStep.status === 'COMPLETED_SUCCESS' ? (
                     <Check size={16} color="#00ff00" />
-                  ) : isCurrentPilot &&
+                  ) : pilotInfo?.pilotStatus !== PilotStatusEnum.HOLD &&
                     itemStep.step_key ===
                       pilotInfo.pilotWorkflowInfo?.current_step_key ? (
                     <IconLoading size={16} className="animate-spin" />
@@ -180,7 +178,7 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
         };
       })
     );
-  }, [isCurrentPilot, workflowSteps, pilotInfo]);
+  }, [workflowSteps, pilotInfo]);
 
   useEffect(() => {
     if (pilotInfo?.pilotStatus === PilotStatusEnum.HOLD) {

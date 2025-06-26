@@ -4,13 +4,14 @@ import { PanelContainer } from '@/components/case/panelContainer';
 import { PilotWorkflow } from '@/components/case/pilotWorkflow';
 import { cn } from '@/lib/utils';
 import { ICaseItemType } from '@/types/case';
-import { IPilotType } from '@/types/casePilot';
-import { memo, useMemo } from 'react';
+import { IPilotType, PilotStatusEnum } from '@/types/casePilot';
+import { Alert } from 'antd';
+import { memo } from 'react';
 
 interface PanelPanelPilotProps {
   pageTabInfo: Record<string, unknown>;
   caseInfo: ICaseItemType | null;
-  currentWorkflowId: string;
+  pilotInfoCurrent: IPilotType | null;
   pilotList: IPilotType[];
   isFold?: boolean;
   onBtnPanelRightClick?: () => void;
@@ -21,30 +22,12 @@ function PurePanelPilot(props: PanelPanelPilotProps) {
   const {
     pageTabInfo,
     caseInfo,
-    currentWorkflowId,
+    pilotInfoCurrent,
     pilotList,
     // isFold,
     // onBtnPanelRightClick,
     onQueryWorkflowDetail,
   } = props;
-
-  const indexCurrentPilot = useMemo(() => {
-    const result = pilotList.findIndex(item => {
-      return item.pilotWorkflowInfo?.workflow_instance_id === currentWorkflowId;
-    });
-    // console.log('PurePanelPilot', currentWorkflowId, pilotWorkflowList, result);
-    return result;
-  }, [currentWorkflowId, pilotList]);
-
-  // const handleStepCollapseChange = async (stepKey: string) => {
-  //   const message = {
-  //     type: 'ginkgoo-page-background-pilot-step-query',
-  //     workflowId: pilotWorkflowList,
-  //     stepKey,
-  //   };
-
-  //   window.postMessage(message, window.location.origin);
-  // };
 
   return (
     <PanelContainer
@@ -61,6 +44,15 @@ function PurePanelPilot(props: PanelPanelPilotProps) {
       <div
         className={cn('flex flex-col overflow-y-auto p-4 box-border flex-1 h-0 gap-3')}
       >
+        {pilotInfoCurrent?.pilotStatus === PilotStatusEnum.HOLD &&
+        !!pilotInfoCurrent?.pilotLastMessage ? (
+          <Alert
+            message={pilotInfoCurrent.pilotLastMessage}
+            type="warning"
+            showIcon
+            closable
+          />
+        ) : null}
         {pilotList.map((itemPilot, indexPilot) => {
           return (
             <PilotWorkflow
@@ -68,8 +60,8 @@ function PurePanelPilot(props: PanelPanelPilotProps) {
               pageTabInfo={pageTabInfo}
               caseInfo={caseInfo}
               pilotInfo={itemPilot}
+              pilotInfoCurrent={pilotInfoCurrent}
               indexPilot={indexPilot}
-              isCurrentPilot={indexCurrentPilot === indexPilot}
               onQueryWorkflowDetail={onQueryWorkflowDetail}
             />
           );
