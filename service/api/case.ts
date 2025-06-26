@@ -26,13 +26,13 @@ import {
 } from '../mock/case';
 
 const IS_MOCK_LIST: string[] = [
-  // 'createCase',
-  // 'getWorkflowDefinitions',
-  // 'queryCaseList',
-  // 'queryCaseDetail',
-  // 'getWorkflowList',
-  // 'caseStream',
-  // 'uploadDocument',
+  'createCase',
+  'getWorkflowDefinitions',
+  'queryCaseList',
+  'queryCaseDetail',
+  'getWorkflowList',
+  'caseStream',
+  'uploadDocument',
 ];
 
 const CaseApi = {
@@ -40,6 +40,10 @@ const CaseApi = {
   caseDetail: '/legalcase/cases/:caseId',
   caseStream: '/legalcase/cases/:caseId/stream',
   documents: '/legalcase/cases/:caseId/documents',
+  profileFields: '/legalcase/cases/:caseId/profile/fields',
+  profileSchema: '/legalcase/cases/:caseId/profile/schema',
+  fieldSchema: '/legalcase/cases/:caseId/profile/fields/:fieldPath/schema',
+  missingFieldsEmail: '/legalcase/cases/:caseId/profile/missing-fields-email',
   // workflows: '/workflows/:workflowId',
   // workflowsStep: '/workflows/:workflowId/steps/:stepKey',
 };
@@ -332,5 +336,45 @@ export const uploadDocumentSingle = async (caseId: string, params: { file: File 
 export const removeDocument = async (caseId: string, documentId: string) => {
   return ApiRequest.delete(
     `${baseUrl}${DocumentsApi.documents.replace(':caseId', caseId).replace(':documentId', documentId)}`
+  );
+};
+
+export const updateMultipleProfileFields = async (
+  caseId: string,
+  params: {
+    fieldUpdates: Record<string, string>;
+  }
+) => {
+  return ApiRequest.put(
+    `${baseUrl}${CaseApi.profileFields.replace(':caseId', caseId)}`,
+    params
+  );
+};
+
+export const getProfileSchema = async (caseId: string): Promise<Record<string, any>> => {
+  return ApiRequest.get(`${baseUrl}${CaseApi.profileSchema.replace(':caseId', caseId)}`);
+};
+
+export const getFieldSchema = async (
+  caseId: string,
+  fieldPath: string
+): Promise<{
+  fieldDefinition: Record<string, any>;
+  fieldPath: string;
+}> => {
+  return ApiRequest.get(
+    `${baseUrl}${CaseApi.fieldSchema.replace(':caseId', caseId).replace(':fieldPath', fieldPath)}`
+  );
+};
+
+export const getMissingFieldEmailTemplate = async (
+  caseId: string
+): Promise<{
+  subject: string;
+  htmlBody: string;
+  textBody: string;
+}> => {
+  return ApiRequest.get(
+    `${baseUrl}${CaseApi.missingFieldsEmail.replace(':caseId', caseId)}`
   );
 };

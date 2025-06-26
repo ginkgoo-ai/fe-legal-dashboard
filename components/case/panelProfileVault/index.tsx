@@ -6,6 +6,7 @@ import { Button, buttonVariants } from '@/components/ui/button';
 import { IconExtensionStart, IconExtensionStop } from '@/components/ui/icon';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { camelToCapitalizedWords, cn } from '@/lib/utils';
+import { getMissingFieldEmailTemplate } from '@/service/api';
 import { useExtensionsStore } from '@/store/extensionsStore';
 import { ICaseItemType } from '@/types/case';
 import { IPilotType, PilotStatusEnum } from '@/types/casePilot';
@@ -33,6 +34,7 @@ function PurePanelProfileVault(props: PanelProfileVaultProps) {
   } = props;
 
   const [isLoadingExtensionStop, setLoadingExtensionStop] = useState<boolean>(false);
+  const [missingFieldsEmail, setMissingFieldsEmail] = useState<string>('');
   const [tabList, setTabList] = useState<any[]>([]);
   const { extensionsInfo } = useExtensionsStore();
 
@@ -56,6 +58,12 @@ function PurePanelProfileVault(props: PanelProfileVaultProps) {
     }
   }, [caseInfo]);
 
+  useEffect(() => {
+    if (caseInfo?.id) {
+      getMissingFieldsEmail();
+    }
+  }, [caseInfo]);
+
   const handleBtnExtensionStartClick = () => {
     if (!extensionsInfo?.version) {
       onShowInstallExtension?.();
@@ -73,14 +81,20 @@ function PurePanelProfileVault(props: PanelProfileVaultProps) {
     });
   };
 
+  const getMissingFieldsEmail = async () => {
+    const res = await getMissingFieldEmailTemplate(caseInfo!.id);
+    console.log(res);
+    setMissingFieldsEmail(res.htmlBody);
+  };
+
   const getTabList = (profileData: ICaseItemType['profileData']) => {
     if (!profileData) return [];
-    return Object.keys(profileData).map(key => {
-      return {
+    return Object.keys(profileData)
+      .map(key => ({
         value: key,
         label: camelToCapitalizedWords(key),
-      };
-    });
+      }))
+      .sort((a, b) => a.value.localeCompare(b.value));
   };
 
   return (
@@ -89,8 +103,8 @@ function PurePanelProfileVault(props: PanelProfileVaultProps) {
       showTitle={!isFold}
       renderTitleExtend={() => {
         return (
-          <div className="flex flex-row items-center justify-between gap-2.5">
-            <PanelProfileVaultRtxDialog>
+          <div className="mt-2 flex flex-row items-center justify-between gap-2.5">
+            <PanelProfileVaultRtxDialog content={missingFieldsEmail}>
               <div
                 className={cn(
                   buttonVariants({ variant: 'secondary', size: 'default' }),
@@ -161,6 +175,8 @@ function PurePanelProfileVault(props: PanelProfileVaultProps) {
                   <PanelProfileVaultDynamicTab
                     data={caseInfo?.profileData?.[value] as Record<string, unknown>}
                     label={label}
+                    originalKey={value}
+                    caseId={caseInfo?.id}
                   />
                 </TabsContent>
               ))}

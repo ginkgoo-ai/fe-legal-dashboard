@@ -1377,3 +1377,26 @@ export const IconArrowRightTop = ({ size = 16 }: IconProps) => {
     </svg>
   );
 };
+
+export const IconPlus = ({ size = 16 }: IconProps) => {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 16 16"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <rect y="6.5" width="16" height="3" rx="1.5" className="fill-current/30" />
+      <rect
+        x="6.5"
+        y="16"
+        width="16"
+        height="3"
+        rx="1.5"
+        transform="rotate(-90 6.5 16)"
+        className="fill-current"
+      />
+    </svg>
+  );
+};

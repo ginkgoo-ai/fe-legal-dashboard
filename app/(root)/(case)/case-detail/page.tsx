@@ -15,12 +15,14 @@ import { useStateCallback } from '@/hooks/useStateCallback';
 import { cn, parseCaseInfo } from '@/lib/utils';
 import {
   caseStream,
+  getProfileSchema,
   getWorkflowDefinitions,
   getWorkflowDetail,
   getWorkflowList,
   queryCaseDetail,
 } from '@/service/api/case';
 import { useCaseStore } from '@/store';
+import { useProfileStore } from '@/store/profileStore';
 import { useUserStore } from '@/store/userStore';
 import { IPilotType, PilotStatusEnum, WorkflowTypeEnum } from '@/types/casePilot';
 import { Breadcrumb, message as messageAntd, Splitter } from 'antd';
@@ -76,6 +78,7 @@ function CaseDetailContent() {
 
   const { setCaseInfo, caseInfo } = useCaseStore();
   const { userInfo } = useUserStore();
+  const { setSchema } = useProfileStore();
 
   const isFoldReference = useMemo(() => {
     return sizeReference <= PANEL_SIZE_LIMIT;
@@ -197,6 +200,10 @@ function CaseDetailContent() {
         console.log('ginkgoo-background-all-toast', typeToast, contentToast);
         break;
       }
+      case 'update-case-detail': {
+        refreshCaseDetail();
+        break;
+      }
       default: {
         break;
       }
@@ -302,6 +309,7 @@ function CaseDetailContent() {
     setSizePilot(SIZE_PILOT_DEFAULT.current);
 
     await refreshCaseDetail();
+    getProfileVaultSchema();
     refreshWorkflowDefinitions();
     refreshWorkflowList({
       cb: () => {
@@ -558,6 +566,15 @@ function CaseDetailContent() {
         );
       }
     );
+  };
+
+  const getProfileVaultSchema = async () => {
+    try {
+      const res = await getProfileSchema(caseId);
+      setSchema(res);
+    } catch (error) {
+      console.error('Error fetching profile schema:', error);
+    }
   };
 
   return (

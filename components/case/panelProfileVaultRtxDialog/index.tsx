@@ -9,14 +9,29 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import { useState } from 'react';
+import { toast } from 'sonner';
 
 type PanelProfileVaultRtxDialogProps = {
   children: React.ReactNode;
+  content?: string;
 };
 
 export const PanelProfileVaultRtxDialog = ({
   children,
+  content,
 }: PanelProfileVaultRtxDialogProps) => {
+  const [emailTemplate, setEmailTemplate] = useState(content ?? '');
+
+  const onQuillChange = (value: string) => {
+    setEmailTemplate(value);
+  };
+
+  const onCopy = () => {
+    navigator.clipboard.writeText(emailTemplate);
+    toast.success('Email content copied');
+  };
+
   return (
     <Dialog>
       <DialogTrigger>{children}</DialogTrigger>
@@ -24,12 +39,12 @@ export const PanelProfileVaultRtxDialog = ({
         <DialogHeader>
           <DialogTitle></DialogTitle>
         </DialogHeader>
-        <QuillEditor />
+        <QuillEditor value={content} onChange={onQuillChange} />
         <DialogFooter>
           <DialogClose asChild>
             <Button variant="outline">Cancel</Button>
           </DialogClose>
-          <Button type="submit">Save changes</Button>
+          <Button onClick={onCopy}>Copy</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -1,10 +1,10 @@
 'use client';
 
 import Header from '@/components/header';
+import { Toaster } from '@/components/ui/sonner';
 import { ConfigProvider, theme } from 'antd';
 import { ThemeProvider, useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
-import { Toaster } from 'sonner';
 
 export default function RootLayout({
   children,
@@ -66,7 +66,7 @@ export default function RootLayout({
         <main className="flex h-0 w-[100vw] flex-1 flex-col items-center overflow-y-auto pt-16">
           {children}
         </main>
-        <Toaster position="top-center" />
+        <Toaster position="top-center" richColors />
       </ThemeProvider>
     </ConfigProvider>
   );

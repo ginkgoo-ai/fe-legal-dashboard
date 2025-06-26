@@ -148,7 +148,7 @@ export const PanelProfileVaultDocuments = ({
       <h2 className="font-semibold text-base inline-flex items-center w-full gap-2 mb-2">
         <span className="tracking-wide w-fit">Document checklist</span>
         {documentsWithIssues && documentsWithIssues > 0 && (
-          <span className="block bg-red-500 rounded-sm size-5 text-white text-sm font-normal flex-none text-center">
+          <span className="block bg-red-500 rounded-sm h-5 min-w-5 px-1 text-white text-sm font-normal flex-none text-center">
             {documentsWithIssues}
           </span>
         )}
