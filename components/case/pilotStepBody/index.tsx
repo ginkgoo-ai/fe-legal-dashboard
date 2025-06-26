@@ -13,7 +13,7 @@ import { IPilotType, IWorkflowStepType, PilotStatusEnum } from '@/types/casePilo
 import type { CollapseProps } from 'antd';
 import { Alert, Button, Collapse, Spin } from 'antd';
 import { Check } from 'lucide-react';
-import { memo, useCallback, useEffect, useMemo, useState } from 'react';
+import { memo, useCallback, useEffect, useState } from 'react';
 import { PilotStepBodyNormal } from '../pilotStepBodyNormal';
 import './index.css';
 
@@ -33,12 +33,6 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
   const [isShowLoginTip, setShowLoginTip] = useState<boolean>(false);
   const [stepListActiveKeyBody, setStepListActiveKeyBody] = useState<string>('');
   const [stepListItemsBody, setStepListItemsBody] = useState<CollapseProps['items']>([]);
-
-  const workflowSteps = useMemo(() => {
-    const result = pilotInfo?.pilotWorkflowInfo?.steps;
-
-    return result;
-  }, [pilotInfo]);
 
   useEventManager('ginkgoo-message', message => {
     const { type: typeMsg } = message;
@@ -103,8 +97,8 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
 
   // update collapse
   useEffect(() => {
-    // console.log('PilotStepBodyProps', workflowSteps);
-    if (!workflowSteps) {
+    // console.log('PilotStepBodyProps', pilotInfo?.pilotWorkflowInfo?.steps);
+    if (!pilotInfo?.pilotWorkflowInfo?.steps) {
       return;
     }
 
@@ -114,7 +108,8 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
         <div
           id={`step-item-${itemStep.step_key}`}
           className={cn('flex w-full flex-row items-center justify-between gap-3', {
-            'border-bottom': indexStep < Number(workflowSteps?.length) - 1,
+            'border-bottom':
+              indexStep < Number(pilotInfo?.pilotWorkflowInfo?.steps?.length) - 1,
           })}
         >
           <div className="flex w-0 flex-1 flex-row gap-3.5">
@@ -170,27 +165,27 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
     };
 
     setStepListItemsBody(
-      workflowSteps.map((item, index) => {
+      pilotInfo?.pilotWorkflowInfo?.steps?.map((itemStep, indexStep) => {
         return {
-          key: item.step_key,
-          label: renderStepLabel(item, index),
+          key: itemStep.step_key,
+          label: renderStepLabel(itemStep, indexStep),
           showArrow: false,
-          children: renderStepChildren(item, index),
+          children: renderStepChildren(itemStep, indexStep),
         };
       })
     );
-  }, [workflowSteps, pilotInfo, handleContinueFilling]);
+  }, [pilotInfo, handleContinueFilling]);
 
   useEffect(() => {
     if (pilotInfo?.pilotStatus === PilotStatusEnum.HOLD) {
-      const currentStep = workflowSteps?.find(itemStep => {
+      const currentStep = pilotInfo?.pilotWorkflowInfo?.steps?.find(itemStep => {
         return itemStep.step_key === pilotInfo.pilotWorkflowInfo?.current_step_key;
       });
       const isInterrupt = currentStep?.data?.form_data?.some(itemFormData => {
         return itemFormData.question.type === 'interrupt';
       });
 
-      if (isInterrupt) {
+      if (isInterrupt && pilotInfo.pilotWorkflowInfo?.current_step_key) {
         setStepListActiveKeyBody(pilotInfo.pilotWorkflowInfo?.current_step_key || '');
         setTimeout(() => {
           window.document
@@ -201,7 +196,7 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
       }
     }
     setStepListActiveKeyBody('');
-  }, [pilotInfo, workflowSteps]);
+  }, [pilotInfo]);
 
   return stepListItemsBody && stepListItemsBody.length > 0 ? (
     <div className="relative box-border flex flex-col w-full items-center justify-start rounded-lg border border-[#D8DFF5] p-2">
