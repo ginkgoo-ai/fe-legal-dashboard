@@ -9,10 +9,16 @@ import {
 } from '@/components/ui/form';
 import { IconEdit } from '@/components/ui/icon';
 import { Input } from '@/components/ui/input';
+import { useEventManager } from '@/hooks/useEventManager';
 import { camelToCapitalizedWords } from '@/lib';
+import { updateMultipleProfileFields } from '@/service/api';
 import { ICaseProfileChecklistType, ICaseProfileMissingField } from '@/types/case';
-import { memo, useEffect, useState } from 'react';
+import { cn } from '@/utils';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Loader2Icon } from 'lucide-react';
+import { memo, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { z } from 'zod';
 
 const StatusMap: Record<string, string> = {
   NOT_PROVIDED: 'Not Provided yet',
@@ -21,26 +27,76 @@ const StatusMap: Record<string, string> = {
 const PurePanelProfileVaultInformationItem = ({
   label,
   fields,
+  caseId,
 }: {
+  caseId: string;
   label: string;
   fields: ICaseProfileMissingField[];
 }) => {
   const [editMode, setEditMode] = useState(false);
-  const form = useForm({});
-
-  useEffect(() => {
-    fields.forEach(field => {
-      form.register(field.fieldPath, { value: '' });
-    });
-  }, [fields]);
+  const [submitting, setSubmitting] = useState(false);
+  const { emit } = useEventManager('ginkgoo-message', () => {});
+  const form = useForm({
+    defaultValues: fields.reduce(
+      (prev, curr) => ({ ...prev, [curr.fieldPath]: '' }),
+      {} as Record<string, string>
+    ),
+    resolver: zodResolver(
+      z.object(
+        fields.reduce(
+          (prev, curr) => ({
+            ...prev,
+            [curr.fieldPath]: z
+              .string()
+              .min(1, `${curr.displayName} is required`)
+              .max(255, `${curr.displayName} must be less than 255 characters`),
+          }),
+          {} as Record<string, any>
+        )
+      )
+    ),
+  });
 
   const handleEdit = () => {
     setEditMode(true);
+    setTimeout(() => {
+      form.reset();
+      form.clearErrors();
+    }, 0);
   };
 
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (data: Record<string, string>) => {
     console.log(data);
-    setEditMode(false);
+    setSubmitting(true);
+    try {
+      const params = Object.entries(data).reduce(
+        (prev, curr) => {
+          if (fields.some(field => field.fieldPath === curr[0])) {
+            return {
+              ...prev,
+              [curr[0].replaceAll('-', '.')]: {
+                value: curr[1],
+                operation: 'SET',
+              },
+            };
+          } else {
+            return prev;
+          }
+        },
+        {} as Record<string, any>
+      );
+      console.log(params);
+      const res = await updateMultipleProfileFields(caseId, { fieldUpdates: params });
+      emit({
+        type: 'update-case-detail',
+      });
+      console.log(res);
+      setEditMode(false);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -51,9 +107,6 @@ const PurePanelProfileVaultInformationItem = ({
             <div className="flex-1 flex items-center">
               <h2 className="font-semibold text-base text-primary-label inline-flex items-center">
                 {camelToCapitalizedWords(label)}
-                {/* <div className="w-fit bg-white rounded px-2 py-1 mx-4 text-[10px] font-thin text-[#FFA800] inline-flex items-center gap-1">
-              <IconAvatar />
-            </div> */}
               </h2>
             </div>
             <div className="flex-none inline-flex items-start gap-4">
@@ -61,14 +114,32 @@ const PurePanelProfileVaultInformationItem = ({
                 {StatusMap.NOT_PROVIDED}
               </div>
               {editMode ? (
-                <Button variant={'default'} size={'default'} type="submit">
-                  Save
-                </Button>
+                <>
+                  <Button
+                    variant={'secondary'}
+                    size={'default'}
+                    type="button"
+                    disabled={submitting}
+                    onClick={() => setEditMode(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    variant={'default'}
+                    size={'default'}
+                    type="submit"
+                    disabled={submitting}
+                  >
+                    {submitting && <Loader2Icon className="animate-spin" />}
+                    Save
+                  </Button>
+                </>
               ) : (
                 <Button
                   variant={'secondary'}
                   size={'icon'}
                   className="p-1 group/edit"
+                  type="button"
                   onClick={handleEdit}
                 >
                   <IconEdit
@@ -79,7 +150,17 @@ const PurePanelProfileVaultInformationItem = ({
               )}
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-x-4 gap-y-8 p-4 w-full bg-white">
+          <div
+            className={cn(
+              'grid grid-cols-2 gap-x-4 gap-y-6 px-4 w-full bg-white transition-[height] duration-150 overflow-hidden',
+              { 'py-4': editMode }
+            )}
+            style={{
+              height: editMode
+                ? `${Math.ceil(fields.length / 2) * 86 + (Math.ceil(fields.length / 2) - 1) * 32 + 32}px`
+                : 0,
+            }}
+          >
             {fields.map(field => {
               return (
                 <FormField
@@ -90,7 +171,10 @@ const PurePanelProfileVaultInformationItem = ({
                     <FormItem>
                       <FormLabel>{field.displayName}</FormLabel>
                       <FormControl>
-                        <Input placeholder={field.displayName} {...formField} />
+                        <Input
+                          placeholder={`Enter ${field.displayName}`}
+                          {...formField}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -115,14 +199,28 @@ export const PanelProfileVaultInformationChecklist = (
   return (
     <div>
       <h2 className="font-semibold text-base inline-flex items-center w-full gap-2 mb-2">
-        <span className="flex-1 tracking-wide">Information checklist</span>
+        <span className="w-fit tracking-wide">Information checklist</span>
+        {props.missingFieldsCount > 0 && (
+          <span className="block bg-red-500 rounded-sm h-5 text-white text-sm font-normal flex-none text-center min-w-5 px-1">
+            {props.missingFieldsCount}
+          </span>
+        )}
       </h2>
       <div className="flex flex-col gap-4">
         {Object.entries(props.missingFields ?? {})
           .sort((a, b) => a[0].localeCompare(b[0]))
           .map(([key, value], index) => {
+            const fields = value.map(field => ({
+              ...field,
+              fieldPath: field.fieldPath.replaceAll('.', '-'),
+            }));
             return (
-              <PanelProfileVaultInformationItem fields={value} key={index} label={key} />
+              <PanelProfileVaultInformationItem
+                fields={fields}
+                key={index}
+                label={key}
+                caseId={props.caseId}
+              />
             );
           })}
       </div>

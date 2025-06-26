@@ -29,7 +29,7 @@ const QuillEditor: React.FC<QuillEditorProps> = ({
             ['blockquote', 'code-block'],
             [{ header: 1 }, { header: 2 }],
             [{ list: 'ordered' }, { list: 'bullet' }],
-            ['link', 'image'],
+            ['link'], // image
             ['clean'],
           ],
         },
@@ -59,13 +59,13 @@ const QuillEditor: React.FC<QuillEditorProps> = ({
   // 处理外部 value 变化
   useEffect(() => {
     if (quillInstance.current && value !== quillInstance.current.root.innerHTML) {
-      quillInstance.current.root.innerHTML = value;
+      quillInstance.current.clipboard.dangerouslyPasteHTML(value);
     }
   }, [value]);
 
   return (
     <div style={{ height: '400px' }}>
-      <div ref={editorRef} style={{ height: '300px' }} />
+      <div ref={editorRef} style={{ height: '300px', padding: '16px' }} />
     </div>
   );
 };
