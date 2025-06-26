@@ -185,7 +185,6 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
         return itemFormData.question.type === 'interrupt';
       });
 
-      console.log('xxx-0', pilotInfo.pilotWorkflowInfo);
       if (isInterrupt && pilotInfo.pilotWorkflowInfo?.current_step_key) {
         setStepListActiveKeyBody(pilotInfo.pilotWorkflowInfo?.current_step_key || '');
         setTimeout(() => {
@@ -195,15 +194,7 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
         }, 500);
         return;
       }
-      console.log(
-        'xxx-1',
-        pilotInfo?.pilotStatus,
-        isInterrupt,
-        currentStep?.data?.form_data,
-        pilotInfo.pilotWorkflowInfo?.current_step_key
-      );
     }
-    console.log('xxx-2', pilotInfo?.pilotStatus);
     setStepListActiveKeyBody('');
   }, [pilotInfo]);
 
