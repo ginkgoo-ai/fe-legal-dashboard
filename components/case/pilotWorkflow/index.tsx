@@ -146,10 +146,9 @@ function PurePilotWorkflow(props: PilotWorkflowProps) {
             </div>
             <div className="flex flex-col w-0 flex-1">
               <span className="text-[#4E4E4E] text-sm truncate w-full">
-                {
-                  `${caseInfo?.clientName || ''}` + ` - ${caseInfo?.visaType || ''}`
-                  // +` - ${pilotInfo?.pilotStatus || ''}`
-                }
+                {`${caseInfo?.clientName || ''}` +
+                  ` - ${caseInfo?.visaType || ''}` +
+                  ` - ${pilotInfo?.pilotStatus || ''}`}
               </span>
               <div className="text-[#98A1B7] text-sm truncate w-full">
                 {workflowUpdateTime}

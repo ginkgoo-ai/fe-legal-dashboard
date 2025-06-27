@@ -47,6 +47,7 @@ function PurePanelPilot(props: PanelPanelPilotProps) {
         {pilotInfoCurrent?.pilotStatus === PilotStatusEnum.HOLD &&
         !!pilotInfoCurrent?.pilotLastMessage ? (
           <Alert
+            style={{ width: '100%' }}
             message={pilotInfoCurrent.pilotLastMessage}
             type="warning"
             showIcon
