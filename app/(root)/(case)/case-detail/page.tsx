@@ -273,6 +273,7 @@ function CaseDetailContent() {
               pilotRepeatHash: '',
               pilotRepeatCurrent: 0,
               pilotThirdPartUrl: '',
+              pilotThirdPartMethod: '',
               pilotCookie: '',
               pilotCsrfToken: '',
               ...(oldPilot || {}),
