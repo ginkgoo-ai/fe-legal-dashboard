@@ -123,6 +123,7 @@ function CaseDetailContent() {
         }
 
         if (pilotStatusMsg === PilotStatusEnum.START) {
+          setModalNewWorkflowOpen(false);
           refreshWorkflowList({
             cb: () => {
               window.postMessage({
@@ -131,7 +132,6 @@ function CaseDetailContent() {
               });
             },
           });
-          setModalNewWorkflowOpen(false);
           break;
         }
 
@@ -523,7 +523,6 @@ function CaseDetailContent() {
 
   const handleQueryWorkflowDetail = async (params: { workflowId: string }) => {
     const { workflowId } = params || {};
-    console.log('handleQueryWorkflowDetail');
 
     const resWorkflowDetail = await getWorkflowDetail({
       workflowId,
@@ -537,10 +536,6 @@ function CaseDetailContent() {
       return;
     }
 
-    console.log(
-      'Lock Check handleQueryWorkflowDetail 0 resWorkflowDetail',
-      resWorkflowDetail
-    );
     await LockManager.acquireLock(lockId);
 
     setPilotList(
@@ -560,10 +555,6 @@ function CaseDetailContent() {
         ),
       () => {
         LockManager.releaseLock(lockId);
-        console.log(
-          'Lock Check handleQueryWorkflowDetail 1 resWorkflowDetail',
-          resWorkflowDetail
-        );
       }
     );
   };
