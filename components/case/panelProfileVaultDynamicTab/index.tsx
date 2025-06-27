@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/form';
 import { IconEdit, IconIssueCheck, IconPlus, IconTrash } from '@/components/ui/icon';
 import { Input } from '@/components/ui/input';
+import { useEventManager } from '@/hooks/useEventManager';
 import { camelToCapitalizedWords } from '@/lib';
 import { getFieldSchema, updateMultipleProfileFields } from '@/service/api';
 import { useProfileStore } from '@/store/profileStore';
@@ -24,6 +25,7 @@ import { isArray, isBoolean, isNumber, isObject, isString } from 'lodash';
 import { Loader2Icon } from 'lucide-react';
 import { memo, useEffect, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 import { z } from 'zod';
 
 type PurePanelProfileVaultDynamicTabProps = {
@@ -210,6 +212,7 @@ const DynamicForm = ({ label, originalKey, config, caseId, data }: DynamicFormPr
   const [submitting, setSubmitting] = useState(false);
   const [openAccordion, setOpenAccordion] = useState<string[]>([]);
   const { fieldSchema } = useProfileStore();
+  const { emit } = useEventManager('ginkgoo-message', () => {});
 
   useEffect(() => {
     if (editMode) {
@@ -446,14 +449,16 @@ const DynamicForm = ({ label, originalKey, config, caseId, data }: DynamicFormPr
                 paddingLeft: (level + 1.5) * 16 + 'px',
               }}
             >
-              {Object.keys(fieldConfig.fields).map(key => (
-                <div
-                  key={key}
-                  className="border-b border-dashed border-[#D8DFF5] last:border-0"
-                >
-                  {RenderField(`${name}.${key}`, fieldConfig.fields[key], level + 1)}
-                </div>
-              ))}
+              {Object.keys(fieldConfig.fields)
+                .filter(key => key !== 'id')
+                .map(key => (
+                  <div
+                    key={key}
+                    className="border-b border-dashed border-[#D8DFF5] last:border-0"
+                  >
+                    {RenderField(`${name}.${key}`, fieldConfig.fields[key], level + 1)}
+                  </div>
+                ))}
             </div>
           </AccordionContent>
         </AccordionItem>
@@ -465,16 +470,14 @@ const DynamicForm = ({ label, originalKey, config, caseId, data }: DynamicFormPr
     return null;
   };
 
-  const onSubmit = async (data: FormValues) => {
+  const onSubmit = async () => {
     try {
-      console.log(data);
       setSubmitting(false);
       const params = rebuildFormData(originalKey, '', form.getValues(originalKey));
-      console.log(params);
-      const res = await updateMultipleProfileFields(caseId!, {
-        fieldUpdates: params,
-      });
-      console.log(res);
+      const res = await updateMultipleProfileFields(caseId!, params);
+      if (res.successfulResults.length > 0) {
+        toast.success('Updated successfully');
+      }
       setSubmitting(false);
     } catch (err) {
       console.error(err);
@@ -485,6 +488,13 @@ const DynamicForm = ({ label, originalKey, config, caseId, data }: DynamicFormPr
 
   const handleEdit = () => {
     setEditMode(true);
+  };
+
+  const handleCancelEdit = () => {
+    setEditMode(false);
+    emit({
+      type: 'update-case-detail',
+    });
   };
 
   return (
@@ -502,7 +512,7 @@ const DynamicForm = ({ label, originalKey, config, caseId, data }: DynamicFormPr
                       size={'default'}
                       type="button"
                       disabled={submitting}
-                      onClick={() => setEditMode(false)}
+                      onClick={() => handleCancelEdit()}
                     >
                       Cancel
                     </Button>

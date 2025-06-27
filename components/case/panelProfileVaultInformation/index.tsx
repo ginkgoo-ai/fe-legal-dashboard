@@ -18,6 +18,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2Icon } from 'lucide-react';
 import { memo, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 import { z } from 'zod';
 
 const StatusMap: Record<string, string> = {
@@ -74,10 +75,7 @@ const PurePanelProfileVaultInformationItem = ({
           if (fields.some(field => field.fieldPath === curr[0])) {
             return {
               ...prev,
-              [curr[0].replaceAll('-', '.')]: {
-                value: curr[1],
-                operation: 'SET',
-              },
+              [curr[0].replaceAll('-', '.')]: curr[1],
             };
           } else {
             return prev;
@@ -85,12 +83,13 @@ const PurePanelProfileVaultInformationItem = ({
         },
         {} as Record<string, any>
       );
-      console.log(params);
-      const res = await updateMultipleProfileFields(caseId, { fieldUpdates: params });
+      const res = await updateMultipleProfileFields(caseId, params);
       emit({
         type: 'update-case-detail',
       });
-      console.log(res);
+      if (res.successfulResults.length > 0) {
+        toast.success('Updated successfully');
+      }
       setEditMode(false);
     } catch (error) {
       console.error(error);
