@@ -82,9 +82,14 @@ function PurePanelProfileVault(props: PanelProfileVaultProps) {
   };
 
   const getMissingFieldsEmail = async () => {
-    const res = await getMissingFieldEmailTemplate(caseInfo!.id);
-    console.log(res);
-    setMissingFieldsEmail(res.htmlBody);
+    try {
+      const res = await getMissingFieldEmailTemplate(caseInfo!.id);
+      if (res.htmlBody) {
+        setMissingFieldsEmail(res.htmlBody);
+      }
+    } catch (error) {
+      console.error('Error fetching missing fields email:', error);
+    }
   };
 
   const getTabList = (profileData: ICaseItemType['profileData']) => {
