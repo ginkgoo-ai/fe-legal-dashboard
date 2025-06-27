@@ -49,8 +49,8 @@ const PurePanelProfileVaultInformationItem = ({
             ...prev,
             [curr.fieldPath]: z
               .string()
-              .min(1, `${curr.displayName} is required`)
-              .max(255, `${curr.displayName} must be less than 255 characters`),
+              .max(255, `${curr.displayName} must be less than 255 characters`)
+              .optional(),
           }),
           {} as Record<string, any>
         )
@@ -198,7 +198,7 @@ export const PanelProfileVaultInformationChecklist = (
   return (
     <div>
       <h2 className="font-semibold text-base inline-flex items-center w-full gap-2 mb-2">
-        <span className="w-fit tracking-wide">Information checklist</span>
+        <span className="w-fit tracking-wide">Missing Information</span>
         {props.missingFieldsCount > 0 && (
           <span className="block bg-red-500 rounded-sm h-5 text-white text-sm font-normal flex-none text-center min-w-5 px-1">
             {props.missingFieldsCount}

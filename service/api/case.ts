@@ -26,13 +26,13 @@ import {
 } from '../mock/case';
 
 const IS_MOCK_LIST: string[] = [
-  'createCase',
-  'getWorkflowDefinitions',
+  // 'createCase',
+  // 'getWorkflowDefinitions',
   // 'queryCaseList',
   // 'queryCaseDetail',
-  'getWorkflowList',
-  'caseStream',
-  'uploadDocument',
+  // 'getWorkflowList',
+  // 'caseStream',
+  // 'uploadDocument',
 ];
 
 const CaseApi = {
