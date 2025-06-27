@@ -149,7 +149,7 @@ export const getWorkflowDetail = async (
 
   if (IS_MOCK_LIST.includes('getWorkflowDetail')) {
     return new Promise(resolve => {
-      resolve(mockGetWorkflowDetail);
+      resolve(mockGetWorkflowDetail as IWorkflowType);
     });
   }
 
