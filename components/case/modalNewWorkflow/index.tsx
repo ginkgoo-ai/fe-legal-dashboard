@@ -1,8 +1,8 @@
 'use client';
 
-import { IconFormItemLink } from '@/components/ui/icon';
+import { IconFormItemLink, IconInfo } from '@/components/ui/icon';
 import { useEventManager } from '@/hooks/useEventManager';
-import { Button, Form, Input, Modal, message as messageAntd } from 'antd';
+import { Alert, Button, Form, Input, Modal, message as messageAntd } from 'antd';
 import { memo, useEffect, useState } from 'react';
 
 interface ModalNewWorkflowProps {
@@ -156,7 +156,27 @@ function PureModalNewWorkflow(props: ModalNewWorkflowProps) {
             </div>
           ) : null}
 
-          <div className="flex flex-row items-center justify-between gap-6">
+          <Alert
+            message={
+              <div className="text-[#075985] text-base">
+                Start Autofill with Incomplete Information?
+              </div>
+            }
+            icon={<IconInfo size={16} className="mt-1 mr-2" />}
+            description={
+              <div className="flex flex-col -ml-8 gap-2 items-start">
+                <div className="text-[#0369A1] text-sm">
+                  We've noticed some of your information is missing. To proceed now, we
+                  will temporarily fill these gaps with dummy data.
+                </div>
+              </div>
+            }
+            type="info"
+            showIcon
+            closable
+          />
+
+          <div className="mt-4 flex flex-row items-center justify-between gap-6">
             <Button
               type="default"
               className="!h-[44px] flex-1"

@@ -39,7 +39,7 @@ function PurePanelProfileVault(props: PanelProfileVaultProps) {
   const { extensionsInfo } = useExtensionsStore();
 
   useEffect(() => {
-    if (!pilotInfoCurrent?.pilotWorkflowInfo?.workflow_instance_id) {
+    if (!!pilotInfoCurrent?.pilotWorkflowInfo?.workflow_instance_id) {
       setLoadingExtensionStop(false);
     }
   }, [pilotInfoCurrent?.pilotWorkflowInfo?.workflow_instance_id]);
