@@ -26,13 +26,13 @@ import {
 } from '../mock/case';
 
 const IS_MOCK_LIST: string[] = [
-  // 'createCase',
-  // 'getWorkflowDefinitions',
+  'createCase',
+  'getWorkflowDefinitions',
   // 'queryCaseList',
   // 'queryCaseDetail',
-  // 'getWorkflowList',
-  // 'caseStream',
-  // 'uploadDocument',
+  'getWorkflowList',
+  'caseStream',
+  'uploadDocument',
 ];
 
 const CaseApi = {
@@ -341,10 +341,8 @@ export const removeDocument = async (caseId: string, documentId: string) => {
 
 export const updateMultipleProfileFields = async (
   caseId: string,
-  params: {
-    fieldUpdates: Record<string, string>;
-  }
-) => {
+  params: Record<string, string>
+): Promise<{ successfulResults: any[] }> => {
   return ApiRequest.put(
     `${baseUrl}${CaseApi.profileFields.replace(':caseId', caseId)}`,
     params
