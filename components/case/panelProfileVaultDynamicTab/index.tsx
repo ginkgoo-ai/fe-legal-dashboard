@@ -213,7 +213,7 @@ const DynamicForm = ({ label, originalKey, config, caseId, data }: DynamicFormPr
   const [openAccordion, setOpenAccordion] = useState<string[]>([]);
   const { fieldSchema } = useProfileStore();
   const { emit } = useEventManager('ginkgoo-message', () => {});
-
+  console.log(data);
   useEffect(() => {
     if (editMode) {
       const keys = Object.values(config.fields).map(getAllFormKeys).flat();
