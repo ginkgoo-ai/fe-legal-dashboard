@@ -164,6 +164,9 @@ const getDefaultArrayItemBySchema = (
   parentKey: string,
   formKey: string
 ): any => {
+  if (!config) {
+    return null;
+  }
   if (config.type === 'string') {
     return {
       type: 'string',
@@ -189,18 +192,17 @@ const getDefaultArrayItemBySchema = (
       }, {}),
     };
   }
-  // if (config.type === 'array') {
-  //   return {
-  //     type: 'array',
-  //     items: [],
-  //     accordionKey: `${parentKey}.${formKey}`,
-  //     label: camelToCapitalizedWords(formKey),
-  //     items: [
-  //       getDefaultArrayItemBySchema(config.items, `${parentKey}.${formKey}`, 'item')
-  //     ]
-  //   };
-  // }
-  throw new Error(`Unsupported type: ${config.type}`);
+  if (config.type === 'array') {
+    return {
+      type: 'array',
+      accordionKey: `${parentKey}.${formKey}`,
+      label: camelToCapitalizedWords(formKey),
+      items: [
+        getDefaultArrayItemBySchema(config.items, `${parentKey}.${formKey}`, 'item'),
+      ],
+    };
+  }
+  throw new Error(`Unsupported type: ${formKey} ${config.type}`);
 };
 
 const DynamicForm = ({ label, originalKey, config, caseId, data }: DynamicFormProps) => {
@@ -220,7 +222,7 @@ const DynamicForm = ({ label, originalKey, config, caseId, data }: DynamicFormPr
 
   const formSchema = generateDynamicSchema(config, originalKey);
   type FormValues = z.infer<typeof formSchema>;
-  console.log(data);
+  console.log(formSchema);
   const form = useForm<FormValues>({
     defaultValues: {
       [originalKey]: data,
@@ -234,6 +236,110 @@ const DynamicForm = ({ label, originalKey, config, caseId, data }: DynamicFormPr
         return [...prev, key];
       }
     });
+  };
+
+  const RenderArrayField = (name: string, fieldConfig: any, level: number) => {
+    const { fields, append, remove } = useFieldArray({
+      control: form.control,
+      name,
+    });
+    const [loading, setLoading] = useState(false);
+    const handleAddControl = async (formKey: string, existedFields: any[]) => {
+      const hasSchema = fieldSchema.has(`${caseId}-${formKey}`);
+      let newSchema: Record<string, any> = {};
+      if (!hasSchema) {
+        setLoading(true);
+        newSchema = await getFieldSchema(caseId!, formKey);
+        setLoading(false);
+        fieldSchema.set(`${caseId}-${formKey}`, newSchema);
+      } else {
+        newSchema = fieldSchema.get(`${caseId}-${formKey}`);
+      }
+      const newField = getDefaultArrayItemBySchema(
+        newSchema.fieldDefinition.items,
+        formKey,
+        `${existedFields.length}`
+      );
+      const defaultValue = getDefaultValues(newField);
+      append(defaultValue);
+      toggleAccordion(newField.accordionKey);
+    };
+
+    return (
+      <AccordionItem
+        value={name}
+        className="border-dashed border-[#D8DFF5] border-b last:border-0"
+        key={name}
+      >
+        <AccordionTrigger className="pl-4" onClick={() => toggleAccordion(name)}>
+          {fieldConfig.label}
+        </AccordionTrigger>
+        <AccordionContent>
+          <div
+            className="flex flex-col gap-y-4"
+            style={{
+              paddingLeft: (level + 1) * 16 + 'px',
+            }}
+          >
+            <div>
+              {fields.map((fieldValue: any, index: number) => {
+                const _schema = fieldSchema.get(`${caseId}-${name}`);
+                let fieldSchemaItem: ReturnType<typeof getDefaultArrayItemBySchema>;
+
+                if (!_schema) {
+                  fieldSchemaItem = genenrateFormConfig(
+                    `${name}.${index}`,
+                    `${index}`,
+                    fieldValue
+                  );
+                } else {
+                  fieldSchemaItem = getDefaultArrayItemBySchema(
+                    _schema.fieldDefinition.items,
+                    name,
+                    `${index}`
+                  );
+                }
+
+                const uuid = window.crypto.randomUUID();
+                return (
+                  <div
+                    key={uuid}
+                    className="border-dashed border-[#D8DFF5] border-b last:border-0"
+                  >
+                    {RenderField(
+                      `${name}.${index}`,
+                      {
+                        ...fieldSchemaItem,
+                        allowRemove: true,
+                        removeEvent: () => remove(index),
+                      },
+                      level + 1
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+            {editMode && (
+              <Button
+                variant={'outline'}
+                size="default"
+                className="text-primary w-fit bg-white"
+                type="button"
+                onClick={() => handleAddControl(name, fields)}
+                disabled={loading}
+              >
+                {loading ? (
+                  <Loader2Icon className="mr-2 animate-spin" />
+                ) : (
+                  <IconPlus className="mr-2" />
+                )}
+                Add Another {camelToCapitalizedWords(fieldConfig.label)}
+              </Button>
+            )}
+          </div>
+        </AccordionContent>
+      </AccordionItem>
+    );
   };
 
   /**
@@ -309,7 +415,7 @@ const DynamicForm = ({ label, originalKey, config, caseId, data }: DynamicFormPr
           value={name}
           className={cn(
             'border-dashed border-[#D8DFF5] border-b',
-            allowRemove ? 'group/object' : ''
+            allowRemove && editMode ? 'group/object' : ''
           )}
           key={name}
           data-value={name}
@@ -317,7 +423,7 @@ const DynamicForm = ({ label, originalKey, config, caseId, data }: DynamicFormPr
           <AccordionTrigger className="pl-4" onClick={() => toggleAccordion(name)}>
             <div className="flex items-center gap-8 h-6">
               {fieldConfig.label}
-              {allowRemove && (
+              {allowRemove && editMode && (
                 <span
                   className={cn(
                     buttonVariants({ variant: 'ghost', size: 'icon' }),
@@ -354,96 +460,7 @@ const DynamicForm = ({ label, originalKey, config, caseId, data }: DynamicFormPr
       );
     }
     if (fieldConfig.type === 'array') {
-      const { fields, append, remove } = useFieldArray({
-        control: form.control,
-        name,
-      });
-      const [loading, setLoading] = useState(false);
-
-      const handleAddControl = async (formKey: string, existedFields: any[]) => {
-        const hasSchema = fieldSchema.has(`${caseId}-${formKey}`);
-        let newSchema: Record<string, any> = {};
-        if (!hasSchema) {
-          setLoading(true);
-          newSchema = await getFieldSchema(caseId!, formKey);
-          setLoading(false);
-          fieldSchema.set(`${caseId}-${formKey}`, newSchema);
-        } else {
-          newSchema = fieldSchema.get(`${caseId}-${formKey}`);
-        }
-        const newField = getDefaultArrayItemBySchema(
-          newSchema.fieldDefinition.items,
-          formKey,
-          `${existedFields.length}`
-        );
-        const defaultValue = getDefaultValues(newField);
-        append(defaultValue);
-        toggleAccordion(newField.accordionKey);
-      };
-
-      return (
-        <AccordionItem
-          value={name}
-          className="border-dashed border-[#D8DFF5] border-b last:border-0"
-          key={name}
-        >
-          <AccordionTrigger className="pl-4" onClick={() => toggleAccordion(name)}>
-            {fieldConfig.label}
-          </AccordionTrigger>
-          <AccordionContent>
-            <div
-              className="flex flex-col gap-y-4"
-              style={{
-                paddingLeft: (level + 1) * 16 + 'px',
-              }}
-            >
-              <div>
-                {fields.map((_: any, index: number) => {
-                  const fieldSchemaItem = getDefaultArrayItemBySchema(
-                    fieldSchema.get(`${caseId}-${name}`).fieldDefinition.items,
-                    name,
-                    `${index}`
-                  );
-                  const uuid = window.crypto.randomUUID();
-                  return (
-                    <div
-                      key={uuid}
-                      className="border-dashed border-[#D8DFF5] border-b last:border-0"
-                    >
-                      {RenderField(
-                        `${name}.${index}`,
-                        {
-                          ...fieldSchemaItem,
-                          allowRemove: true,
-                          removeEvent: () => remove(index),
-                        },
-                        level + 1
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-              {editMode && (
-                <Button
-                  variant={'outline'}
-                  size="default"
-                  className="text-primary w-fit bg-white"
-                  type="button"
-                  onClick={() => handleAddControl(name, fields)}
-                  disabled={loading}
-                >
-                  {loading ? (
-                    <Loader2Icon className="mr-2 animate-spin" />
-                  ) : (
-                    <IconPlus className="mr-2" />
-                  )}
-                  Add Another {camelToCapitalizedWords(fieldConfig.label)}
-                </Button>
-              )}
-            </div>
-          </AccordionContent>
-        </AccordionItem>
-      );
+      return <>{RenderArrayField(name, fieldConfig, level)}</>;
     }
     return null;
   };
