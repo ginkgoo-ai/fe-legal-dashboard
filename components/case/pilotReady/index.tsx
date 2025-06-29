@@ -1,7 +1,7 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
 import { IconMagic } from '@/components/ui/icon';
+import { Button } from 'antd';
 import { memo, MouseEventHandler } from 'react';
 
 interface PilotReadyProps {
@@ -26,8 +26,7 @@ function PurePilotReady(props: PilotReadyProps) {
           </div>
         </div>
         <Button
-          variant="ghost"
-          className="border border-[#D8DFF5] border-dashed h-11 bg-white"
+          // className="border border-[#D8DFF5] border-dashed h-11 bg-white"
           onClick={onBtnStartClick}
         >
           <IconMagic size={24} />

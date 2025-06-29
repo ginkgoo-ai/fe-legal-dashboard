@@ -1,6 +1,5 @@
 'use client';
 
-import { ModalInstallExtension } from '@/components/case/modalInstallExtension';
 import { ModalNewWorkflow } from '@/components/case/modalNewWorkflow';
 import { PanelPilot } from '@/components/case/panelPilot';
 import { PanelProfileVault } from '@/components/case/panelProfileVault';
@@ -65,16 +64,12 @@ function CaseDetailContent() {
   const [sizeReference, setSizeReference] = useState<number>(0);
   const [sizeProfileVault, setSizeProfileVault] = useState<number>(0);
   const [sizePilot, setSizePilot] = useState<number>(0);
-  const [isShowPilot, setShowPilot] = useState<boolean>(false);
+  const [isShowPilot, setShowPilot] = useState<boolean>(true);
 
   const [workflowDefinitionId, setWorkflowDefinitionId] = useState<string>('');
   const [pilotInfoCurrent, setPilotInfoCurrent] = useState<IPilotType | null>(null);
   const [pilotList, setPilotList] = useStateCallback<IPilotType[]>([]);
   const [isModalNewWorkflowOpen, setModalNewWorkflowOpen] = useState<boolean>(false);
-  const [isModalInstallExtensionOpen, setModalInstallExtensionOpen] =
-    useState<boolean>(false);
-  // const [pilotInfo, setPilotInfo] = useState<IPilotType | null>(null);
-  // const [stepListItems, setStepListItems] = useState<IWorkflowStepType[]>([]);
 
   const { setCaseInfo, caseInfo } = useCaseStore();
   const { userInfo } = useUserStore();
@@ -83,10 +78,6 @@ function CaseDetailContent() {
   const isFoldReference = useMemo(() => {
     return sizeReference <= PANEL_SIZE_LIMIT;
   }, [sizeReference]);
-
-  const isFoldPilot = useMemo(() => {
-    return sizePilot <= PANEL_SIZE_LIMIT;
-  }, [sizePilot]);
 
   const lockId = 'pilot-workflow-list';
 
@@ -118,7 +109,6 @@ function CaseDetailContent() {
         }
 
         if (!!workflowIdMsg) {
-          setShowPilot(true);
           setPilotInfoCurrent(pilotInfoMsg);
         }
 
@@ -301,9 +291,9 @@ function CaseDetailContent() {
   };
 
   const init = async () => {
-    SIZE_REFERENCE_DEFAULT.current = window.innerWidth * 0.2;
-    SIZE_PROFILEVAULT_DEFAULT.current = window.innerWidth * 0.6;
-    SIZE_PILOT_DEFAULT.current = window.innerWidth * 0.2;
+    SIZE_REFERENCE_DEFAULT.current = SIZE_REFERENCE_MIN;
+    SIZE_PROFILEVAULT_DEFAULT.current = window.innerWidth * 0.7;
+    SIZE_PILOT_DEFAULT.current = window.innerWidth * 0.3 - SIZE_REFERENCE_MIN;
 
     setSizeReference(SIZE_REFERENCE_DEFAULT.current);
     setSizeProfileVault(SIZE_PROFILEVAULT_DEFAULT.current);
@@ -452,33 +442,10 @@ function CaseDetailContent() {
     }, 60);
   };
 
-  const handleBtnPanelRightClick = () => {
-    let sizePilotTmp = 0;
-    if (sizePilot > SIZE_PILOT_MIN) {
-      sizePilotTmp = SIZE_PILOT_MIN;
-    } else {
-      sizePilotTmp = SIZE_PILOT_DEFAULT.current;
-    }
-
-    setTransitionAll(true);
-    setTimeout(() => {
-      setSizePilot(sizePilotTmp);
-      setSizeProfileVault(window.innerWidth - sizeReferenceRef.current - sizePilotTmp);
-
-      setTimeout(() => {
-        setTransitionAll(false);
-      }, 200);
-    }, 60);
-  };
-
   const handleWindowResize = () => {
     setSizeProfileVault(
       window.innerWidth - sizeReferenceRef.current - sizePilotRef.current
     );
-  };
-
-  const handleShowInstallExtension = () => {
-    setModalInstallExtensionOpen(true);
   };
 
   const handleShowNewWorkflow = () => {
@@ -591,7 +558,7 @@ function CaseDetailContent() {
         </div>
       </div>
       {/* max-w-[var(--width-max)] px-[var(--width-padding)] */}
-      <div className="flex h-0 w-full flex-1 flex-col px-6 py-6">
+      <div className="flex h-0 w-full flex-1 flex-col px-4 py-6">
         {sizeReference && sizeProfileVault && sizePilot ? (
           <Splitter
             lazy={false}
@@ -630,8 +597,6 @@ function CaseDetailContent() {
                 caseInfo={caseInfo}
                 pilotInfoCurrent={pilotInfoCurrent}
                 isFold={false}
-                onShowInstallExtension={handleShowInstallExtension}
-                onShowNewWorkflow={handleShowNewWorkflow}
               />
             </Splitter.Panel>
             {/* Pilot */}
@@ -648,9 +613,8 @@ function CaseDetailContent() {
                   caseInfo={caseInfo}
                   pilotInfoCurrent={pilotInfoCurrent}
                   pilotList={pilotList}
-                  isFold={isFoldPilot}
-                  onBtnPanelRightClick={handleBtnPanelRightClick}
                   onQueryWorkflowDetail={handleQueryWorkflowDetail}
+                  onShowNewWorkflow={handleShowNewWorkflow}
                 />
               </Splitter.Panel>
             ) : null}
@@ -658,11 +622,6 @@ function CaseDetailContent() {
         ) : null}
       </div>
       {/* isModalInstallExtension isModalNewWorkflow */}
-      {/* Modal */}
-      <ModalInstallExtension
-        isOpen={isModalInstallExtensionOpen}
-        onOpenUpdate={setModalInstallExtensionOpen}
-      />
       <ModalNewWorkflow
         isOpen={isModalNewWorkflowOpen}
         pageTabInfo={pageTabInfo}

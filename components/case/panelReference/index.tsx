@@ -207,7 +207,7 @@ function PurePanelReference(props: PanelReferenceProps) {
           </div>
         ) : (
           <div className="w-full h-full flex flex-col justify-center items-center">
-            <Spin tip="Loading" size="small">
+            <Spin tip={isFold ? '' : 'Loading'} size="small">
               <div className="w-20 h-20"></div>
             </Spin>
           </div>

@@ -15,19 +15,17 @@ export default function RootLayout({
   const [systemTheme, setSystemTheme] = useState<'light' | 'dark'>('light');
 
   useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    setSystemTheme(mediaQuery.matches ? 'dark' : 'light');
-
-    const handler = (e: MediaQueryListEvent) => {
-      setSystemTheme(e.matches ? 'dark' : 'light');
-    };
-
-    mediaQuery.addEventListener('change', handler);
-    return () => mediaQuery.removeEventListener('change', handler);
+    // const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    // setSystemTheme(mediaQuery.matches ? 'dark' : 'light');
+    // const handler = (e: MediaQueryListEvent) => {
+    //   setSystemTheme(e.matches ? 'dark' : 'light');
+    // };
+    // mediaQuery.addEventListener('change', handler);
+    // return () => mediaQuery.removeEventListener('change', handler);
   }, []);
 
-  const isDarkMode =
-    nextTheme === 'dark' || (nextTheme === 'system' && systemTheme === 'dark');
+  const isDarkMode = false;
+  // nextTheme === 'dark' || (nextTheme === 'system' && systemTheme === 'dark');
 
   return (
     <ConfigProvider
@@ -61,7 +59,8 @@ export default function RootLayout({
         },
       }}
     >
-      <ThemeProvider defaultTheme="system" storageKey="legal|theme">
+      {/* defaultTheme="system" */}
+      <ThemeProvider defaultTheme="light" storageKey="legal|theme">
         <Header className="fixed left-0 top-0 z-10" />
         <main className="flex h-0 w-[100vw] flex-1 flex-col items-center overflow-y-auto pt-16">
           {children}

@@ -57,7 +57,7 @@ const User = () => {
 
   return (
     <DropdownMenu onOpenChange={handleOpenChange}>
-      <DropdownMenuTrigger className="hover:bg-background flex items-center gap-2 rounded-full px-3 py-2 focus-within:outline-0 lg:focus-within:outline-1">
+      <DropdownMenuTrigger className="hover:bg-background flex items-center gap-2 rounded-full pl-3 py-2 focus-within:outline-0 lg:focus-within:outline-1">
         <Avatar className="size-6">
           <AvatarImage src={userInfo?.picture ?? defaultAvatar} />
           <AvatarFallback>{userInfo?.fullname?.charAt(0)}</AvatarFallback>

@@ -2,15 +2,12 @@
 
 import { PanelContainer } from '@/components/case/panelContainer';
 import { PanelProfileVaultOverview } from '@/components/case/panelProfileVaultOverview';
-import { Button, buttonVariants } from '@/components/ui/button';
-import { IconExtensionStart, IconExtensionStop } from '@/components/ui/icon';
+import { buttonVariants } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { camelToCapitalizedWords, cn } from '@/lib/utils';
 import { getMissingFieldEmailTemplate } from '@/service/api';
-import { useExtensionsStore } from '@/store/extensionsStore';
 import { ICaseItemType } from '@/types/case';
-import { IPilotType, PilotStatusEnum } from '@/types/casePilot';
-import { Loader2Icon } from 'lucide-react';
+import { IPilotType } from '@/types/casePilot';
 import Image from 'next/image';
 import { memo, useEffect, useState } from 'react';
 import { PanelProfileVaultDynamicTab } from '../panelProfileVaultDynamicTab';
@@ -20,29 +17,13 @@ interface PanelProfileVaultProps {
   caseInfo: ICaseItemType | null;
   pilotInfoCurrent: IPilotType | null;
   isFold: boolean;
-  onShowInstallExtension: () => void;
-  onShowNewWorkflow: () => void;
 }
 
 function PurePanelProfileVault(props: PanelProfileVaultProps) {
-  const {
-    caseInfo = null,
-    pilotInfoCurrent = null,
-    isFold,
-    onShowInstallExtension,
-    onShowNewWorkflow,
-  } = props;
+  const { caseInfo = null, pilotInfoCurrent = null, isFold } = props;
 
-  const [isLoadingExtensionStop, setLoadingExtensionStop] = useState<boolean>(false);
   const [missingFieldsEmail, setMissingFieldsEmail] = useState<string>('');
   const [tabList, setTabList] = useState<any[]>([]);
-  const { extensionsInfo } = useExtensionsStore();
-
-  useEffect(() => {
-    if (!!pilotInfoCurrent?.pilotWorkflowInfo?.workflow_instance_id) {
-      setLoadingExtensionStop(false);
-    }
-  }, [pilotInfoCurrent?.pilotWorkflowInfo?.workflow_instance_id]);
 
   useEffect(() => {
     if (caseInfo?.profileData) {
@@ -63,23 +44,6 @@ function PurePanelProfileVault(props: PanelProfileVaultProps) {
       getMissingFieldsEmail();
     }
   }, [caseInfo]);
-
-  const handleBtnExtensionStartClick = () => {
-    if (!extensionsInfo?.version) {
-      onShowInstallExtension?.();
-      return;
-    }
-
-    onShowNewWorkflow?.();
-  };
-
-  const handleBtnExtensionStopClick = () => {
-    setLoadingExtensionStop(true);
-    window.postMessage({
-      type: 'ginkgoo-page-all-pilot-stop',
-      workflowId: pilotInfoCurrent?.pilotWorkflowInfo?.workflow_instance_id,
-    });
-  };
 
   const getMissingFieldsEmail = async () => {
     try {
@@ -108,7 +72,7 @@ function PurePanelProfileVault(props: PanelProfileVaultProps) {
       showTitle={!isFold}
       renderTitleExtend={() => {
         return (
-          <div className="mt-2 flex flex-row items-center justify-between gap-2.5">
+          <div className="flex flex-row items-center justify-between gap-2.5">
             <PanelProfileVaultRtxDialog content={missingFieldsEmail}>
               <div
                 className={cn(
@@ -119,33 +83,6 @@ function PurePanelProfileVault(props: PanelProfileVaultProps) {
                 <span className="font-bold">Draft email</span>
               </div>
             </PanelProfileVaultRtxDialog>
-            {!pilotInfoCurrent ||
-            pilotInfoCurrent?.pilotStatus === PilotStatusEnum.HOLD ? (
-              <Button
-                variant="default"
-                color="primary"
-                className="h-9 flex-1"
-                onClick={handleBtnExtensionStartClick}
-              >
-                <IconExtensionStart />
-                <span className="font-bold">Start auto-fill</span>
-              </Button>
-            ) : (
-              <Button
-                variant="default"
-                color="primary"
-                className="h-9 flex-1"
-                disabled={isLoadingExtensionStop}
-                onClick={handleBtnExtensionStopClick}
-              >
-                {isLoadingExtensionStop ? (
-                  <Loader2Icon className="animate-spin" />
-                ) : (
-                  <IconExtensionStop />
-                )}
-                <span className="font-bold">Stop auto-fill</span>
-              </Button>
-            )}
           </div>
         );
       }}

@@ -1,16 +1,24 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
 import { IconExtension, IconInfo } from '@/components/ui/icon';
 import GlobalManager from '@/customManager/GlobalManager';
 import UtilsManager from '@/customManager/UtilsManager';
-import { memo } from 'react';
+import { Button } from 'antd';
+import { memo, useState } from 'react';
 
 function PurePilotNotInstall() {
+  const [isLoadingInstall, setLoadingInstall] = useState<boolean>(false);
+
   const handleBtnInstallClick = () => {
+    setLoadingInstall(true);
+
     UtilsManager.clickTagA({
       url: GlobalManager.urlInstallExtension,
     });
+
+    setTimeout(() => {
+      setLoadingInstall(false);
+    }, 2000);
   };
 
   return (
@@ -28,8 +36,8 @@ function PurePilotNotInstall() {
           </div>
         </div>
         <Button
-          variant="ghost"
-          className="border border-[#D8DFF5] border-dashed h-11 bg-white"
+          // className="border border-[#D8DFF5] border-dashed h-11 bg-white"
+          loading={isLoadingInstall}
           onClick={handleBtnInstallClick}
         >
           <IconExtension size={24} />
