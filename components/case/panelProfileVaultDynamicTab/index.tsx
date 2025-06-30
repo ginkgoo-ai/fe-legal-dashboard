@@ -158,6 +158,7 @@ const genenrateFormConfig = (formKey: string, label: string, data: any): any => 
 const getDefaultValues = (config: any): any => {
   if (config.type === 'string') return ' ';
   if (config.type === 'number') return 0;
+  if (config.type === 'boolean') return false;
   if (config.type === 'object') {
     const defaults: Record<string, any> = {};
     for (const [key, value] of Object.entries(config.fields)) {
@@ -180,6 +181,22 @@ const getDefaultArrayItemBySchema = (
   if (config.type === 'string') {
     return {
       type: 'string',
+      label: camelToCapitalizedWords(formKey),
+      formKey: `${parentKey}.${formKey}`,
+      defaultValues: '',
+    };
+  }
+  if (config.type === 'number') {
+    return {
+      type: 'number',
+      label: camelToCapitalizedWords(formKey),
+      formKey: `${parentKey}.${formKey}`,
+      defaultValues: '',
+    };
+  }
+  if (config.type === 'boolean') {
+    return {
+      type: 'boolean',
       label: camelToCapitalizedWords(formKey),
       formKey: `${parentKey}.${formKey}`,
       defaultValues: '',

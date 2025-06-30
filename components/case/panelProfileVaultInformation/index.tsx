@@ -1,12 +1,5 @@
 import { Button } from '@/components/ui/button';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
 import { IconEdit } from '@/components/ui/icon';
 import { Input } from '@/components/ui/input';
 import { useEventManager } from '@/hooks/useEventManager';
@@ -175,7 +168,6 @@ const PurePanelProfileVaultInformationItem = ({
                           {...formField}
                         />
                       </FormControl>
-                      <FormMessage />
                     </FormItem>
                   )}
                 />
