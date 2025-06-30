@@ -25,15 +25,18 @@ import {
   mockWorkflowDefinitions,
 } from '../mock/case';
 
-const IS_MOCK_LIST: string[] = [
-  // 'createCase',
-  // 'getWorkflowDefinitions',
-  // 'queryCaseList',
-  // 'queryCaseDetail',
-  // 'getWorkflowList',
-  // 'caseStream',
-  // 'uploadDocument',
-];
+const IS_MOCK_LIST: string[] =
+  process.env.NODE_ENV === 'production'
+    ? []
+    : [
+        // 'createCase',
+        // 'getWorkflowDefinitions',
+        // 'queryCaseList',
+        // 'queryCaseDetail',
+        // 'getWorkflowList',
+        // 'caseStream',
+        // 'uploadDocument',
+      ];
 
 const CaseApi = {
   case: '/legalcase/cases',
@@ -149,7 +152,7 @@ export const getWorkflowDetail = async (
 
   if (IS_MOCK_LIST.includes('getWorkflowDetail')) {
     return new Promise(resolve => {
-      resolve(mockGetWorkflowDetail);
+      resolve(mockGetWorkflowDetail as IWorkflowType);
     });
   }
 

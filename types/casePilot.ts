@@ -41,6 +41,7 @@ export interface IPilotType {
   pilotLastMessage: string;
   pilotRepeatHash: string;
   pilotRepeatCurrent: number;
+  pilotThirdPartMethod: string;
   pilotThirdPartUrl: string;
   pilotCookie: string;
   pilotCsrfToken: string;
@@ -110,6 +111,20 @@ export interface IWorkflowStepDataFormDataType {
       name: string;
     };
     type?: string; // "interrupt";
+  };
+  _metadata?: {
+    id: string;
+    field_selector: string;
+    field_name: string;
+    field_type: string;
+    field_label: string;
+    required: boolean;
+    options: unknown[];
+    confidence: number;
+    reasoning: string;
+    needs_intervention: boolean;
+    has_valid_answer: boolean;
+    grouped_fields: unknown;
   };
 }
 
