@@ -70,6 +70,8 @@ function CaseDetailContent() {
   const [pilotInfoCurrent, setPilotInfoCurrent] = useState<IPilotType | null>(null);
   const [pilotList, setPilotList] = useStateCallback<IPilotType[]>([]);
   const [isModalNewWorkflowOpen, setModalNewWorkflowOpen] = useState<boolean>(false);
+  const [isLoadingQueryWorkflowList, setLoadingQueryWorkflowList] =
+    useState<boolean>(true);
 
   const { setCaseInfo, caseInfo } = useCaseStore();
   const { userInfo } = useUserStore();
@@ -278,6 +280,7 @@ function CaseDetailContent() {
         },
         () => {
           LockManager.releaseLock(lockId);
+          setLoadingQueryWorkflowList(false);
           cb?.();
         }
       );
@@ -609,6 +612,7 @@ function CaseDetailContent() {
                 })}
               >
                 <PanelPilot
+                  isLoadingQueryWorkflowList={isLoadingQueryWorkflowList}
                   pageTabInfo={pageTabInfo}
                   caseInfo={caseInfo}
                   pilotInfoCurrent={pilotInfoCurrent}

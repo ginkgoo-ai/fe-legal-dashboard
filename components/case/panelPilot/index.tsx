@@ -10,11 +10,12 @@ import { cn } from '@/lib/utils';
 import { useExtensionsStore } from '@/store/extensionsStore';
 import { ICaseItemType } from '@/types/case';
 import { IPilotType, PilotStatusEnum } from '@/types/casePilot';
-import { Alert } from 'antd';
+import { Alert, Spin } from 'antd';
 import { Loader2Icon } from 'lucide-react';
 import { memo, useEffect, useState } from 'react';
 
 interface PanelPanelPilotProps {
+  isLoadingQueryWorkflowList: boolean;
   pageTabInfo: Record<string, unknown>;
   caseInfo: ICaseItemType | null;
   pilotInfoCurrent: IPilotType | null;
@@ -25,6 +26,7 @@ interface PanelPanelPilotProps {
 
 function PurePanelPilot(props: PanelPanelPilotProps) {
   const {
+    isLoadingQueryWorkflowList,
     pageTabInfo,
     caseInfo,
     pilotInfoCurrent,
@@ -62,7 +64,6 @@ function PurePanelPilot(props: PanelPanelPilotProps) {
         return (
           !!extensionsInfo?.version && (
             <div className="flex flex-row items-center justify-between gap-2.5">
-              <div></div>
               {!pilotInfoCurrent ||
               pilotInfoCurrent?.pilotStatus === PilotStatusEnum.HOLD ? (
                 <Button
@@ -95,38 +96,46 @@ function PurePanelPilot(props: PanelPanelPilotProps) {
         );
       }}
     >
-      <div
-        className={cn('flex flex-col overflow-y-auto p-4 box-border flex-1 h-0 gap-3')}
-      >
+      <div className="box-border p-4">
         {extensionsInfo?.version ? (
-          pilotList?.length === 0 ? (
-            <>
-              {pilotInfoCurrent?.pilotStatus === PilotStatusEnum.HOLD &&
-              !!pilotInfoCurrent?.pilotLastMessage ? (
-                <Alert
-                  style={{ width: '100%' }}
-                  message={pilotInfoCurrent.pilotLastMessage}
-                  type="warning"
-                  showIcon
-                  closable
-                />
-              ) : null}
-              {pilotList.map((itemPilot, indexPilot) => {
-                return (
-                  <PilotWorkflow
-                    key={`pilot-item-${indexPilot}`}
-                    pageTabInfo={pageTabInfo}
-                    caseInfo={caseInfo}
-                    pilotInfo={itemPilot}
-                    pilotInfoCurrent={pilotInfoCurrent}
-                    indexPilot={indexPilot}
-                    onQueryWorkflowDetail={onQueryWorkflowDetail}
-                  />
-                );
-              })}
-            </>
+          isLoadingQueryWorkflowList ? (
+            <Spin>
+              <div className="w-full h-40"></div>
+            </Spin>
           ) : (
-            <PilotReady onBtnStartClick={handleBtnExtensionStartClick} />
+            <>
+              {pilotList?.length === 0 ? (
+                <PilotReady onBtnStartClick={handleBtnExtensionStartClick} />
+              ) : (
+                <div
+                  className={cn('box-border flex flex-1 flex-col gap-3 overflow-y-auto')}
+                >
+                  {pilotInfoCurrent?.pilotStatus === PilotStatusEnum.HOLD &&
+                  !!pilotInfoCurrent?.pilotLastMessage ? (
+                    <Alert
+                      style={{ width: '100%' }}
+                      message={pilotInfoCurrent.pilotLastMessage}
+                      type="warning"
+                      showIcon
+                      closable
+                    />
+                  ) : null}
+                  {pilotList.map((itemPilot, indexPilot) => {
+                    return (
+                      <PilotWorkflow
+                        key={`pilot-item-${indexPilot}`}
+                        pageTabInfo={pageTabInfo}
+                        caseInfo={caseInfo}
+                        pilotInfo={itemPilot}
+                        pilotInfoCurrent={pilotInfoCurrent}
+                        indexPilot={indexPilot}
+                        onQueryWorkflowDetail={onQueryWorkflowDetail}
+                      />
+                    );
+                  })}
+                </div>
+              )}
+            </>
           )
         ) : (
           <PilotNotInstall />

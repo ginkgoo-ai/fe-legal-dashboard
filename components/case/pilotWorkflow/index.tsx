@@ -63,19 +63,19 @@ function PurePilotWorkflow(props: PilotWorkflowProps) {
     setDisableBtnDownload(!pilotInfo.pilotWorkflowInfo?.progress_file_id);
   }, [pilotInfo.pilotWorkflowInfo?.progress_file_id]);
 
-  useEffect(() => {
-    if (isCurrentPilot && pilotInfo?.pilotStatus !== PilotStatusEnum.HOLD) {
-      if (isFoldInit.current) {
-        isFoldInit.current = false;
-        setFold(false);
-        window.document
-          .getElementById(`workflow-item-${indexPilot}`)
-          ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    } else {
-      isFoldInit.current = true;
-    }
-  }, [pilotInfo, isCurrentPilot, indexPilot]);
+  // useEffect(() => {
+  //   if (isCurrentPilot && pilotInfo?.pilotStatus !== PilotStatusEnum.HOLD) {
+  //     if (isFoldInit.current) {
+  //       isFoldInit.current = false;
+  //       setFold(false);
+  //       window.document
+  //         .getElementById(`workflow-item-${indexPilot}`)
+  //         ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  //     }
+  //   } else {
+  //     isFoldInit.current = true;
+  //   }
+  // }, [pilotInfo, isCurrentPilot, indexPilot]);
 
   const handleHeaderClick = () => {
     if (isFold) {

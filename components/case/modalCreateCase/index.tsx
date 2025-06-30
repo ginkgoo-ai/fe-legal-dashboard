@@ -4,7 +4,7 @@ import { FileUpload } from '@/components/common/form/upload/fileUpload';
 import { ItemFile } from '@/components/common/itemFile';
 import {
   IconFormItemClientName,
-  IconFormItemLayer,
+  IconFormItemLawyer,
   IconFormItemVisaType,
 } from '@/components/ui/icon';
 import { MESSAGE } from '@/config/message';
@@ -30,7 +30,7 @@ function PureModalCreateCase(props: ModalCreateCaseProps) {
   const router = useRouter();
 
   const [arrVisaTypeOptions, setArrVisaTypeOptions] = useState<any[]>([]);
-  const [arrLayerTypeOptions, setArrLayerTypeOptions] = useState<any[]>([]);
+  const [arrLawyerTypeOptions, setArrLawyerTypeOptions] = useState<any[]>([]);
 
   const [isLoadingSubmit, setLoadingSubmit] = useState<boolean>(false);
   const [fileList, setFileList] = useState<IFileItemType[]>([]);
@@ -46,7 +46,7 @@ function PureModalCreateCase(props: ModalCreateCaseProps) {
           label: 'Skilled Worker Visa',
         },
       ]);
-      setArrLayerTypeOptions([
+      setArrLawyerTypeOptions([
         {
           value: 'self',
           label: userInfo?.name,
@@ -149,7 +149,7 @@ function PureModalCreateCase(props: ModalCreateCaseProps) {
           wrapperCol={{ span: 24 }}
           initialValues={{
             visaType: 'SKILLED_WORKER',
-            layer: 'self',
+            lawyer: 'self',
           }}
           requiredMark={false}
           onFinish={handleFormFinish}
@@ -183,17 +183,17 @@ function PureModalCreateCase(props: ModalCreateCaseProps) {
           </Form.Item>
 
           <Form.Item
-            label="Layer"
-            name="layer"
-            rules={[{ required: true, message: 'Please select layer' }]}
+            label="Lawyer"
+            name="lawyer"
+            rules={[{ required: true, message: 'Please select lawyer' }]}
           >
             <Select
-              prefix={<IconFormItemLayer className="ml-0 mr-1 box-border" size={20} />}
+              prefix={<IconFormItemLawyer className="ml-0 mr-1 box-border" size={20} />}
               suffixIcon={
                 <ChevronDown className="mr-0 box-border" size={20} color="#52525B" />
               }
-              placeholder="Select layer type"
-              options={arrLayerTypeOptions}
+              placeholder="Select lawyer type"
+              options={arrLawyerTypeOptions}
             />
           </Form.Item>
 
