@@ -74,6 +74,9 @@ const rebuildFormData = (
   data: Record<string, any>
 ): any => {
   const objectKey = `${parentKey ? parentKey + '.' : ''}${formKey}`;
+  if (isString(data)) {
+    return { [objectKey]: data.trim() };
+  }
   if (isString(data) || isNumber(data) || isBoolean(data)) {
     return { [objectKey]: data };
   }
@@ -99,6 +102,7 @@ const genenrateFormConfig = (formKey: string, label: string, data: any): any => 
       label,
       formKey,
       defaultValues: data,
+      needDummyData: !data,
     };
   }
   if (isNumber(data)) {
@@ -107,6 +111,7 @@ const genenrateFormConfig = (formKey: string, label: string, data: any): any => 
       label,
       formKey,
       defaultValues: data,
+      needDummyData: false,
     };
   }
   if (isBoolean(data)) {
@@ -115,6 +120,7 @@ const genenrateFormConfig = (formKey: string, label: string, data: any): any => 
       label,
       formKey,
       defaultValues: data,
+      needDummyData: false,
     };
   }
   if (isArray(data)) {
@@ -125,6 +131,7 @@ const genenrateFormConfig = (formKey: string, label: string, data: any): any => 
       items: data.map(_ =>
         genenrateFormConfig(formKey, camelToCapitalizedWords(formKey), _)
       ),
+      needDummyData: data.length === 0,
     };
   }
   if (isObject(data)) {
@@ -132,6 +139,7 @@ const genenrateFormConfig = (formKey: string, label: string, data: any): any => 
       type: 'object',
       label,
       accordionKey: formKey,
+      needDummyData: false,
       fields: Object.keys(data).reduce((prev, curr) => {
         return {
           ...prev,
@@ -213,7 +221,7 @@ const DynamicForm = ({ label, originalKey, config, caseId, data }: DynamicFormPr
   const [openAccordion, setOpenAccordion] = useState<string[]>([]);
   const { fieldSchema } = useProfileStore();
   const { emit } = useEventManager('ginkgoo-message', () => {});
-  console.log(data);
+
   useEffect(() => {
     if (editMode) {
       const keys = Object.values(config.fields).map(getAllFormKeys).flat();
@@ -269,12 +277,14 @@ const DynamicForm = ({ label, originalKey, config, caseId, data }: DynamicFormPr
     };
 
     return (
-      <AccordionItem
-        value={name}
-        className="border-dashed border-[#D8DFF5] border-b last:border-0"
-        key={name}
-      >
-        <AccordionTrigger className="pl-4" onClick={() => toggleAccordion(name)}>
+      <AccordionItem value={name} className="border-dashed border-[#D8DFF5]" key={name}>
+        <AccordionTrigger
+          className="pl-4 relative [&[data-state=open]>svg.prefix-icon]:rotate-0 "
+          onClick={() => toggleAccordion(name)}
+        >
+          {fieldConfig.needDummyData && (
+            <IconIssueCheck className="absolute -left-2 prefix-icon" />
+          )}
           {fieldConfig.label}
         </AccordionTrigger>
         <AccordionContent>
@@ -287,7 +297,7 @@ const DynamicForm = ({ label, originalKey, config, caseId, data }: DynamicFormPr
             <div>
               {fields.map((fieldValue: any, index: number) => {
                 const _schema = fieldSchema.get(`${caseId}-${name}`);
-                let fieldSchemaItem: ReturnType<typeof getDefaultArrayItemBySchema>;
+                let fieldSchemaItem: ReturnType<typeof genenrateFormConfig>;
 
                 if (!_schema) {
                   fieldSchemaItem = genenrateFormConfig(
@@ -305,10 +315,7 @@ const DynamicForm = ({ label, originalKey, config, caseId, data }: DynamicFormPr
 
                 const uuid = window.crypto.randomUUID();
                 return (
-                  <div
-                    key={uuid}
-                    className="border-dashed border-[#D8DFF5] border-b last:border-0"
-                  >
+                  <div key={uuid} className="border-dashed border-[#D8DFF5]">
                     {RenderField(
                       `${name}.${index}`,
                       {
@@ -361,7 +368,7 @@ const DynamicForm = ({ label, originalKey, config, caseId, data }: DynamicFormPr
     ) {
       return (
         <div className={cn('py-4 flex items-center relative pl-4 group/field')}>
-          <IconIssueCheck className="absolute -left-2" />
+          {fieldConfig.needDummyData && <IconIssueCheck className="absolute -left-2" />}
           <div className="text-[#98A1B7] pr-4 w-fit inline-flex items-center gap-1">
             {fieldConfig.label}
           </div>{' '}
@@ -417,7 +424,7 @@ const DynamicForm = ({ label, originalKey, config, caseId, data }: DynamicFormPr
         <AccordionItem
           value={name}
           className={cn(
-            'border-dashed border-[#D8DFF5] border-b',
+            'border-dashed border-[#D8DFF5]',
             allowRemove && editMode ? 'group/object' : ''
           )}
           key={name}
@@ -444,7 +451,7 @@ const DynamicForm = ({ label, originalKey, config, caseId, data }: DynamicFormPr
           </AccordionTrigger>
           <AccordionContent>
             <div
-              className="border-b border-dashed border-[#D8DFF5] last:border-0"
+              className=""
               style={{
                 paddingLeft: (level + 1.5) * 16 + 'px',
               }}
@@ -454,7 +461,7 @@ const DynamicForm = ({ label, originalKey, config, caseId, data }: DynamicFormPr
                 .map(key => (
                   <div
                     key={key}
-                    className="border-b border-dashed border-[#D8DFF5] last:border-0"
+                    className="border-dashed border-[#D8DFF5] border-b last:border-0"
                   >
                     {RenderField(`${name}.${key}`, fieldConfig.fields[key], level + 1)}
                   </div>

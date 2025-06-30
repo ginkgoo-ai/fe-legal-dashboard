@@ -199,11 +199,11 @@ export const PanelProfileVaultInformationChecklist = (
     <div>
       <h2 className="font-semibold text-base inline-flex items-center w-full gap-2 mb-2">
         <span className="w-fit tracking-wide">Missing Information</span>
-        {props.missingFieldsCount > 0 && (
+        {props.missingFieldsCount > 0 ? (
           <span className="block bg-red-500 rounded-sm h-5 text-white text-sm font-normal flex-none text-center min-w-5 px-1">
             {props.missingFieldsCount}
           </span>
-        )}
+        ) : null}
       </h2>
       <div className="flex flex-col gap-4">
         {Object.entries(props.missingFields ?? {})
