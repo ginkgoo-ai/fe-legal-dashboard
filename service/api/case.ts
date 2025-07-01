@@ -29,13 +29,13 @@ const IS_MOCK_LIST: string[] =
   process.env.NODE_ENV === 'production'
     ? []
     : [
-        'createCase',
-        'getWorkflowDefinitions',
+        // 'createCase',
+        // 'getWorkflowDefinitions',
         // 'queryCaseList',
         // 'queryCaseDetail',
-        'getWorkflowList',
-        'caseStream',
-        'uploadDocument',
+        // 'getWorkflowList',
+        // 'caseStream',
+        // 'uploadDocument',
       ];
 
 const CaseApi = {
