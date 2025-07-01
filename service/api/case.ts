@@ -345,7 +345,7 @@ export const removeDocument = async (caseId: string, documentId: string) => {
 export const updateMultipleProfileFields = async (
   caseId: string,
   params: Record<string, string>
-): Promise<{ successfulResults: any[] }> => {
+): Promise<{ successfulResults: any[]; failedResults: any[] }> => {
   return ApiRequest.put(
     `${baseUrl}${CaseApi.profileFields.replace(':caseId', caseId)}`,
     params
