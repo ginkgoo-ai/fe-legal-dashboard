@@ -158,9 +158,9 @@ export const PanelProfileVaultEditMissingFieldDialog = ({
                           {field.fieldType === 'boolean' ? (
                             <Checkbox
                               className="size-5"
-                              {...field}
-                              checked={field.value === true}
-                              onCheckedChange={checked => field.onChange(checked)}
+                              {...formField}
+                              checked={formField.value === true}
+                              onCheckedChange={checked => formField.onChange(checked)}
                             />
                           ) : (
                             <Input
