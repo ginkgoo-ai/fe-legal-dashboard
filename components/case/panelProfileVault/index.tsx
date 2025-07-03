@@ -45,8 +45,8 @@ function PurePanelProfileVault(props: PanelProfileVaultProps) {
   }, [pilotInfoCurrent?.pilotWorkflowInfo?.workflow_instance_id]);
 
   useEffect(() => {
-    if (caseInfo?.profileData) {
-      const list = getTabList(caseInfo.profileData);
+    if (caseInfo?.profileDummyData) {
+      const list = getTabList(caseInfo.profileDummyData);
       console.log(list);
       setTabList([
         {
@@ -92,9 +92,9 @@ function PurePanelProfileVault(props: PanelProfileVaultProps) {
     }
   };
 
-  const getTabList = (profileData: ICaseItemType['profileData']) => {
-    if (!profileData) return [];
-    return Object.keys(profileData)
+  const getTabList = (profileDummyData: ICaseItemType['profileDummyData']) => {
+    if (!profileDummyData) return [];
+    return Object.keys(profileDummyData)
       .map(key => ({
         value: key,
         label: camelToCapitalizedWords(key),
@@ -182,15 +182,10 @@ function PurePanelProfileVault(props: PanelProfileVaultProps) {
               .filter(tab => tab.value !== 'overview')
               .map(({ value, label }) => (
                 <TabsContent value={value} key={value}>
-                  {/* <PanelProfileVaultDynamicTab
-                    data={caseInfo?.profileData?.[value] as Record<string, unknown>}
-                    label={label}
-                    originalKey={value}
-                    caseId={caseInfo?.id}
-                  /> */}
                   <PanelProfileVaultTabContent
                     fieldKey={value}
-                    data={caseInfo?.profileData?.[value] as Record<string, any>}
+                    data={caseInfo?.profileDummyData?.[value] as Record<string, any>}
+                    caseId={caseInfo.id}
                   />
                 </TabsContent>
               ))}

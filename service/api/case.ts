@@ -345,7 +345,7 @@ export const removeDocument = async (caseId: string, documentId: string) => {
 
 export const updateMultipleProfileFields = async (
   caseId: string,
-  params: Record<string, string>
+  params: Record<string, any>
 ): Promise<{
   successfulResults: any[];
   failedResults: any[];
