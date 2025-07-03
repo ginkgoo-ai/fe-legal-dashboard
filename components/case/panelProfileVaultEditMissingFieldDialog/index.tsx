@@ -1,5 +1,4 @@
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import {
   Dialog,
   DialogContent,
@@ -7,18 +6,20 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
+import { Form } from '@/components/ui/form';
 import { IconLoader } from '@/components/ui/icon';
-import { Input } from '@/components/ui/input';
 import { useEventManager } from '@/hooks/useEventManager';
 import { camelToCapitalizedWords } from '@/lib';
 import { updateMultipleProfileFields } from '@/service/api';
+import { FieldDefinition, FormField } from '@/types/formEngine';
 import { cn } from '@/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useState } from 'react';
+import { isBoolean, isNumber, isPlainObject, isString } from 'lodash';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
+import { DynamicFormField } from '../../common/formEngine';
 
 type PurePanelProfileVaultEditMissingFieldDialogProps = {
   caseId: string;
@@ -32,24 +33,6 @@ type PurePanelProfileVaultEditMissingFieldDialogProps = {
 
 const encodeFieldPath = (path: string) => path.replaceAll('.', '_');
 const decodeFieldPath = (path: string) => path.replaceAll('_', '.');
-
-const getFormDefaultValues = (missingFields?: any[]) => {
-  const results = (missingFields ?? []).reduce(
-    (prev, curr) => {
-      let defaultValue: any;
-      if (curr.fieldType === 'string') {
-        defaultValue = '';
-      } else if (curr.fieldType === 'number') {
-        defaultValue = '';
-      } else if (curr.fieldType === 'boolean') {
-        defaultValue = false;
-      }
-      return { ...prev, [encodeFieldPath(curr.fieldPath)]: defaultValue };
-    },
-    {} as Record<string, string>
-  );
-  return results;
-};
 
 const getFormResolver = (missingFields?: any[]) =>
   zodResolver(
@@ -67,6 +50,8 @@ const getFormResolver = (missingFields?: any[]) =>
               .min(0, `${curr.displayName} must be greater than or equal to 0`);
           } else if (curr.fieldType === 'boolean') {
             defaultValidator = z.boolean();
+          } else if (curr.fieldType === 'array') {
+            defaultValidator = z.array(z.any());
           }
           return {
             ...prev,
@@ -78,6 +63,67 @@ const getFormResolver = (missingFields?: any[]) =>
     )
   );
 
+const getFormDefaultValues = (records?: FormField[]) => {
+  const results = (records ?? []).map(record => {
+    const { fieldType, fieldPath, fieldDefinition } = record;
+    if (fieldType === 'string') {
+      return {
+        [encodeFieldPath(fieldPath)]: '',
+      };
+    }
+    if (fieldType === 'number') {
+      return {
+        [encodeFieldPath(fieldPath)]: 0,
+      };
+    }
+    if (fieldType === 'boolean') {
+      return {
+        [encodeFieldPath(fieldPath)]: false,
+      };
+    }
+    if (fieldType === 'object') {
+      return {
+        [encodeFieldPath(fieldPath)]: generateDefaultValue(fieldDefinition),
+      };
+    }
+    if (fieldType === 'array') {
+      return {
+        [encodeFieldPath(fieldPath)]: [],
+      };
+    }
+    throw new Error(`Unsupported field type: ${fieldType}`);
+  });
+  return results.reduce((prev, curr) => ({ ...prev, ...curr }), {});
+};
+
+const generateDefaultValue = (config: FieldDefinition): any => {
+  const { type, properties, items } = config;
+  if (type === 'string') {
+    return '';
+  }
+  if (type === 'number') {
+    return 0;
+  }
+  if (type === 'boolean') {
+    return false;
+  }
+  if (type === 'object') {
+    return Object.fromEntries(
+      Object.entries(properties ?? {}).map(([key, value]) => [
+        encodeFieldPath(key),
+        generateDefaultValue(value),
+      ])
+    );
+  }
+  if (type === 'array') {
+    if (items) {
+      return [generateDefaultValue(items)];
+    }
+    throw new Error(`Array type missing items`);
+  }
+  return null;
+};
+
 export const PanelProfileVaultEditMissingFieldDialog = ({
   caseId,
   visible,
@@ -87,9 +133,15 @@ export const PanelProfileVaultEditMissingFieldDialog = ({
   const [submitting, setSubmitting] = useState(false);
   const { emit } = useEventManager('ginkgoo-message', () => {});
   const form = useForm({
-    defaultValues: getFormDefaultValues(field?.value),
-    resolver: getFormResolver(field?.value),
+    defaultValues: {},
   });
+
+  useEffect(() => {
+    if (visible && field) {
+      const defaultValues = getFormDefaultValues(field?.value);
+      form.reset(defaultValues);
+    }
+  }, [field, form, visible]);
 
   const onSubmit = async (data: any) => {
     setSubmitting(true);
@@ -112,19 +164,48 @@ export const PanelProfileVaultEditMissingFieldDialog = ({
     }
   };
 
+  const recordValueReader = (value: any, keys: string[]) => {
+    return keys.reduce((acc, key) => acc[key], value);
+  };
+
+  const fillDummyData = (dummyData: any, rootFieldPath: string, formField?: any) => {
+    const { _f } = formField ?? {};
+    if (isPlainObject(_f?.value)) {
+      Object.entries(formField)
+        .filter(([key]) => key !== '_f')
+        .forEach(([_, value]) => {
+          fillDummyData(dummyData, rootFieldPath, value);
+        });
+      return;
+    }
+    if (isNumber(_f?.value) || isString(_f?.value) || isBoolean(_f?.value)) {
+      const key = _f.name.replace(`${rootFieldPath}.`, '');
+      form.setValue(
+        _f.name as never,
+        recordValueReader(dummyData, key.split('.')) as never
+      );
+    }
+  };
+
   const onFillWithDummyData = () => {
     if (!field) {
       return;
     }
-    (field.value ?? []).forEach(({ fieldPath, fieldType, dummyValue }) => {
-      const formName = encodeFieldPath(fieldPath);
-      const formValue = form.getValues(formName);
-      let hasValue = true;
-      if (['string', 'number'].includes(fieldType) && !formValue) {
-        hasValue = false;
+    (field.value ?? []).forEach(_field => {
+      const { dummyValue } = _field;
+      const value = form.getValues(_field.fieldPath as never);
+      if (isPlainObject(dummyValue)) {
+        fillDummyData(
+          dummyValue,
+          _field.fieldPath,
+          form.control._fields[_field.fieldPath as string]
+        );
       }
-      if (!hasValue) {
-        form.setValue(formName, dummyValue);
+      if (
+        (isBoolean(dummyValue) || isNumber(dummyValue) || isString(dummyValue)) &&
+        !value
+      ) {
+        form.setValue(_field.fieldPath as never, dummyValue as never);
       }
     });
   };
@@ -141,37 +222,23 @@ export const PanelProfileVaultEditMissingFieldDialog = ({
             {camelToCapitalizedWords(field?.key)}
           </DialogTitle>
         </DialogHeader>
-
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
-            <div className={cn('grid grid-cols-2 gap-x-4 gap-y-6 w-full mb-4')}>
-              {(field?.value ?? []).map(field => {
+            <div
+              className={cn(
+                'grid grid-cols-1 gap-x-4 gap-y-6 w-full mb-4 max-h-[80vh] overflow-y-auto px-1'
+              )}
+            >
+              {(field?.value ?? []).map(fieldConfig => {
                 return (
-                  <FormField
-                    control={form.control}
-                    name={encodeFieldPath(field.fieldPath)}
-                    key={field.fieldPath}
-                    render={({ field: formField }) => (
-                      <FormItem>
-                        <FormLabel>{field.displayName}</FormLabel>
-                        <FormControl>
-                          {field.fieldType === 'boolean' ? (
-                            <Checkbox
-                              className="size-5"
-                              {...formField}
-                              checked={formField.value === true}
-                              onCheckedChange={checked => formField.onChange(checked)}
-                            />
-                          ) : (
-                            <Input
-                              placeholder={`Enter ${field.displayName}`}
-                              {...formField}
-                            />
-                          )}
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
+                  <div className="border rounded-lg p-4" key={fieldConfig.fieldPath}>
+                    <DynamicFormField
+                      fieldPath={encodeFieldPath(fieldConfig.fieldPath)}
+                      displayName={fieldConfig.displayName}
+                      definition={fieldConfig.fieldDefinition}
+                      required={fieldConfig.required}
+                    />
+                  </div>
                 );
               })}
             </div>

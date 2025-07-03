@@ -13,8 +13,8 @@ import { IPilotType, PilotStatusEnum } from '@/types/casePilot';
 import { Loader2Icon } from 'lucide-react';
 import Image from 'next/image';
 import { memo, useEffect, useState } from 'react';
-import { PanelProfileVaultDynamicTab } from '../panelProfileVaultDynamicTab';
 import { PanelProfileVaultRtxDialog } from '../panelProfileVaultRtxDialog';
+import { PanelProfileVaultTabContent } from '../panelProfileVaultTabContent';
 
 interface PanelProfileVaultProps {
   caseInfo: ICaseItemType | null;
@@ -158,7 +158,7 @@ function PurePanelProfileVault(props: PanelProfileVaultProps) {
         >
           <Tabs defaultValue="overview">
             <TabsList
-              className="rounded-full gap-x-2 bg-[#F1F1F4] mb-2 max-w-full overflow-x-auto justify-start snap-proximity snap-x"
+              className="rounded-full gap-x-2 bg-[#F1F1F4] mb-2 max-w-full overflow-x-auto justify-start snap-proximity snap-x sticky top-0 z-10"
               style={{
                 scrollbarWidth: 'none',
               }}
@@ -182,11 +182,15 @@ function PurePanelProfileVault(props: PanelProfileVaultProps) {
               .filter(tab => tab.value !== 'overview')
               .map(({ value, label }) => (
                 <TabsContent value={value} key={value}>
-                  <PanelProfileVaultDynamicTab
+                  {/* <PanelProfileVaultDynamicTab
                     data={caseInfo?.profileData?.[value] as Record<string, unknown>}
                     label={label}
                     originalKey={value}
                     caseId={caseInfo?.id}
+                  /> */}
+                  <PanelProfileVaultTabContent
+                    fieldKey={value}
+                    data={caseInfo?.profileData?.[value] as Record<string, any>}
                   />
                 </TabsContent>
               ))}
