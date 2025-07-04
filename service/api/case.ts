@@ -34,7 +34,7 @@ const IS_MOCK_LIST: string[] =
         // 'queryCaseList',
         // 'queryCaseDetail',
         // 'getWorkflowList',
-        // 'caseStream',
+        'caseStream',
         // 'uploadDocument',
       ];
 
@@ -44,9 +44,11 @@ const CaseApi = {
   caseStream: '/legalcase/cases/:caseId/stream',
   documents: '/legalcase/cases/:caseId/documents',
   profileFields: '/legalcase/cases/:caseId/profile/fields',
+  profileField: '/legalcase/cases/:caseId/profile/fields/:fieldPath',
   profileSchema: '/legalcase/cases/:caseId/profile/schema',
   fieldSchema: '/legalcase/cases/:caseId/profile/fields/:fieldPath/schema',
   missingFieldsEmail: '/legalcase/cases/:caseId/profile/missing-fields-email',
+  applyDummyData: '/legalcase/cases/:caseId/profile/fields/:fieldPath/apply-dummy-data',
   // workflows: '/workflows/:workflowId',
   // workflowsStep: '/workflows/:workflowId/steps/:stepKey',
 };
@@ -344,10 +346,26 @@ export const removeDocument = async (caseId: string, documentId: string) => {
 
 export const updateMultipleProfileFields = async (
   caseId: string,
-  params: Record<string, string>
-): Promise<{ successfulResults: any[]; failedResults: any[] }> => {
+  params: Record<string, any>
+): Promise<{
+  successfulResults: any[];
+  failedResults: any[];
+  failedUpdates: number;
+  successfulUpdates: number;
+}> => {
   return ApiRequest.put(
     `${baseUrl}${CaseApi.profileFields.replace(':caseId', caseId)}`,
+    params
+  );
+};
+
+export const updateProfileField = async (
+  caseId: string,
+  fieldPath: string,
+  params: Record<string, any>
+): Promise<Record<string, any>> => {
+  return ApiRequest.put(
+    `${baseUrl}${CaseApi.profileField.replace(':caseId', caseId).replace(':fieldPath', fieldPath)}`,
     params
   );
 };
@@ -377,5 +395,15 @@ export const getMissingFieldEmailTemplate = async (
 }> => {
   return ApiRequest.get(
     `${baseUrl}${CaseApi.missingFieldsEmail.replace(':caseId', caseId)}`
+  );
+};
+
+export const applyDummyData = async (
+  caseId: string,
+  fieldPath: string
+): Promise<Record<string, any>> => {
+  return ApiRequest.post(
+    `${baseUrl}${CaseApi.applyDummyData.replace(':caseId', caseId).replace(':fieldPath', fieldPath)}`,
+    {}
   );
 };
