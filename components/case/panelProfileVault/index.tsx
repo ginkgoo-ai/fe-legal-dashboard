@@ -8,11 +8,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { camelToCapitalizedWords, cn } from '@/lib/utils';
 import { getMissingFieldEmailTemplate } from '@/service/api';
 import { useExtensionsStore } from '@/store/extensionsStore';
+import { useProfileStore } from '@/store/profileStore';
 import { ICaseItemType } from '@/types/case';
 import { IPilotType, PilotStatusEnum } from '@/types/casePilot';
 import { Loader2Icon } from 'lucide-react';
 import Image from 'next/image';
-import { memo, useEffect, useState } from 'react';
+import { memo, useCallback, useEffect, useState } from 'react';
 import { PanelProfileVaultRtxDialog } from '../panelProfileVaultRtxDialog';
 import { PanelProfileVaultTabContent } from '../panelProfileVaultTabContent';
 
@@ -35,8 +36,14 @@ function PurePanelProfileVault(props: PanelProfileVaultProps) {
 
   const [isLoadingExtensionStop, setLoadingExtensionStop] = useState<boolean>(false);
   const [missingFieldsEmail, setMissingFieldsEmail] = useState<string>('');
-  const [tabList, setTabList] = useState<any[]>([]);
+  const [tabList, setTabList] = useState<any[]>([
+    {
+      label: 'Overview',
+      value: 'overview',
+    },
+  ]);
   const { extensionsInfo } = useExtensionsStore();
+  const { schema } = useProfileStore();
 
   useEffect(() => {
     if (!!pilotInfoCurrent?.pilotWorkflowInfo?.workflow_instance_id) {
@@ -45,9 +52,8 @@ function PurePanelProfileVault(props: PanelProfileVaultProps) {
   }, [pilotInfoCurrent?.pilotWorkflowInfo?.workflow_instance_id]);
 
   useEffect(() => {
-    if (caseInfo?.profileDummyData) {
-      const list = getTabList(caseInfo.profileDummyData);
-      console.log(list);
+    if (schema?.jsonSchema?.properties) {
+      const list = getTabList(schema?.jsonSchema?.properties);
       setTabList([
         {
           label: 'Overview',
@@ -56,13 +62,24 @@ function PurePanelProfileVault(props: PanelProfileVaultProps) {
         ...list,
       ]);
     }
-  }, [caseInfo]);
+  }, [schema]);
+
+  const getMissingFieldsEmail = useCallback(async () => {
+    try {
+      const res = await getMissingFieldEmailTemplate(caseInfo!.id);
+      if (res.htmlBody) {
+        setMissingFieldsEmail(res.htmlBody);
+      }
+    } catch (error) {
+      console.error('Error fetching missing fields email:', error);
+    }
+  }, [caseInfo, setMissingFieldsEmail]);
 
   useEffect(() => {
     if (caseInfo?.id) {
       getMissingFieldsEmail();
     }
-  }, [caseInfo]);
+  }, [caseInfo, getMissingFieldsEmail]);
 
   const handleBtnExtensionStartClick = () => {
     if (!extensionsInfo?.version) {
@@ -79,17 +96,6 @@ function PurePanelProfileVault(props: PanelProfileVaultProps) {
       type: 'ginkgoo-page-all-pilot-stop',
       workflowId: pilotInfoCurrent?.pilotWorkflowInfo?.workflow_instance_id,
     });
-  };
-
-  const getMissingFieldsEmail = async () => {
-    try {
-      const res = await getMissingFieldEmailTemplate(caseInfo!.id);
-      if (res.htmlBody) {
-        setMissingFieldsEmail(res.htmlBody);
-      }
-    } catch (error) {
-      console.error('Error fetching missing fields email:', error);
-    }
   };
 
   const getTabList = (profileDummyData: ICaseItemType['profileDummyData']) => {
@@ -158,7 +164,7 @@ function PurePanelProfileVault(props: PanelProfileVaultProps) {
         >
           <Tabs defaultValue="overview">
             <TabsList
-              className="rounded-full gap-x-2 bg-[#F1F1F4] mb-2 max-w-full overflow-x-auto justify-start snap-proximity snap-x sticky top-0 z-10"
+              className="rounded-full gap-x-2 bg-[#F1F1F4] dark:bg-background mb-2 max-w-full overflow-x-auto justify-start snap-proximity snap-x sticky top-0 z-10"
               style={{
                 scrollbarWidth: 'none',
               }}
@@ -180,7 +186,7 @@ function PurePanelProfileVault(props: PanelProfileVaultProps) {
             </TabsContent>
             {tabList
               .filter(tab => tab.value !== 'overview')
-              .map(({ value, label }) => (
+              .map(({ value }) => (
                 <TabsContent value={value} key={value}>
                   <PanelProfileVaultTabContent
                     fieldKey={value}
@@ -201,7 +207,7 @@ function PurePanelProfileVault(props: PanelProfileVaultProps) {
             alt="default"
             className="mb-4"
           ></Image>
-          <p className="text-base mb-8 relative">
+          <p className="text-base mb-8 relative text-foreground">
             Processing Your Documents
             <span className="after:animate-point-loading inline-block w-1"></span>
           </p>

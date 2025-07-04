@@ -277,7 +277,7 @@ const DynamicProfileSection = ({
     const isDummyData = dummyDataFields.includes(fullKey);
     if (isString(field) || isBoolean(field) || isNumber(field)) {
       return (
-        <div className="flex items-center gap-4 text-base py-2 my-1 border-primary-gray/50 border-b border-dashed">
+        <div className="flex items-center gap-4 text-sm py-2 my-1 border-primary-gray/50 border-b border-dashed">
           <div className="text-primary-gray w-fit min-w-[188px] relative">
             {isDummyData && (
               <div className="absolute -left-8 top-0 bottom-0 my-auto justify-center items-center flex">
@@ -297,7 +297,7 @@ const DynamicProfileSection = ({
     }
     if (isPlainObject(field)) {
       return (
-        <div className="text-base">
+        <div className="text-sm">
           <div className="text-primary-gray relative w-fit min-w-[188px] border-primary-gray/50 border-b border-dashed py-2 my-1">
             {isDummyData && (
               <div className="absolute -left-8 top-0 bottom-0 my-auto justify-center items-center flex">

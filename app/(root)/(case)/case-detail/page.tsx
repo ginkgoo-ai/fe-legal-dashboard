@@ -25,8 +25,8 @@ import { useCaseStore } from '@/store';
 import { useProfileStore } from '@/store/profileStore';
 import { useUserStore } from '@/store/userStore';
 import { IPilotType, PilotStatusEnum, WorkflowTypeEnum } from '@/types/casePilot';
-import { Breadcrumb, message as messageAntd, Splitter } from 'antd';
-import { ItemType } from 'antd/es/breadcrumb/Breadcrumb';
+import { message as messageAntd, Splitter } from 'antd';
+import Breadcrumb, { ItemType } from 'antd/es/breadcrumb/Breadcrumb';
 import { produce } from 'immer';
 import { cloneDeep } from 'lodash';
 import { Dot } from 'lucide-react';
@@ -602,9 +602,12 @@ function CaseDetailContent() {
             <Splitter.Panel
               min={SIZE_REFERENCE_MIN}
               size={sizeReference}
-              className={cn('bg-[#F1F1F4] relative rounded-2xl flex-col flex h-full', {
-                'transition-all': isTransitionAll,
-              })}
+              className={cn(
+                'bg-[#F1F1F4] dark:bg-panel-background relative rounded-2xl flex-col flex h-full',
+                {
+                  'transition-all': isTransitionAll,
+                }
+              )}
             >
               <PanelReference
                 caseId={caseId}
@@ -617,7 +620,7 @@ function CaseDetailContent() {
               // min={SIZE_PROFILEVAULT_MIN}
               size={sizeProfileVault}
               className={cn(
-                'bg-white relative rounded-2xl flex-col flex h-full', // min-w-[870px]
+                'bg-panel-background relative rounded-2xl flex-col flex h-full', // min-w-[870px]
                 {
                   'transition-all': isTransitionAll,
                 }

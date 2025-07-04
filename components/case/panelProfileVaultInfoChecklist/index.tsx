@@ -134,7 +134,7 @@ export const PanelProfileVaultInfoChecklist = (
       </h2>
       <Table>
         <TableHeader>
-          <TableRow className="bg-[#F9F9F9] hover:bg-[#F9F9F9]">
+          <TableRow>
             <TableHead>Missing Item</TableHead>
             <TableHead className="text-right">Action</TableHead>
           </TableRow>
