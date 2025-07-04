@@ -2,7 +2,7 @@ import { ICaseItemType } from '@/types/case';
 import { memo } from 'react';
 import { PanelProfileVaultDashboard } from '../panelProfileVaultDashboard';
 import { PanelProfileVaultDocuments } from '../panelProfileVaultDocuments';
-import { PanelProfileVaultInformationChecklist } from '../panelProfileVaultInformation';
+import { PanelProfileVaultInfoChecklist } from '../panelProfileVaultInfoChecklist';
 
 type PurePanelProfileVaultOverviewProps = ICaseItemType;
 
@@ -17,7 +17,7 @@ function PurePanelProfileVaultOverview({
         documentChecklist={documentChecklist}
         profileChecklist={profileChecklist}
       />
-      <PanelProfileVaultInformationChecklist {...profileChecklist} caseId={id} />
+      <PanelProfileVaultInfoChecklist {...profileChecklist} caseId={id} />
       <PanelProfileVaultDocuments {...documentChecklist} caseId={id} />
     </div>
   );

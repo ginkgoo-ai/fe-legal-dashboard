@@ -62,7 +62,7 @@ export default function RootLayout({
       {/* defaultTheme="system" */}
       <ThemeProvider defaultTheme="light" storageKey="legal|theme">
         <Header className="fixed left-0 top-0 z-10" />
-        <main className="flex h-0 w-[100vw] flex-1 flex-col items-center overflow-y-auto pt-16">
+        <main className="flex h-0 w-[100vw] flex-1 flex-col items-center overflow-y-auto pt-20">
           {children}
         </main>
         <Toaster position="top-center" richColors />

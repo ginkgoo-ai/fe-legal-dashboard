@@ -57,14 +57,11 @@ const User = () => {
 
   return (
     <DropdownMenu onOpenChange={handleOpenChange}>
-      <DropdownMenuTrigger className="hover:bg-background flex items-center gap-2 rounded-full pl-3 py-2 focus-within:outline-0 lg:focus-within:outline-1">
-        <Avatar className="size-6">
+      <DropdownMenuTrigger className="hover:bg-gray-200 flex items-center gap-2 rounded-full px-3 py-2 focus-within:outline-0 lg:focus-within:outline-1 cursor-pointer">
+        <Avatar className="size-8">
           <AvatarImage src={userInfo?.picture ?? defaultAvatar} />
           <AvatarFallback>{userInfo?.fullname?.charAt(0)}</AvatarFallback>
         </Avatar>
-        <span className="hidden text-sm lg:inline">
-          {userInfo ? userInfo.fullname : ''}
-        </span>
         <ChevronDown
           size={16}
           className={cn(
@@ -121,10 +118,11 @@ const User = () => {
 };
 
 const Header = (props: { className?: string }) => {
+  const { userInfo } = useUserStore();
   return (
     <header
       className={cn(
-        'border-default bg-background flex h-16 w-full items-center justify-between border-b px-4',
+        'border-default bg-background flex h-20 w-full items-center justify-between px-8',
         props.className ?? ''
       )}
     >
@@ -141,12 +139,17 @@ const Header = (props: { className?: string }) => {
             height={0}
             priority
           />
-          <span className="hidden text-base font-semibold lg:inline">
+          <span className="hidden text-lg font-semibold lg:inline">
             {GlobalManager.siteName}
           </span>
         </Link>
       </div>
       <div className="flex items-center gap-4">
+        {userInfo && (
+          <div className="text-lg">
+            Hello, <span className="font-semibold">{userInfo.name}</span>
+          </div>
+        )}
         <User />
       </div>
     </header>

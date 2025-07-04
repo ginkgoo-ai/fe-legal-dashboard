@@ -92,7 +92,12 @@ function PurePanelProfileVault(props: PanelProfileVaultProps) {
           )}
         >
           <Tabs defaultValue="overview">
-            <TabsList className="rounded-full gap-x-2 bg-[#F1F1F4] mb-2 max-w-full overflow-x-auto justify-start snap-proximity snap-x">
+            <TabsList
+              className="rounded-full gap-x-2 bg-[#F1F1F4] mb-2 max-w-full overflow-x-auto justify-start snap-proximity snap-x"
+              style={{
+                scrollbarWidth: 'none',
+              }}
+            >
               {tabList.map(({ label, value }) => (
                 <TabsTrigger
                   value={value}

@@ -28,6 +28,7 @@ import { Breadcrumb, message as messageAntd, Splitter } from 'antd';
 import { ItemType } from 'antd/es/breadcrumb/Breadcrumb';
 import { produce } from 'immer';
 import { cloneDeep } from 'lodash';
+import { Dot } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import './index.css';
@@ -549,22 +550,18 @@ function CaseDetailContent() {
     <div className="box-border flex w-full flex-1 flex-col h-0 case-detail-wrap">
       {/* Breadcrumb */}
       <div
-        className={cn(
-          'bg-background flex h-[50px] w-full items-center justify-between border-b px-4'
-        )}
+        className={cn('bg-background flex w-fit items-center justify-between px-8 gap-4')}
       >
         <div className="flex items-center gap-4">
-          <Breadcrumb separator=">" items={breadcrumbItems} />
+          <Breadcrumb separator={<Dot />} items={breadcrumbItems} />
         </div>
-        <div className="flex items-center gap-4">
-          {!!caseInfo?.caseStatusForFront?.text && (
-            <TagStatus
-              colorBackground={caseInfo.caseStatusForFront?.colorBackground}
-              colorText={caseInfo.caseStatusForFront?.colorText}
-              text={caseInfo.caseStatusForFront?.text}
-            />
-          )}
-        </div>
+        {!!caseInfo?.caseStatusForFront?.text && (
+          <TagStatus
+            colorBackground={caseInfo.caseStatusForFront?.colorBackground}
+            colorText={caseInfo.caseStatusForFront?.colorText}
+            text={caseInfo.caseStatusForFront?.text}
+          />
+        )}
       </div>
       {/* max-w-[var(--width-max)] px-[var(--width-padding)] */}
       <div className="flex h-0 w-full flex-1 flex-col px-4 py-6">
@@ -581,7 +578,7 @@ function CaseDetailContent() {
             <Splitter.Panel
               min={SIZE_REFERENCE_MIN}
               size={sizeReference}
-              className={cn('bg-white relative rounded-2xl flex-col flex h-full', {
+              className={cn('bg-[#F1F1F4] relative rounded-2xl flex-col flex h-full', {
                 'transition-all': isTransitionAll,
               })}
             >
