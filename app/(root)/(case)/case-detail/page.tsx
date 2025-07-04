@@ -192,6 +192,14 @@ function CaseDetailContent() {
         console.log('ginkgoo-background-all-toast', typeToast, contentToast);
         break;
       }
+      case 'ginkgoo-background-all-sidepanel-mounted': {
+        console.log('CaseDetailContent ginkgoo-background-all-sidepanel-mounted');
+        break;
+      }
+      case 'ginkgoo-background-all-sidepanel-destory': {
+        console.log('CaseDetailContent ginkgoo-background-all-sidepanel-destory');
+        break;
+      }
       case 'update-case-detail': {
         refreshCaseDetail();
         break;
@@ -298,6 +306,7 @@ function CaseDetailContent() {
     SIZE_PROFILEVAULT_DEFAULT.current = window.innerWidth * 0.7;
     SIZE_PILOT_DEFAULT.current = window.innerWidth * 0.3 - SIZE_REFERENCE_MIN;
 
+    setShowPilot(true);
     setSizeReference(SIZE_REFERENCE_DEFAULT.current);
     setSizeProfileVault(SIZE_PROFILEVAULT_DEFAULT.current);
     setSizePilot(SIZE_PILOT_DEFAULT.current);
@@ -464,8 +473,6 @@ function CaseDetailContent() {
   };
 
   const handleNewWorkflowFinish = async (values: Record<string, string>) => {
-    const { url } = values;
-
     if (!workflowDefinitionId) {
       messageAntd.open({
         type: 'error',
@@ -483,7 +490,6 @@ function CaseDetailContent() {
     try {
       window.postMessage({
         type: 'ginkgoo-page-all-pilot-start',
-        url,
         caseInfo,
         workflowDefinitionId,
       });
@@ -596,11 +602,7 @@ function CaseDetailContent() {
                 }
               )}
             >
-              <PanelProfileVault
-                caseInfo={caseInfo}
-                pilotInfoCurrent={pilotInfoCurrent}
-                isFold={false}
-              />
+              <PanelProfileVault caseInfo={caseInfo} isFold={false} />
             </Splitter.Panel>
             {/* Pilot */}
             {isShowPilot ? (

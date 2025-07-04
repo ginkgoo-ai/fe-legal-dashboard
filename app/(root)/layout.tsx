@@ -3,16 +3,16 @@
 import Header from '@/components/header';
 import { Toaster } from '@/components/ui/sonner';
 import { ConfigProvider, theme } from 'antd';
-import { ThemeProvider, useTheme } from 'next-themes';
-import { useEffect, useState } from 'react';
+import { ThemeProvider } from 'next-themes';
+import { useEffect } from 'react';
 
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const { theme: nextTheme } = useTheme();
-  const [systemTheme, setSystemTheme] = useState<'light' | 'dark'>('light');
+  // const { theme: nextTheme } = useTheme();
+  // const [systemTheme, setSystemTheme] = useState<'light' | 'dark'>('light');
 
   useEffect(() => {
     // const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');

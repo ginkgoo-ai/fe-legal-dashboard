@@ -16,7 +16,7 @@ function PureModalNewWorkflow(props: ModalNewWorkflowProps) {
   const { isOpen = false, pageTabInfo, onOpenUpdate, onFinish } = props;
 
   const [loadingContinue, setLoadingContinue] = useState<boolean>(false);
-  const [isShowLoginTip, setShowLoginTip] = useState<boolean>(true);
+  const [isShowLoginTip, setShowLoginTip] = useState<boolean>(false);
 
   useEventManager('ginkgoo-message', message => {
     const { type: typeMsg } = message;

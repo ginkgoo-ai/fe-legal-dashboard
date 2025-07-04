@@ -34,7 +34,7 @@ const IS_MOCK_LIST: string[] =
         // 'queryCaseList',
         // 'queryCaseDetail',
         // 'getWorkflowList',
-        'caseStream',
+        // 'caseStream',
         // 'uploadDocument',
       ];
 

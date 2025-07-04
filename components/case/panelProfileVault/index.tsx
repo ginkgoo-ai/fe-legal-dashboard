@@ -7,7 +7,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { camelToCapitalizedWords, cn } from '@/lib/utils';
 import { getMissingFieldEmailTemplate } from '@/service/api';
 import { ICaseItemType } from '@/types/case';
-import { IPilotType } from '@/types/casePilot';
 import Image from 'next/image';
 import { memo, useEffect, useState } from 'react';
 import { PanelProfileVaultDynamicTab } from '../panelProfileVaultDynamicTab';
@@ -15,12 +14,11 @@ import { PanelProfileVaultRtxDialog } from '../panelProfileVaultRtxDialog';
 
 interface PanelProfileVaultProps {
   caseInfo: ICaseItemType | null;
-  pilotInfoCurrent: IPilotType | null;
   isFold: boolean;
 }
 
 function PurePanelProfileVault(props: PanelProfileVaultProps) {
-  const { caseInfo = null, pilotInfoCurrent = null, isFold } = props;
+  const { caseInfo = null, isFold } = props;
 
   const [missingFieldsEmail, setMissingFieldsEmail] = useState<string>('');
   const [tabList, setTabList] = useState<any[]>([]);
