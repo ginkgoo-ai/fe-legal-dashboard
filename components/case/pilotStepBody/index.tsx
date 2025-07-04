@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils';
 import { IActionItemType } from '@/types/case';
 import { IPilotType, IWorkflowStepType, PilotStatusEnum } from '@/types/casePilot';
 import type { CollapseProps } from 'antd';
-import { Alert, Button, Collapse, Progress, Spin } from 'antd';
+import { Alert, Button, Collapse, Spin } from 'antd';
 import { Check } from 'lucide-react';
 import { memo, useCallback, useEffect, useState } from 'react';
 import { PilotStepBodyNormal } from '../pilotStepBodyNormal';
@@ -218,7 +218,6 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
 
   return stepListItemsBody && stepListItemsBody.length > 0 ? (
     <div className="relative box-border flex flex-col w-full items-center justify-start rounded-lg border border-[#D8DFF5] p-2">
-      <Progress percent={percent} showInfo={false} />
       <Collapse
         className="w-full"
         activeKey={stepListActiveKeyBody}
