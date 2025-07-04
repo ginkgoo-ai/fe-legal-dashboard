@@ -275,7 +275,6 @@ const DynamicProfileSection = ({
   ) => {
     const fullKey = `${parentKey}.${key}`;
     const isDummyData = dummyDataFields.includes(fullKey);
-    console.log(fullKey);
     if (isString(field) || isBoolean(field) || isNumber(field)) {
       return (
         <div className="flex items-center gap-4 text-base py-2 my-1 border-primary-gray/50 border-b border-dashed">
