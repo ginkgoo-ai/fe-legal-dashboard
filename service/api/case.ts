@@ -44,6 +44,7 @@ const CaseApi = {
   caseStream: '/legalcase/cases/:caseId/stream',
   documents: '/legalcase/cases/:caseId/documents',
   profileFields: '/legalcase/cases/:caseId/profile/fields',
+  profileField: '/legalcase/cases/:caseId/profile/fields/:fieldPath',
   profileSchema: '/legalcase/cases/:caseId/profile/schema',
   fieldSchema: '/legalcase/cases/:caseId/profile/fields/:fieldPath/schema',
   missingFieldsEmail: '/legalcase/cases/:caseId/profile/missing-fields-email',
@@ -354,6 +355,17 @@ export const updateMultipleProfileFields = async (
 }> => {
   return ApiRequest.put(
     `${baseUrl}${CaseApi.profileFields.replace(':caseId', caseId)}`,
+    params
+  );
+};
+
+export const updateProfileField = async (
+  caseId: string,
+  fieldPath: string,
+  params: Record<string, any>
+): Promise<Record<string, any>> => {
+  return ApiRequest.put(
+    `${baseUrl}${CaseApi.profileField.replace(':caseId', caseId).replace(':fieldPath', fieldPath)}`,
     params
   );
 };

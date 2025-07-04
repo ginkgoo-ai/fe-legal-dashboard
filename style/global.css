@@ -44,6 +44,7 @@
   /** custom */
   --color-primary-dark: var(--primary-dark);
   --color-primary-label: var(--primary-label);
+  --color-primary-gray: var(--primary-gray);
   --animate-point-loading: pointLoading 2s infinite;
 }
 
@@ -59,6 +60,7 @@
   --primary: oklch(0.5524 0.2441 261.35);
   --primary-dark: oklch(0.4359 0.1786 260.09);
   --primary-label: oklch(0.2723 0.1155 272.57);
+  --primary-gray: oklch(0.7091 0.0337 267.85);
   --primary-foreground: #f2f3f7;
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.6485 0.0337 267.85);

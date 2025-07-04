@@ -186,6 +186,7 @@ function PurePanelProfileVault(props: PanelProfileVaultProps) {
                     fieldKey={value}
                     data={caseInfo?.profileDummyData?.[value] as Record<string, any>}
                     caseId={caseInfo.id}
+                    dummyDataFields={caseInfo?.dummyDataFields}
                   />
                 </TabsContent>
               ))}
