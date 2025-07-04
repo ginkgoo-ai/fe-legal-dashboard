@@ -70,11 +70,11 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
 
       window.postMessage({
         type: 'ginkgoo-page-all-pilot-start',
-        pilotId: pilotInfo?.pilotId,
+        workflowId: pilotInfo?.pilotWorkflowInfo?.workflow_instance_id,
         actionlistPre,
       });
     },
-    [isShowLoginTip, pageTabInfo?.id, pilotInfo?.pilotId]
+    [isShowLoginTip, pageTabInfo?.id, pilotInfo?.pilotWorkflowInfo?.workflow_instance_id]
   );
 
   const handleBtnProceedToFormClick = () => {

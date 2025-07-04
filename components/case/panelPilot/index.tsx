@@ -23,6 +23,7 @@ interface PanelPanelPilotProps {
   pilotInfoCurrent: IPilotType | null;
   pilotList: IPilotType[];
   onQueryWorkflowDetail: (params: { workflowId: string }) => void;
+  onBtnContinueClick: (params: { workflowId: string }) => void;
   onShowNewWorkflow: () => void;
 }
 
@@ -34,6 +35,7 @@ function PurePanelPilot(props: PanelPanelPilotProps) {
     pilotInfoCurrent,
     pilotList,
     onQueryWorkflowDetail,
+    onBtnContinueClick,
     onShowNewWorkflow,
   } = props;
 
@@ -137,9 +139,9 @@ function PurePanelPilot(props: PanelPanelPilotProps) {
                         pageTabInfo={pageTabInfo}
                         caseInfo={caseInfo}
                         pilotInfo={itemPilot}
-                        pilotInfoCurrent={pilotInfoCurrent}
                         indexPilot={indexPilot}
                         onQueryWorkflowDetail={onQueryWorkflowDetail}
+                        onBtnContinueClick={onBtnContinueClick}
                       />
                     );
                   })}

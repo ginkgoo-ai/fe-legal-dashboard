@@ -473,7 +473,7 @@ function CaseDetailContent() {
     }
   };
 
-  const handleNewWorkflowFinish = async (values: Record<string, string>) => {
+  const handleNewWorkflowFinish = async () => {
     if (!workflowDefinitionId) {
       messageAntd.open({
         type: 'error',
@@ -483,16 +483,25 @@ function CaseDetailContent() {
       return;
     }
 
-    // const url = "https://visas-immigration.service.gov.uk/next"; // test
-    // const url = "https://www.gov.uk/skilled-worker-visa/apply-from-outside-the-uk"; // start
-    // const url = "https://visas-immigration.service.gov.uk/resume/3a0bec84-a910-4f74-b4de-763b458e770e"; // return
-    // const url = "https://apply-to-visit-or-stay-in-the-uk.homeoffice.gov.uk/SKILLED_WORK/3434-4632-5724-0670/"; // uk
+    try {
+      window.postMessage({
+        type: 'ginkgoo-page-all-pilot-start',
+        isNewWorkflow: true,
+        caseInfo,
+        workflowDefinitionId,
+      });
+    } catch (error) {
+      console.error('[Ginkgoo] Sidepanel handleCardClick error', error);
+    }
+  };
+
+  const handleBtnContinueClick = async (params: { workflowId: string }) => {
+    const { workflowId } = params || {};
 
     try {
       window.postMessage({
         type: 'ginkgoo-page-all-pilot-start',
-        caseInfo,
-        workflowDefinitionId,
+        workflowId,
       });
     } catch (error) {
       console.error('[Ginkgoo] Sidepanel handleCardClick error', error);
@@ -617,6 +626,7 @@ function CaseDetailContent() {
                   pilotInfoCurrent={pilotInfoCurrent}
                   pilotList={pilotList}
                   onQueryWorkflowDetail={handleQueryWorkflowDetail}
+                  onBtnContinueClick={handleBtnContinueClick}
                   onShowNewWorkflow={handleShowNewWorkflow}
                 />
               </Splitter.Panel>

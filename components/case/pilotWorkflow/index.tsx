@@ -7,21 +7,21 @@ import UtilsManager from '@/customManager/UtilsManager';
 import { cn } from '@/lib/utils';
 import { postFilesPDFHighlight } from '@/service/api/case';
 import { ICaseItemType } from '@/types/case';
-import { IPilotType } from '@/types/casePilot';
+import { IPilotType, PilotStatusEnum } from '@/types/casePilot';
 import { Button, message as messageAntd, Progress } from 'antd';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
-import { ChevronRight, Download } from 'lucide-react';
-import { memo, useEffect, useMemo, useRef, useState } from 'react';
+import { ChevronRight, Download, Play } from 'lucide-react';
+import { memo, useEffect, useMemo, useState } from 'react';
 import './index.css';
 
 interface PilotWorkflowProps {
   pageTabInfo: Record<string, unknown>;
   caseInfo: ICaseItemType | null;
   pilotInfo: IPilotType;
-  pilotInfoCurrent: IPilotType | null;
   indexPilot: number;
   onQueryWorkflowDetail: (params: { workflowId: string }) => void;
+  onBtnContinueClick: (params: { workflowId: string }) => void;
 }
 
 dayjs.extend(utc);
@@ -31,16 +31,22 @@ function PurePilotWorkflow(props: PilotWorkflowProps) {
     pageTabInfo,
     caseInfo,
     pilotInfo,
-    pilotInfoCurrent,
     indexPilot,
     onQueryWorkflowDetail,
+    onBtnContinueClick,
   } = props;
-
-  const isFoldInit = useRef<boolean>(true);
 
   const [isFold, setFold] = useState<boolean>(true);
   const [isDisableBtnDownload, setDisableBtnDownload] = useState<boolean>(true);
   const [isLoadingDownload, setLoadingDownload] = useState<boolean>(false);
+
+  const isShowBtnContinue = useMemo(() => {
+    return (
+      indexPilot === 0 &&
+      !!pilotInfo?.pilotTabInfo?.id &&
+      pilotInfo?.pilotStatus === PilotStatusEnum.HOLD
+    );
+  }, [pilotInfo, indexPilot]);
 
   const workflowUpdateTime = useMemo(() => {
     return dayjs
@@ -48,16 +54,6 @@ function PurePilotWorkflow(props: PilotWorkflowProps) {
       .local()
       .format('MMM DD, YYYY HH: mm');
   }, [pilotInfo.pilotWorkflowInfo?.updated_at]);
-
-  const isCurrentPilot = useMemo(() => {
-    return (
-      pilotInfo?.pilotWorkflowInfo?.workflow_instance_id ===
-      pilotInfoCurrent?.pilotWorkflowInfo?.workflow_instance_id
-    );
-  }, [
-    pilotInfo?.pilotWorkflowInfo?.workflow_instance_id,
-    pilotInfoCurrent?.pilotWorkflowInfo?.workflow_instance_id,
-  ]);
 
   useEffect(() => {
     setDisableBtnDownload(!pilotInfo.pilotWorkflowInfo?.progress_file_id);
@@ -117,6 +113,12 @@ function PurePilotWorkflow(props: PilotWorkflowProps) {
     }, 200);
   };
 
+  const handleBtnContinueClick = () => {
+    onBtnContinueClick?.({
+      workflowId: pilotInfo.pilotWorkflowInfo?.workflow_instance_id || '',
+    });
+  };
+
   return (
     <div
       id={`workflow-item-${indexPilot}`}
@@ -145,7 +147,11 @@ function PurePilotWorkflow(props: PilotWorkflowProps) {
               )}
             </div>
             <div className="flex flex-col w-0 flex-1">
-              <span className="text-[#4E4E4E] text-sm truncate w-full">
+              <span
+                className={cn('text-[#4E4E4E] text-sm truncate w-full', {
+                  'font-bold': pilotInfo?.pilotStatus === PilotStatusEnum.HOLD,
+                })}
+              >
                 {/* {`${caseInfo?.clientName || ''}` +
                   ` - ${caseInfo?.visaType || ''}` +
                   ` - ${pilotInfo?.pilotStatus || ''}`} */}
@@ -176,17 +182,31 @@ function PurePilotWorkflow(props: PilotWorkflowProps) {
             <PilotStepBody pageTabInfo={pageTabInfo} pilotInfo={pilotInfo} />
           ) : null}
 
-          <Button
-            id={`pilot-item-btn-download-${indexPilot}`}
-            type="primary"
-            className=""
-            disabled={isDisableBtnDownload}
-            loading={isLoadingDownload}
-            onClick={handleBtnPDFDownloadClick}
-          >
-            <Download size={20} />
-            <span className="font-bold">Download PDF</span>
-          </Button>
+          <div className="flex flex-row justify-between items-center gap-2 w-full">
+            <Button
+              id={`pilot-item-btn-download-${indexPilot}`}
+              type="default"
+              className="flex-1"
+              disabled={isDisableBtnDownload}
+              loading={isLoadingDownload}
+              onClick={handleBtnPDFDownloadClick}
+            >
+              <Download size={20} />
+              <span className="font-bold">Download</span>
+              {!isShowBtnContinue ? <span className="font-bold"> PDF</span> : null}
+            </Button>
+            {isShowBtnContinue ? (
+              <Button
+                id={`pilot-item-btn-continue-${indexPilot}`}
+                type="default"
+                className="flex-1"
+                onClick={handleBtnContinueClick}
+              >
+                <Play size={20} />
+                <span className="font-bold">Continue</span>
+              </Button>
+            ) : null}
+          </div>
         </div>
       </div>
     </div>
