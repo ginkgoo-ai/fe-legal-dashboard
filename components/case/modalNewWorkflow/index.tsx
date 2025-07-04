@@ -1,8 +1,7 @@
 'use client';
 
-import { IconFormItemLink, IconInfo } from '@/components/ui/icon';
 import { useEventManager } from '@/hooks/useEventManager';
-import { Alert, Button, Form, Input, Modal, message as messageAntd } from 'antd';
+import { Button, Form, Modal, message as messageAntd } from 'antd';
 import { memo, useEffect, useState } from 'react';
 
 interface ModalNewWorkflowProps {
@@ -29,7 +28,7 @@ function PureModalNewWorkflow(props: ModalNewWorkflowProps) {
         setLoadingContinue(false);
         break;
       }
-      case 'ginkgoo-background-all-pilot-no-match-page': {
+      case 'ginkgoo-background-all-pilot-start-failed': {
         const { typeToast, contentToast } = message || {};
         messageAntd.open({
           type: typeToast,
@@ -85,7 +84,7 @@ function PureModalNewWorkflow(props: ModalNewWorkflowProps) {
 
   return (
     <Modal
-      title={<div className="box-border pb-6 text-xl font-bold">URL</div>}
+      title={<div className="box-border pb-6 text-xl font-bold">Start auto-fill</div>}
       closable={false}
       width={500}
       footer={null}
@@ -108,40 +107,9 @@ function PureModalNewWorkflow(props: ModalNewWorkflowProps) {
           autoComplete="off"
         >
           <div className="mb-4 text-sm text-[#1A1A1AB2]">
-            Enter the URL below. Please keep the target page open for the auto-fill to
-            work.
+            We've noticed some of your information is missing. To proceed now, we will
+            temporarily fill these gaps with dummy data.
           </div>
-
-          <Form.Item
-            label="URL"
-            name="url"
-            className="mb-4"
-            validateTrigger="onSubmit"
-            validateFirst={true}
-            rules={[
-              { required: true, message: 'Please input URL' },
-              { type: 'url', message: 'Please input a valid URL' },
-              // {
-              //   validator: (_, value) => {
-              //     if (!value) return Promise.resolve();
-              //     try {
-              //       // 使用URL构造函数校验
-              //       new URL(value);
-              //       return Promise.resolve();
-              //     } catch (e) {
-              //       return Promise.reject(new Error("Please enter a valid URL"));
-              //     }
-              //   },
-              // },
-            ]}
-          >
-            <Input
-              className="!px-3"
-              autoFocus
-              prefix={<IconFormItemLink className="mr-1" size={20} />}
-              placeholder="URL"
-            />
-          </Form.Item>
 
           {isShowLoginTip ? (
             <div className="mb-4 text-sm text-[#1A1A1AB2]">
@@ -155,26 +123,6 @@ function PureModalNewWorkflow(props: ModalNewWorkflowProps) {
               <span> to the extension to activate the auto-fill feature.</span>
             </div>
           ) : null}
-
-          <Alert
-            message={
-              <div className="text-[#075985] text-base">
-                Start Autofill with Incomplete Information?
-              </div>
-            }
-            icon={<IconInfo size={16} className="mt-1 mr-2" />}
-            description={
-              <div className="flex flex-col -ml-8 gap-2 items-start">
-                <div className="text-[#0369A1] text-sm">
-                  We've noticed some of your information is missing. To proceed now, we
-                  will temporarily fill these gaps with dummy data.
-                </div>
-              </div>
-            }
-            type="info"
-            showIcon
-            closable
-          />
 
           <div className="mt-4 flex flex-row items-center justify-between gap-6">
             <Button

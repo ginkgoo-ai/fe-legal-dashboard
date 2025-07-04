@@ -3,36 +3,38 @@
 import Header from '@/components/header';
 import { Toaster } from '@/components/ui/sonner';
 import { ConfigProvider, theme } from 'antd';
-import { ThemeProvider } from 'next-themes';
-import { useEffect } from 'react';
+import { ThemeProvider, useTheme } from 'next-themes';
+import { useEffect, useState } from 'react';
 
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // const { theme: nextTheme } = useTheme();
-  // const [systemTheme, setSystemTheme] = useState<'light' | 'dark'>('light');
+  const { theme: nextTheme } = useTheme();
+  const [systemTheme, setSystemTheme] = useState<'light' | 'dark'>('light');
 
   useEffect(() => {
-    // const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    // setSystemTheme(mediaQuery.matches ? 'dark' : 'light');
-    // const handler = (e: MediaQueryListEvent) => {
-    //   setSystemTheme(e.matches ? 'dark' : 'light');
-    // };
-    // mediaQuery.addEventListener('change', handler);
-    // return () => mediaQuery.removeEventListener('change', handler);
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    setSystemTheme(mediaQuery.matches ? 'dark' : 'light');
+
+    const handler = (e: MediaQueryListEvent) => {
+      setSystemTheme(e.matches ? 'dark' : 'light');
+    };
+
+    mediaQuery.addEventListener('change', handler);
+    return () => mediaQuery.removeEventListener('change', handler);
   }, []);
 
-  const isDarkMode = false;
-  // nextTheme === 'dark' || (nextTheme === 'system' && systemTheme === 'dark');
+  const isDarkMode =
+    nextTheme === 'dark' || (nextTheme === 'system' && systemTheme === 'dark');
 
   return (
     <ConfigProvider
       theme={{
         algorithm: isDarkMode ? theme.darkAlgorithm : theme.defaultAlgorithm,
         token: {
-          colorPrimary: '#0061FD', // '#2C9AFF',
+          colorPrimary: '#2C9AFF',
           fontFamily: "'Poppins', serif",
         },
         components: {
@@ -59,8 +61,7 @@ export default function RootLayout({
         },
       }}
     >
-      {/* defaultTheme="system" */}
-      <ThemeProvider defaultTheme="light" storageKey="legal|theme">
+      <ThemeProvider defaultTheme="system" storageKey="legal|theme">
         <Header className="fixed left-0 top-0 z-10" />
         <main className="flex h-0 w-[100vw] flex-1 flex-col items-center overflow-y-auto pt-20">
           {children}

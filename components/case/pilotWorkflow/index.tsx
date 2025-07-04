@@ -7,7 +7,7 @@ import UtilsManager from '@/customManager/UtilsManager';
 import { cn } from '@/lib/utils';
 import { postFilesPDFHighlight } from '@/service/api/case';
 import { ICaseItemType } from '@/types/case';
-import { IPilotType, PilotStatusEnum } from '@/types/casePilot';
+import { IPilotType } from '@/types/casePilot';
 import { Button, message as messageAntd, Progress } from 'antd';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
@@ -124,11 +124,11 @@ function PurePilotWorkflow(props: PilotWorkflowProps) {
     >
       <div
         className={cn(
-          'workflow-wrap absolute left-[50%] top-[50%] min-w-full h-[800%] overflow-hidden rounded-lg pr-[800%]',
-          {
-            'animate-spin-workflow':
-              isCurrentPilot && pilotInfo?.pilotStatus !== PilotStatusEnum.HOLD,
-          }
+          'absolute left-0 top-0 w-full h-full overflow-hidden rounded-lg pr-[800%] bg-[#E2E4E8]'
+          // {
+          //   'animate-spin-workflow':
+          //     isCurrentPilot && pilotInfo?.pilotStatus !== PilotStatusEnum.HOLD,
+          // }
         )}
       ></div>
       <div className="relative w-full box-border p-0.5 bg-[rgba(0,0,0,0)] flex flex-col">
@@ -146,11 +146,12 @@ function PurePilotWorkflow(props: PilotWorkflowProps) {
             </div>
             <div className="flex flex-col w-0 flex-1">
               <span className="text-[#4E4E4E] text-sm truncate w-full">
-                {`${caseInfo?.clientName || ''}` +
+                {/* {`${caseInfo?.clientName || ''}` +
                   ` - ${caseInfo?.visaType || ''}` +
-                  ` - ${pilotInfo?.pilotStatus || ''}`}
+                  ` - ${pilotInfo?.pilotStatus || ''}`} */}
+                {pilotInfo?.pilotStatus || '--'}
               </span>
-              <div className="text-[#98A1B7] text-sm truncate w-full">
+              <div className="w-full truncate text-sm font-bold text-[#2665FF]">
                 {workflowUpdateTime}
               </div>
             </div>

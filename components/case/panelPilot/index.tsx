@@ -6,11 +6,13 @@ import { PilotReady } from '@/components/case/pilotReady';
 import { PilotWorkflow } from '@/components/case/pilotWorkflow';
 import { Button } from '@/components/ui/button';
 import { IconExtensionStart, IconExtensionStop } from '@/components/ui/icon';
+import { MESSAGE } from '@/config/message';
+import GlobalManager from '@/customManager/GlobalManager';
 import { cn } from '@/lib/utils';
 import { useExtensionsStore } from '@/store/extensionsStore';
 import { ICaseItemType } from '@/types/case';
 import { IPilotType, PilotStatusEnum } from '@/types/casePilot';
-import { Alert, Spin } from 'antd';
+import { Alert, message as messageAntd, Spin } from 'antd';
 import { Loader2Icon } from 'lucide-react';
 import { memo, useEffect, useState } from 'react';
 
@@ -45,6 +47,14 @@ function PurePanelPilot(props: PanelPanelPilotProps) {
   }, [pilotInfoCurrent?.pilotWorkflowInfo?.workflow_instance_id]);
 
   const handleBtnExtensionStartClick = () => {
+    if (GlobalManager.versionExtension !== extensionsInfo?.version) {
+      messageAntd.open({
+        type: 'warning',
+        content: MESSAGE.TOAST_VERSION_MISMATCH,
+      });
+      return;
+    }
+
     onShowNewWorkflow?.();
   };
 

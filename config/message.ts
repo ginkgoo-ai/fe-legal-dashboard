@@ -1,6 +1,8 @@
 export const MESSAGE = {
   // 通用提示
   TOAST_PROBLEM: 'An unexpected problem has occurred.', // 发生了一个意外问题。
+  TOAST_VERSION_MISMATCH:
+    'Extensions version mismatch. Please remove Extensions, reinstall it, and refresh the page after installation.',
 
   // 用户
   TOAST_USER_ID_EMPTY: 'User information could not be retrieved. Please try again later.', // 无法获取用户信息，请稍后重试。

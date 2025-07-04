@@ -112,11 +112,11 @@ function CaseDetailContent() {
         }
 
         if (!!workflowIdMsg) {
+          setModalNewWorkflowOpen(false);
           setPilotInfoCurrent(pilotInfoMsg);
         }
 
         if (pilotStatusMsg === PilotStatusEnum.START) {
-          setModalNewWorkflowOpen(false);
           refreshWorkflowList({
             cb: () => {
               window.postMessage({
