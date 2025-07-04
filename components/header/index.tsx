@@ -5,7 +5,6 @@ import { cn } from '@/lib/utils';
 import { useUserStore } from '@/store';
 import { ChevronDown, LogOut, Palette } from 'lucide-react';
 import { useTheme } from 'next-themes';
-import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import LogoutTrigger from '../logoutTigger';
@@ -24,6 +23,7 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu';
+import { IconLogo } from '../ui/icon';
 
 const defaultAvatar = '/default.png';
 
@@ -57,7 +57,7 @@ const User = () => {
 
   return (
     <DropdownMenu onOpenChange={handleOpenChange}>
-      <DropdownMenuTrigger className="hover:bg-gray-200 flex items-center gap-2 rounded-full px-3 py-2 focus-within:outline-0 lg:focus-within:outline-1 cursor-pointer">
+      <DropdownMenuTrigger className="hover:bg-gray-200 dark:hover:bg-primary-dark/30 flex items-center gap-2 rounded-full px-3 py-2 focus-within:outline-0 lg:focus-within:outline-1 cursor-pointer">
         <Avatar className="size-8">
           <AvatarImage src={userInfo?.picture ?? defaultAvatar} />
           <AvatarFallback>{userInfo?.fullname?.charAt(0)}</AvatarFallback>
@@ -131,14 +131,7 @@ const Header = (props: { className?: string }) => {
           href="/"
           className="flex flex-[0_0_auto] flex-row items-center space-x-[1rem]"
         >
-          <Image
-            className="!h-[1.5rem] !w-[1.5rem] dark:invert"
-            src="/logo.svg"
-            alt="logo"
-            width={0}
-            height={0}
-            priority
-          />
+          <IconLogo size={24} className="text-primary-dark" />
           <span className="hidden text-lg font-semibold lg:inline">
             {GlobalManager.siteName}
           </span>
