@@ -55,12 +55,12 @@ function PurePanelProfileVault(props: PanelProfileVaultProps) {
     }
   }, [caseInfo, getMissingFieldsEmail]);
 
-  const getTabList = (profileDummyData: ICaseItemType['profileDummyData']) => {
-    if (!profileDummyData) return [];
-    return Object.keys(profileDummyData)
+  const getTabList = (properties: Record<string, { 'x-displayName': string }>) => {
+    if (!properties) return [];
+    return Object.keys(properties)
       .map(key => ({
         value: key,
-        label: camelToCapitalizedWords(key),
+        label: properties[key]['x-displayName'] ?? camelToCapitalizedWords(key),
       }))
       .sort((a, b) => a.value.localeCompare(b.value));
   };
@@ -116,16 +116,18 @@ function PurePanelProfileVault(props: PanelProfileVaultProps) {
             </TabsContent>
             {tabList
               .filter(tab => tab.value !== 'overview')
-              .map(({ value }) => (
-                <TabsContent value={value} key={value}>
-                  <PanelProfileVaultTabContent
-                    fieldKey={value}
-                    data={caseInfo?.profileDummyData?.[value] as Record<string, any>}
-                    caseId={caseInfo.id}
-                    dummyDataFields={caseInfo?.dummyDataFields as any[]}
-                  />
-                </TabsContent>
-              ))}
+              .map(({ value }) => {
+                return (
+                  <TabsContent value={value} key={value}>
+                    <PanelProfileVaultTabContent
+                      fieldKey={value}
+                      data={caseInfo?.profileDummyData?.[value] as Record<string, any>}
+                      caseId={caseInfo.id}
+                      dummyDataFields={caseInfo?.dummyDataFields as any[]}
+                    />
+                  </TabsContent>
+                );
+              })}
           </Tabs>
         </div>
       ) : (

@@ -31,55 +31,31 @@ export const PanelProfileVaultTabContent = ({
   caseId,
   dummyDataFields,
 }: PanelProfileVaultTabContentProps) => {
-  const [sectionRecord, setSectionRecord] = useState<Record<string, any>>({});
+  const { schema } = useProfileStore();
+  const [currentSchema, setCurrentSchema] = useState<Record<string, any>>({});
 
   useEffect(() => {
-    if (data) {
-      setSectionRecord(analysisData(data));
+    if (schema?.jsonSchema?.definitions) {
+      const schemaKey = upperFirst(fieldKey);
+      const definition = schema.jsonSchema.definitions[schemaKey];
+      if (definition) {
+        setCurrentSchema({
+          ...definition,
+          definitions: schema.jsonSchema.definitions,
+        });
+      }
     }
-  }, [data]);
-
-  const analysisData = (params: Record<string, any>) => {
-    const results = Object.entries(params).reduce(
-      (prev, curr) => {
-        const [key, value] = curr;
-        if (isPlainObject(value) || isArray(value)) {
-          return {
-            ...prev,
-            [key]: value,
-          };
-        }
-        return {
-          ...prev,
-          feCustom: {
-            ...(prev.feCustom ?? {}),
-            [key]: value,
-          },
-        };
-      },
-      {} as Record<string, any>
-    );
-    return results;
-  };
+  }, [schema, fieldKey]);
 
   return (
-    <div className="flex flex-col gap-4 w-full">
-      {Object.entries(sectionRecord)
-        .sort((a, b) => {
-          if (a[0] === 'feCustom') return 1;
-          if (b[0] === 'feCustom') return -1;
-          return 0;
-        })
-        .map(([key, value]) => (
-          <ProfileSectionEditorCard
-            key={key}
-            formKey={key}
-            formData={value}
-            fieldKey={fieldKey}
-            caseId={caseId}
-            dummyDataFields={dummyDataFields}
-          />
-        ))}
+    <div className="w-full">
+      <ProfileSectionEditorCard
+        formKey={fieldKey}
+        formData={data}
+        definition={currentSchema}
+        caseId={caseId}
+        dummyDataFields={dummyDataFields}
+      />
     </div>
   );
 };
@@ -87,56 +63,21 @@ export const PanelProfileVaultTabContent = ({
 const ProfileSectionEditorCard = ({
   formKey,
   formData,
-  fieldKey,
   caseId,
   dummyDataFields = [],
+  definition,
 }: {
   formKey: string;
   formData: any;
-  fieldKey: string;
   caseId: string;
   dummyDataFields?: string[];
+  definition: Record<string, any>;
 }) => {
   const [submitting, setSubmitting] = useState(false);
   const [editMode, setEditMode] = useState(false);
-  const { schema } = useProfileStore();
-
-  const [formSchema, setFormSchema] = useState<any>(null);
+  console.log(definition);
   const [RJSFFormData, setRJSFFormData] = useState<any>(null);
   const { emit } = useEventManager('ginkgoo-message', () => {});
-
-  useEffect(() => {
-    let _schema: any;
-    const definitions = schema?.jsonSchema?.definitions;
-    if (!definitions) {
-      return;
-    }
-    const _key = upperFirst(fieldKey);
-    if (formKey === 'feCustom') {
-      _schema = Object.keys(formData).reduce(
-        (prev, curr) => {
-          prev.properties[curr] = definitions[_key]?.properties[curr];
-          if (!prev.properties[curr]) {
-            throw new Error(`Property ${curr} not found in schema`);
-          }
-          return prev;
-        },
-        {
-          type: 'object',
-          properties: {} as any,
-          definitions: schema?.jsonSchema.definitions,
-        }
-      );
-    } else if (definitions[_key]?.properties[formKey]) {
-      _schema = {
-        ...definitions[_key].properties[formKey],
-        definitions: schema.jsonSchema.definitions,
-      };
-    }
-    if (_schema) {
-      setFormSchema(_schema);
-    }
-  }, [formKey, formData, schema, fieldKey]);
 
   useEffect(() => {
     if (formData) {
@@ -155,12 +96,11 @@ const ProfileSectionEditorCard = ({
   const handleSubmit = async (data: any) => {
     setSubmitting(true);
     try {
-      const _fieldKey = formKey === 'feCustom' ? fieldKey : `${fieldKey}.${formKey}`;
-      const res = await updateProfileField(caseId, _fieldKey, data.formData);
+      const res = await updateProfileField(caseId, formKey, data.formData);
       emit({
         type: 'update-case-detail',
       });
-      if (res.failedUpdates === 0) {
+      if (res.success) {
         toast.success('Updated successfully');
       }
     } catch (error) {
@@ -189,7 +129,7 @@ const ProfileSectionEditorCard = ({
             <div className="size-7 flex-none text-primary">
               <IconIndividualInfo size={28} />
             </div>
-            {formKey === 'feCustom' ? 'Other' : camelToCapitalizedWords(formKey)}
+            {camelToCapitalizedWords(formKey)}
           </h3>
           {!editMode && (
             <Button
@@ -205,9 +145,9 @@ const ProfileSectionEditorCard = ({
         </CardTitle>
       </CardHeader>
       <CardContent className="px-16">
-        {!!formSchema && editMode ? (
+        {!!definition && editMode ? (
           <RJSFEngine
-            schema={formSchema}
+            schema={definition}
             formData={RJSFFormData}
             onSubmit={handleSubmit}
             onChange={onFormDataChange}
@@ -236,15 +176,13 @@ const ProfileSectionEditorCard = ({
         ) : null}
         {!editMode ? (
           <>
-            {Object.entries(formData).map(([key, value]) => (
+            {Object.entries(formData ?? {}).map(([key, value]) => (
               <DynamicProfileSection
                 key={key}
                 fieldKey={key}
                 fieldData={value as any}
                 dummyDataFields={dummyDataFields}
-                rootFieldKey={
-                  formKey === 'feCustom' ? fieldKey : `${fieldKey}.${formKey}`
-                }
+                rootFieldKey={formKey}
               />
             ))}
           </>
@@ -275,6 +213,7 @@ const DynamicProfileSection = ({
   ) => {
     const fullKey = `${parentKey}.${key}`;
     const isDummyData = dummyDataFields.includes(fullKey);
+
     if (isString(field) || isBoolean(field) || isNumber(field)) {
       return (
         <div className="flex items-center gap-4 text-sm py-2 my-1 border-primary-gray/50 border-b border-dashed">
@@ -286,7 +225,7 @@ const DynamicProfileSection = ({
             )}
             {camelToCapitalizedWords(displayLabel ?? key)}
           </div>
-          <span className="flex-1">{field}</span>
+          <span className="flex-1">{isBoolean(field) ? field.toString() : field}</span>
           {isDummyData && (
             <span className="py-1 px-2 rounded text-orange-300 bg-[#FFF9EA] text-xs">
               Dummy Data
@@ -312,7 +251,7 @@ const DynamicProfileSection = ({
                 key={_key}
                 fieldKey={_key}
                 fieldData={value as any}
-                rootFieldKey={parentKey}
+                rootFieldKey={`${parentKey}.${key}`}
                 label={_key}
               />
             ))}

@@ -63,7 +63,7 @@ export default function RootLayout({
             labelFontSize: 14,
           },
           Breadcrumb: {
-            separatorMargin: 4,
+            separatorMargin: 2,
             ...(isDarkMode
               ? {
                   lastItemColor: '#f0f0f0',
