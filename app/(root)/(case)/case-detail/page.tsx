@@ -1,6 +1,5 @@
 'use client';
 
-import { ModalInstallExtension } from '@/components/case/modalInstallExtension';
 import { ModalNewWorkflow } from '@/components/case/modalNewWorkflow';
 import { PanelPilot } from '@/components/case/panelPilot';
 import { PanelProfileVault } from '@/components/case/panelProfileVault';
@@ -66,16 +65,14 @@ function CaseDetailContent() {
   const [sizeReference, setSizeReference] = useState<number>(0);
   const [sizeProfileVault, setSizeProfileVault] = useState<number>(0);
   const [sizePilot, setSizePilot] = useState<number>(0);
-  const [isShowPilot, setShowPilot] = useState<boolean>(false);
+  const [isShowPilot, setShowPilot] = useState<boolean>(true);
 
   const [workflowDefinitionId, setWorkflowDefinitionId] = useState<string>('');
   const [pilotInfoCurrent, setPilotInfoCurrent] = useState<IPilotType | null>(null);
   const [pilotList, setPilotList] = useStateCallback<IPilotType[]>([]);
   const [isModalNewWorkflowOpen, setModalNewWorkflowOpen] = useState<boolean>(false);
-  const [isModalInstallExtensionOpen, setModalInstallExtensionOpen] =
-    useState<boolean>(false);
-  // const [pilotInfo, setPilotInfo] = useState<IPilotType | null>(null);
-  // const [stepListItems, setStepListItems] = useState<IWorkflowStepType[]>([]);
+  const [isLoadingQueryWorkflowList, setLoadingQueryWorkflowList] =
+    useState<boolean>(true);
 
   const { setCaseInfo, caseInfo } = useCaseStore();
   const { userInfo } = useUserStore();
@@ -84,10 +81,6 @@ function CaseDetailContent() {
   const isFoldReference = useMemo(() => {
     return sizeReference <= PANEL_SIZE_LIMIT;
   }, [sizeReference]);
-
-  const isFoldPilot = useMemo(() => {
-    return sizePilot <= PANEL_SIZE_LIMIT;
-  }, [sizePilot]);
 
   const lockId = 'pilot-workflow-list';
 
@@ -119,12 +112,11 @@ function CaseDetailContent() {
         }
 
         if (!!workflowIdMsg) {
-          setShowPilot(true);
+          setModalNewWorkflowOpen(false);
           setPilotInfoCurrent(pilotInfoMsg);
         }
 
         if (pilotStatusMsg === PilotStatusEnum.START) {
-          setModalNewWorkflowOpen(false);
           refreshWorkflowList({
             cb: () => {
               window.postMessage({
@@ -199,6 +191,14 @@ function CaseDetailContent() {
           content: contentToast,
         });
         console.log('ginkgoo-background-all-toast', typeToast, contentToast);
+        break;
+      }
+      case 'ginkgoo-background-all-sidepanel-mounted': {
+        console.log('CaseDetailContent ginkgoo-background-all-sidepanel-mounted');
+        break;
+      }
+      case 'ginkgoo-background-all-sidepanel-destory': {
+        console.log('CaseDetailContent ginkgoo-background-all-sidepanel-destory');
         break;
       }
       case 'update-case-detail': {
@@ -289,6 +289,7 @@ function CaseDetailContent() {
         },
         () => {
           LockManager.releaseLock(lockId);
+          setLoadingQueryWorkflowList(false);
           cb?.();
         }
       );
@@ -302,10 +303,11 @@ function CaseDetailContent() {
   };
 
   const init = async () => {
-    SIZE_REFERENCE_DEFAULT.current = window.innerWidth * 0.2;
-    SIZE_PROFILEVAULT_DEFAULT.current = window.innerWidth * 0.6;
-    SIZE_PILOT_DEFAULT.current = window.innerWidth * 0.2;
+    SIZE_REFERENCE_DEFAULT.current = SIZE_REFERENCE_MIN;
+    SIZE_PROFILEVAULT_DEFAULT.current = window.innerWidth * 0.7;
+    SIZE_PILOT_DEFAULT.current = window.innerWidth * 0.3 - SIZE_REFERENCE_MIN;
 
+    setShowPilot(true);
     setSizeReference(SIZE_REFERENCE_DEFAULT.current);
     setSizeProfileVault(SIZE_PROFILEVAULT_DEFAULT.current);
     setSizePilot(SIZE_PILOT_DEFAULT.current);
@@ -453,33 +455,10 @@ function CaseDetailContent() {
     }, 60);
   };
 
-  const handleBtnPanelRightClick = () => {
-    let sizePilotTmp = 0;
-    if (sizePilot > SIZE_PILOT_MIN) {
-      sizePilotTmp = SIZE_PILOT_MIN;
-    } else {
-      sizePilotTmp = SIZE_PILOT_DEFAULT.current;
-    }
-
-    setTransitionAll(true);
-    setTimeout(() => {
-      setSizePilot(sizePilotTmp);
-      setSizeProfileVault(window.innerWidth - sizeReferenceRef.current - sizePilotTmp);
-
-      setTimeout(() => {
-        setTransitionAll(false);
-      }, 200);
-    }, 60);
-  };
-
   const handleWindowResize = () => {
     setSizeProfileVault(
       window.innerWidth - sizeReferenceRef.current - sizePilotRef.current
     );
-  };
-
-  const handleShowInstallExtension = () => {
-    setModalInstallExtensionOpen(true);
   };
 
   const handleShowNewWorkflow = () => {
@@ -494,9 +473,7 @@ function CaseDetailContent() {
     }
   };
 
-  const handleNewWorkflowFinish = async (values: Record<string, string>) => {
-    const { url } = values;
-
+  const handleNewWorkflowFinish = async () => {
     if (!workflowDefinitionId) {
       messageAntd.open({
         type: 'error',
@@ -506,17 +483,25 @@ function CaseDetailContent() {
       return;
     }
 
-    // const url = "https://visas-immigration.service.gov.uk/next"; // test
-    // const url = "https://www.gov.uk/skilled-worker-visa/apply-from-outside-the-uk"; // start
-    // const url = "https://visas-immigration.service.gov.uk/resume/3a0bec84-a910-4f74-b4de-763b458e770e"; // return
-    // const url = "https://apply-to-visit-or-stay-in-the-uk.homeoffice.gov.uk/SKILLED_WORK/3434-4632-5724-0670/"; // uk
+    try {
+      window.postMessage({
+        type: 'ginkgoo-page-all-pilot-start',
+        isNewWorkflow: true,
+        caseInfo,
+        workflowDefinitionId,
+      });
+    } catch (error) {
+      console.error('[Ginkgoo] Sidepanel handleCardClick error', error);
+    }
+  };
+
+  const handleBtnContinueClick = async (params: { workflowId: string }) => {
+    const { workflowId } = params || {};
 
     try {
       window.postMessage({
         type: 'ginkgoo-page-all-pilot-start',
-        url,
-        caseInfo,
-        workflowDefinitionId,
+        workflowId,
       });
     } catch (error) {
       console.error('[Ginkgoo] Sidepanel handleCardClick error', error);
@@ -588,7 +573,7 @@ function CaseDetailContent() {
         )}
       </div>
       {/* max-w-[var(--width-max)] px-[var(--width-padding)] */}
-      <div className="flex h-0 w-full flex-1 flex-col px-6 py-6">
+      <div className="flex h-0 w-full flex-1 flex-col px-4 py-6">
         {sizeReference && sizeProfileVault && sizePilot ? (
           <Splitter
             lazy={false}
@@ -626,13 +611,7 @@ function CaseDetailContent() {
                 }
               )}
             >
-              <PanelProfileVault
-                caseInfo={caseInfo}
-                pilotInfoCurrent={pilotInfoCurrent}
-                isFold={false}
-                onShowInstallExtension={handleShowInstallExtension}
-                onShowNewWorkflow={handleShowNewWorkflow}
-              />
+              <PanelProfileVault caseInfo={caseInfo} isFold={false} />
             </Splitter.Panel>
             {/* Pilot */}
             {isShowPilot ? (
@@ -644,13 +623,14 @@ function CaseDetailContent() {
                 })}
               >
                 <PanelPilot
+                  isLoadingQueryWorkflowList={isLoadingQueryWorkflowList}
                   pageTabInfo={pageTabInfo}
                   caseInfo={caseInfo}
                   pilotInfoCurrent={pilotInfoCurrent}
                   pilotList={pilotList}
-                  isFold={isFoldPilot}
-                  onBtnPanelRightClick={handleBtnPanelRightClick}
                   onQueryWorkflowDetail={handleQueryWorkflowDetail}
+                  onBtnContinueClick={handleBtnContinueClick}
+                  onShowNewWorkflow={handleShowNewWorkflow}
                 />
               </Splitter.Panel>
             ) : null}
@@ -658,11 +638,6 @@ function CaseDetailContent() {
         ) : null}
       </div>
       {/* isModalInstallExtension isModalNewWorkflow */}
-      {/* Modal */}
-      <ModalInstallExtension
-        isOpen={isModalInstallExtensionOpen}
-        onOpenUpdate={setModalInstallExtensionOpen}
-      />
       <ModalNewWorkflow
         isOpen={isModalNewWorkflowOpen}
         pageTabInfo={pageTabInfo}

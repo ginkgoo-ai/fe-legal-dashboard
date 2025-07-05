@@ -4,14 +4,16 @@ export enum PilotStatusEnum {
   INIT = 'INIT',
   OPEN = 'OPEN',
   START = 'START',
+  QUERY_TAB = 'QUERY_TAB',
   QUERY_WORKFLOW = 'QUERY_WORKFLOW',
-  QUERY = 'QUERY',
+  QUERY_HTML = 'QUERY_HTML',
+  QUERY_COOKIES = 'QUERY_COOKIES',
+  QUERY_PDF = 'QUERY_PDF',
   ANALYSIS = 'ANALYSIS',
   ACTION = 'ACTION',
   WAIT = 'WAIT',
   HOLD = 'HOLD',
   MANUAL = 'MANUAL',
-  NOT_SUPPORT = 'NOT_SUPPORT',
   COMING_SOON = 'COMING_SOON',
   PAUSE = 'PAUSE',
   COMPLETED = 'COMPLETED',
@@ -168,6 +170,7 @@ export interface IWorkflowType {
   completed_at: string | null;
   dummy_data_usage?: IWorkflowDummyDataType[];
   progress_file_id?: string;
+  progress_percentage?: number;
   workflow_definition_id?: string;
   steps?: IWorkflowStepType[];
   pilotInfo?: IPilotType;

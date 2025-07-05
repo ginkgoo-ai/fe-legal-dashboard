@@ -134,7 +134,13 @@ function PurePilotStepBodyNormalInterrupt(props: PilotStepBodyNormalInterruptPro
               {
                 input: (
                   <div className="flex flex-col">
-                    <Input />
+                    {itemQuestion?.question?.answer?.data?.[0]?.selector?.includes(
+                      'password'
+                    ) ? (
+                      <Input.Password />
+                    ) : (
+                      <Input />
+                    )}
                   </div>
                 ),
                 select: (

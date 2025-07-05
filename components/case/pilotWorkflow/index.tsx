@@ -1,17 +1,17 @@
 'use client';
 
 import { PilotStepBody } from '@/components/case/pilotStepBody';
-import { IconCompleted, IconIncompleted } from '@/components/ui/icon';
+import { IconCompleted, IconIncompleted, IconLoading } from '@/components/ui/icon';
 import { MESSAGE } from '@/config/message';
 import UtilsManager from '@/customManager/UtilsManager';
 import { cn } from '@/lib/utils';
 import { postFilesPDFHighlight } from '@/service/api/case';
 import { ICaseItemType } from '@/types/case';
 import { IPilotType, PilotStatusEnum } from '@/types/casePilot';
-import { Button, message as messageAntd } from 'antd';
+import { Button, message as messageAntd, Progress } from 'antd';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
-import { ChevronRight, Download } from 'lucide-react';
+import { ChevronRight, Download, Play } from 'lucide-react';
 import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import './index.css';
 
@@ -19,9 +19,10 @@ interface PilotWorkflowProps {
   pageTabInfo: Record<string, unknown>;
   caseInfo: ICaseItemType | null;
   pilotInfo: IPilotType;
-  pilotInfoCurrent: IPilotType | null;
   indexPilot: number;
+  pilotInfoCurrent: IPilotType | null;
   onQueryWorkflowDetail: (params: { workflowId: string }) => void;
+  onBtnContinueClick: (params: { workflowId: string }) => void;
 }
 
 dayjs.extend(utc);
@@ -31,9 +32,10 @@ function PurePilotWorkflow(props: PilotWorkflowProps) {
     pageTabInfo,
     caseInfo,
     pilotInfo,
-    pilotInfoCurrent,
     indexPilot,
+    pilotInfoCurrent,
     onQueryWorkflowDetail,
+    onBtnContinueClick,
   } = props;
 
   const isFoldInit = useRef<boolean>(true);
@@ -41,13 +43,6 @@ function PurePilotWorkflow(props: PilotWorkflowProps) {
   const [isFold, setFold] = useState<boolean>(true);
   const [isDisableBtnDownload, setDisableBtnDownload] = useState<boolean>(true);
   const [isLoadingDownload, setLoadingDownload] = useState<boolean>(false);
-
-  const workflowUpdateTime = useMemo(() => {
-    return dayjs
-      .utc(pilotInfo.pilotWorkflowInfo?.updated_at)
-      .local()
-      .format('MMM DD, YYYY HH: mm');
-  }, [pilotInfo.pilotWorkflowInfo?.updated_at]);
 
   const isCurrentPilot = useMemo(() => {
     return (
@@ -59,12 +54,49 @@ function PurePilotWorkflow(props: PilotWorkflowProps) {
     pilotInfoCurrent?.pilotWorkflowInfo?.workflow_instance_id,
   ]);
 
+  const isShowBtnContinue = useMemo(() => {
+    return (
+      indexPilot === 0 &&
+      !!pilotInfo?.pilotTabInfo?.id &&
+      pilotInfo?.pilotStatus === PilotStatusEnum.HOLD
+    );
+  }, [pilotInfo, indexPilot]);
+
+  const workflowUpdateTime = useMemo(() => {
+    return dayjs
+      .utc(pilotInfo.pilotWorkflowInfo?.updated_at)
+      .local()
+      .format('MMM DD, YYYY HH: mm');
+  }, [pilotInfo.pilotWorkflowInfo?.updated_at]);
+
   useEffect(() => {
     setDisableBtnDownload(!pilotInfo.pilotWorkflowInfo?.progress_file_id);
   }, [pilotInfo.pilotWorkflowInfo?.progress_file_id]);
 
   useEffect(() => {
-    if (isCurrentPilot && pilotInfo?.pilotStatus !== PilotStatusEnum.HOLD) {
+    const getIsInterrupt = () => {
+      const indexCurrentStep: number = Number(
+        pilotInfo?.pilotWorkflowInfo?.steps?.findIndex(itemStep => {
+          return itemStep.step_key === pilotInfo.pilotWorkflowInfo?.current_step_key;
+        })
+      );
+
+      if (!(indexCurrentStep >= 0)) {
+        return;
+      }
+
+      const currentStep = pilotInfo?.pilotWorkflowInfo?.steps?.[indexCurrentStep];
+      const isInterrupt = currentStep?.data?.form_data?.some(itemFormData => {
+        return itemFormData.question.type === 'interrupt';
+      });
+      return isInterrupt;
+    };
+
+    if (
+      isCurrentPilot &&
+      pilotInfo?.pilotStatus === PilotStatusEnum.HOLD &&
+      getIsInterrupt()
+    ) {
       if (isFoldInit.current) {
         isFoldInit.current = false;
         setFold(false);
@@ -117,6 +149,12 @@ function PurePilotWorkflow(props: PilotWorkflowProps) {
     }, 200);
   };
 
+  const handleBtnContinueClick = () => {
+    onBtnContinueClick?.({
+      workflowId: pilotInfo.pilotWorkflowInfo?.workflow_instance_id || '',
+    });
+  };
+
   return (
     <div
       id={`workflow-item-${indexPilot}`}
@@ -124,11 +162,11 @@ function PurePilotWorkflow(props: PilotWorkflowProps) {
     >
       <div
         className={cn(
-          'workflow-wrap absolute left-[50%] top-[50%] min-w-full h-[800%] overflow-hidden rounded-lg pr-[800%]',
-          {
-            'animate-spin-workflow':
-              isCurrentPilot && pilotInfo?.pilotStatus !== PilotStatusEnum.HOLD,
-          }
+          'absolute left-0 top-0 w-full h-full overflow-hidden rounded-lg pr-[800%] bg-[#E2E4E8]'
+          // {
+          //   'animate-spin-workflow':
+          //     isCurrentPilot && pilotInfo?.pilotStatus !== PilotStatusEnum.HOLD,
+          // }
         )}
       ></div>
       <div className="relative w-full box-border p-0.5 bg-[rgba(0,0,0,0)] flex flex-col">
@@ -145,12 +183,20 @@ function PurePilotWorkflow(props: PilotWorkflowProps) {
               )}
             </div>
             <div className="flex flex-col w-0 flex-1">
-              <span className="text-[#4E4E4E] text-sm truncate w-full">
-                {`${caseInfo?.clientName || ''}` +
-                  ` - ${caseInfo?.visaType || ''}` +
-                  ` - ${pilotInfo?.pilotStatus || ''}`}
-              </span>
-              <div className="text-[#98A1B7] text-sm truncate w-full">
+              <div className="flex flex-row items-center gap-1">
+                {pilotInfo?.pilotStatus !== PilotStatusEnum.HOLD ? (
+                  <IconLoading size={16} className="animate-spin" />
+                ) : null}
+                <span
+                  className={cn('w-full truncate text-sm text-[#4E4E4E]', {
+                    'font-bold': pilotInfo?.pilotStatus !== PilotStatusEnum.HOLD,
+                  })}
+                >
+                  {/* {`${caseInfo?.clientName || ""}` + ` - ${caseInfo?.visaType || ""}` + ` - ${pilotInfo?.pilotStatus || ""}`} */}
+                  {pilotInfo?.pilotStatus || '--'}
+                </span>
+              </div>
+              <div className="w-full truncate text-sm font-bold text-[#2665FF]">
                 {workflowUpdateTime}
               </div>
             </div>
@@ -164,21 +210,46 @@ function PurePilotWorkflow(props: PilotWorkflowProps) {
             </div>
           </div>
 
+          {Number(pilotInfo.pilotWorkflowInfo?.progress_percentage) >= 0 ? (
+            <Progress
+              percent={pilotInfo.pilotWorkflowInfo?.progress_percentage}
+              showInfo={false}
+            />
+          ) : null}
+
           {!isFold ? (
             <PilotStepBody pageTabInfo={pageTabInfo} pilotInfo={pilotInfo} />
           ) : null}
 
-          <Button
-            id={`pilot-item-btn-download-${indexPilot}`}
-            type="primary"
-            className=""
-            disabled={isDisableBtnDownload}
-            loading={isLoadingDownload}
-            onClick={handleBtnPDFDownloadClick}
-          >
-            <Download size={20} />
-            <span className="font-bold">Download PDF</span>
-          </Button>
+          <div className="flex flex-row justify-between items-center gap-2 w-full">
+            <Button
+              id={`pilot-item-btn-download-${indexPilot}`}
+              type="default"
+              className="flex-1 w-0"
+              disabled={isDisableBtnDownload}
+              loading={isLoadingDownload}
+              onClick={handleBtnPDFDownloadClick}
+            >
+              <Download size={20} />
+              <div className="truncate">
+                <span className="font-bold">Download</span>
+                {!isShowBtnContinue ? <span className="font-bold"> PDF</span> : null}
+              </div>
+            </Button>
+            {isShowBtnContinue ? (
+              <Button
+                id={`pilot-item-btn-continue-${indexPilot}`}
+                type="default"
+                className="flex-1 w-0"
+                onClick={handleBtnContinueClick}
+              >
+                <Play size={20} />
+                <div className="truncate">
+                  <span className="font-bold">Continue</span>
+                </div>
+              </Button>
+            ) : null}
+          </div>
         </div>
       </div>
     </div>

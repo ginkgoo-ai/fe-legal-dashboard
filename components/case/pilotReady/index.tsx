@@ -1,16 +1,8 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
-import { IconMagic } from '@/components/ui/icon';
-import { memo, MouseEventHandler } from 'react';
+import { memo } from 'react';
 
-interface PilotReadyProps {
-  onBtnStartClick: MouseEventHandler<HTMLButtonElement> | undefined;
-}
-
-function PurePilotReady(props: PilotReadyProps) {
-  const { onBtnStartClick } = props;
-
+function PurePilotReady() {
   return (
     <div className="flex flex-col">
       <div className="mt-[2.75rem] mb-4 w-full flex justify-center items-center font-bold">
@@ -25,16 +17,15 @@ function PurePilotReady(props: PilotReadyProps) {
             CLICK THE BUTTON BELOW TO START THE AUTOMATIC FORM FILLING.
           </div>
         </div>
-        <Button
-          variant="ghost"
-          className="border border-[#D8DFF5] border-dashed h-11 bg-white"
+        {/* <Button
+          // className="border border-[#D8DFF5] border-dashed h-11 bg-white"
           onClick={onBtnStartClick}
         >
           <IconMagic size={24} />
           <span className="text-[var(--color-primary)] font-semibold">
             Start Auto-Fill
           </span>
-        </Button>
+        </Button> */}
       </div>
     </div>
   );
