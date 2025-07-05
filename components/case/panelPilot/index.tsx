@@ -123,7 +123,7 @@ function PurePanelPilot(props: PanelPanelPilotProps) {
           ) : (
             <>
               {pilotList?.length === 0 ? (
-                <PilotReady onBtnStartClick={handleBtnExtensionStartClick} />
+                <PilotReady />
               ) : (
                 <div
                   className={cn('box-border flex flex-1 flex-col gap-3 overflow-y-auto')}

@@ -33,7 +33,7 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
   const [isShowLoginTip, setShowLoginTip] = useState<boolean>(false);
   const [stepListActiveKeyBody, setStepListActiveKeyBody] = useState<string>('');
   const [stepListItemsBody, setStepListItemsBody] = useState<CollapseProps['items']>([]);
-  const [percent, setPercent] = useState(0);
+  // const [percent, setPercent] = useState(0);
 
   useEventManager('ginkgoo-message', message => {
     const { type: typeMsg } = message;
@@ -190,10 +190,10 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
       }
 
       const currentStep = pilotInfo?.pilotWorkflowInfo?.steps?.[indexCurrentStep];
-      const percentTmp =
-        ((indexCurrentStep + 1) / Number(pilotInfo?.pilotWorkflowInfo?.steps?.length)) *
-        100;
-      setPercent(percentTmp);
+      // const percentTmp =
+      //   ((indexCurrentStep + 1) / Number(pilotInfo?.pilotWorkflowInfo?.steps?.length)) *
+      //   100;
+      // setPercent(percentTmp);
 
       if (pilotInfo?.pilotStatus === PilotStatusEnum.HOLD) {
         const isInterrupt = currentStep?.data?.form_data?.some(itemFormData => {
