@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils';
 import { IActionItemType } from '@/types/case';
 import { IPilotType, IWorkflowStepType, PilotStatusEnum } from '@/types/casePilot';
 import type { CollapseProps } from 'antd';
-import { Alert, Button, Collapse, Progress, Spin } from 'antd';
+import { Alert, Button, Collapse, Spin } from 'antd';
 import { Check } from 'lucide-react';
 import { memo, useCallback, useEffect, useState } from 'react';
 import { PilotStepBodyNormal } from '../pilotStepBodyNormal';
@@ -33,7 +33,7 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
   const [isShowLoginTip, setShowLoginTip] = useState<boolean>(false);
   const [stepListActiveKeyBody, setStepListActiveKeyBody] = useState<string>('');
   const [stepListItemsBody, setStepListItemsBody] = useState<CollapseProps['items']>([]);
-  const [percent, setPercent] = useState(0);
+  // const [percent, setPercent] = useState(0);
 
   useEventManager('ginkgoo-message', message => {
     const { type: typeMsg } = message;
@@ -70,11 +70,11 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
 
       window.postMessage({
         type: 'ginkgoo-page-all-pilot-start',
-        pilotId: pilotInfo?.pilotId,
+        workflowId: pilotInfo?.pilotWorkflowInfo?.workflow_instance_id,
         actionlistPre,
       });
     },
-    [isShowLoginTip, pageTabInfo?.id, pilotInfo?.pilotId]
+    [isShowLoginTip, pageTabInfo?.id, pilotInfo?.pilotWorkflowInfo?.workflow_instance_id]
   );
 
   const handleBtnProceedToFormClick = () => {
@@ -190,10 +190,10 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
       }
 
       const currentStep = pilotInfo?.pilotWorkflowInfo?.steps?.[indexCurrentStep];
-      const percentTmp =
-        ((indexCurrentStep + 1) / Number(pilotInfo?.pilotWorkflowInfo?.steps?.length)) *
-        100;
-      setPercent(percentTmp);
+      // const percentTmp =
+      //   ((indexCurrentStep + 1) / Number(pilotInfo?.pilotWorkflowInfo?.steps?.length)) *
+      //   100;
+      // setPercent(percentTmp);
 
       if (pilotInfo?.pilotStatus === PilotStatusEnum.HOLD) {
         const isInterrupt = currentStep?.data?.form_data?.some(itemFormData => {
@@ -218,7 +218,6 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
 
   return stepListItemsBody && stepListItemsBody.length > 0 ? (
     <div className="relative box-border flex flex-col w-full items-center justify-start rounded-lg border border-[#D8DFF5] p-2">
-      <Progress percent={percent} showInfo={false} />
       <Collapse
         className="w-full"
         activeKey={stepListActiveKeyBody}

@@ -21,6 +21,7 @@ function PureTagStatus(props: TagStatusProps) {
         borderRadius: '6px',
         padding: '6px 11.5px',
         fontSize: '12px',
+        margin: 0,
         // fontWeight: 700,
       }}
     >
