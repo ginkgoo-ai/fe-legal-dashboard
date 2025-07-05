@@ -618,9 +618,12 @@ function CaseDetailContent() {
               <Splitter.Panel
                 min={SIZE_PILOT_MIN}
                 size={sizePilot}
-                className={cn('bg-white relative rounded-2xl flex-col flex h-full', {
-                  'transition-all': isTransitionAll,
-                })}
+                className={cn(
+                  'bg-panel-background relative rounded-2xl flex-col flex h-full',
+                  {
+                    'transition-all': isTransitionAll,
+                  }
+                )}
               >
                 <PanelPilot
                   isLoadingQueryWorkflowList={isLoadingQueryWorkflowList}
