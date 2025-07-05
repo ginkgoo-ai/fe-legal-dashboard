@@ -43,10 +43,16 @@ function PurePanelPilot(props: PanelPanelPilotProps) {
   const { extensionsInfo } = useExtensionsStore();
 
   useEffect(() => {
-    if (!!pilotInfoCurrent?.pilotWorkflowInfo?.workflow_instance_id) {
+    if (
+      !!pilotInfoCurrent?.pilotWorkflowInfo?.workflow_instance_id &&
+      pilotInfoCurrent?.pilotStatus !== PilotStatusEnum.HOLD
+    ) {
       setLoadingExtensionStop(false);
     }
-  }, [pilotInfoCurrent?.pilotWorkflowInfo?.workflow_instance_id]);
+  }, [
+    pilotInfoCurrent?.pilotWorkflowInfo?.workflow_instance_id,
+    pilotInfoCurrent?.pilotStatus,
+  ]);
 
   const handleBtnExtensionStartClick = () => {
     if (GlobalManager.versionExtension !== extensionsInfo?.version) {
@@ -140,6 +146,7 @@ function PurePanelPilot(props: PanelPanelPilotProps) {
                         caseInfo={caseInfo}
                         pilotInfo={itemPilot}
                         indexPilot={indexPilot}
+                        pilotInfoCurrent={pilotInfoCurrent}
                         onQueryWorkflowDetail={onQueryWorkflowDetail}
                         onBtnContinueClick={onBtnContinueClick}
                       />
