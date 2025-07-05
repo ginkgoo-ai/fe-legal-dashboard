@@ -165,9 +165,9 @@ function CaseDetailContent() {
               console.log('ginkgoo-background-all-pilot-done', workflowIdMsg, indexPilot);
 
               if (indexPilot >= 0) {
-                window.document
-                  .getElementById(`workflow-item-btn-download-${indexPilot}`)
-                  ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                // window.document
+                //   .getElementById(`workflow-item-btn-download-${indexPilot}`)
+                //   ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
                 setPilotInfoCurrent(pilotInfoMsg);
                 draft[indexPilot] = pilotInfoMsg;
@@ -303,14 +303,14 @@ function CaseDetailContent() {
   };
 
   const init = async () => {
-    SIZE_REFERENCE_DEFAULT.current = SIZE_REFERENCE_MIN;
-    SIZE_PROFILEVAULT_DEFAULT.current = window.innerWidth * 0.7;
-    SIZE_PILOT_DEFAULT.current = window.innerWidth * 0.3 - SIZE_REFERENCE_MIN;
+    SIZE_REFERENCE_DEFAULT.current = window.innerWidth * 0.3;
+    SIZE_PROFILEVAULT_DEFAULT.current = window.innerWidth * 0.4;
+    SIZE_PILOT_DEFAULT.current = window.innerWidth * 0.3;
 
     setShowPilot(true);
-    setSizeReference(SIZE_REFERENCE_DEFAULT.current);
-    setSizeProfileVault(SIZE_PROFILEVAULT_DEFAULT.current);
-    setSizePilot(SIZE_PILOT_DEFAULT.current);
+    setSizeReference(SIZE_REFERENCE_MIN);
+    setSizeProfileVault(window.innerWidth * 0.7);
+    setSizePilot(window.innerWidth * 0.3 - SIZE_REFERENCE_MIN);
 
     await refreshCaseDetail();
     getProfileVaultSchema();

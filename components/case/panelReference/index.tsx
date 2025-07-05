@@ -16,7 +16,7 @@ import { useStateCallback } from '@/hooks/useStateCallback';
 import { FileStatus, ICaseDocumentInitResultType, IFileItemType } from '@/types/file';
 import { produce } from 'immer';
 import { cloneDeep } from 'lodash';
-import { memo } from 'react';
+import { memo, useState } from 'react';
 import { toast } from 'sonner';
 import { v4 as uuid } from 'uuid';
 
@@ -30,6 +30,7 @@ interface PanelReferenceProps {
 function PurePanelReference(props: PanelReferenceProps) {
   const { caseId, isFold, onBtnPanelLeftClick } = props;
 
+  const [isFileLoading, setFileLoading] = useState<boolean>(true);
   const [fileList, setFileList] = useStateCallback<IFileItemType[]>([]);
 
   useEventManager('ginkgoo-message', async message => {
@@ -49,6 +50,7 @@ function PurePanelReference(props: PanelReferenceProps) {
             })) || []
           );
         });
+        setFileLoading(false);
 
         break;
       }
@@ -84,6 +86,7 @@ function PurePanelReference(props: PanelReferenceProps) {
               LockManager.releaseLock(lockId);
             }
           );
+          setFileLoading(false);
         }
         break;
       }
@@ -199,9 +202,14 @@ function PurePanelReference(props: PanelReferenceProps) {
           'pt-4': true,
         })}
       >
-        {fileList.length > 0 ? (
+        {isFileLoading ? (
+          <div className="w-full h-full flex flex-col justify-center items-center text-primary">
+            <IconLogo size={24} className="animate-spin mb-2 animation-duration-[2s]" />
+            <p className="after:animate-point-loading">Loading</p>
+          </div>
+        ) : (
           <div className="flex flex-col gap-8">
-            {fileList.map((itemFile, indexFile) => (
+            {fileList?.map((itemFile, indexFile) => (
               <ItemFile
                 key={`reference-item-${indexFile}`}
                 mode="Reference"
@@ -209,11 +217,6 @@ function PurePanelReference(props: PanelReferenceProps) {
                 isFold={isFold}
               />
             ))}
-          </div>
-        ) : (
-          <div className="w-full h-full flex flex-col justify-center items-center text-primary">
-            <IconLogo size={24} className="animate-spin mb-2 animation-duration-[2s]" />
-            <p className="after:animate-point-loading">Loading</p>
           </div>
         )}
       </div>
