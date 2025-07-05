@@ -155,7 +155,7 @@ export const PanelProfileVaultDocuments = ({
       </h2>
       <Table>
         <TableHeader>
-          <TableRow className="bg-[#F9F9F9] hover:bg-[#F9F9F9]">
+          <TableRow>
             <TableHead>Document</TableHead>
             <TableHead>Issue Detected</TableHead>
             <TableHead className="text-right">Action</TableHead>
@@ -210,7 +210,7 @@ export const PanelProfileVaultDocuments = ({
                         variant: 'secondary',
                         size: 'icon',
                         className:
-                          'size-8 bg-[#F9F9F9] text-[#98A1B7] not-[data-disabled]:hover:text-primary not-[data-disabled]:hover:bg-primary/5',
+                          'size-8 bg-background dark:bg-background/20 text-[#98A1B7] not-[data-disabled]:hover:text-primary not-[data-disabled]:hover:bg-primary/5',
                       })
                     )}
                   >

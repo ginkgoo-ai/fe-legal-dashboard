@@ -4,11 +4,11 @@ import { PanelContainer } from '@/components/case/panelContainer';
 import { FileUploadSimple } from '@/components/common/form/upload/fileUploadSimple';
 import { ItemFile } from '@/components/common/itemFile';
 import { Button } from '@/components/ui/button';
-import { IconFoldLeft } from '@/components/ui/icon';
+import { IconFoldLeft, IconLogo } from '@/components/ui/icon';
 import LockManager from '@/customManager/LockManager';
 import { cn } from '@/lib/utils';
 import { uploadDocument } from '@/service/api/case';
-import { message as messageAntd, Spin } from 'antd';
+import { message as messageAntd } from 'antd';
 // import { uploadFiles } from '@/service/api/file';
 import { MESSAGE } from '@/config/message';
 import { useEventManager } from '@/hooks/useEventManager';
@@ -171,7 +171,12 @@ function PurePanelReference(props: PanelReferenceProps) {
       showTitle={!isFold}
       renderTitleExtend={() => {
         return (
-          <Button variant="ghost" onClick={onBtnPanelLeftClick}>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-[#52525B] dark:text-white"
+            onClick={onBtnPanelLeftClick}
+          >
             <IconFoldLeft size={24} />
           </Button>
         );
@@ -206,10 +211,9 @@ function PurePanelReference(props: PanelReferenceProps) {
             ))}
           </div>
         ) : (
-          <div className="w-full h-full flex flex-col justify-center items-center">
-            <Spin className="bg-[#f1f1f4]" tip="Loading" size="small">
-              <div className="w-20 h-20"></div>
-            </Spin>
+          <div className="w-full h-full flex flex-col justify-center items-center text-primary">
+            <IconLogo size={24} className="animate-spin mb-2 animation-duration-[2s]" />
+            <p className="after:animate-point-loading">Loading</p>
           </div>
         )}
       </div>

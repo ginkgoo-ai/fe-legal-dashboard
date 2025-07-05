@@ -45,7 +45,7 @@ function PureModalInstallExtension(props: ModalInstallExtensionProps) {
       // onOk={handleCreateCaseOk}
       onCancel={handleBtnCancel}
     >
-      <div className="mb-4 text-sm text-[#1A1A1AB2]">
+      <div className="mb-4 text-sm text-[#1A1A1AB2] dark:text-foreground">
         Install our Chrome browser extension to enable seamless automation.
       </div>
 

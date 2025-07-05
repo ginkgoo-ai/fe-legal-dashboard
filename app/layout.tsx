@@ -1,5 +1,6 @@
 'use client';
 
+import { IconLogo } from '@/components/ui/icon';
 import GlobalManager from '@/customManager/GlobalManager';
 import { useEventManager } from '@/hooks/useEventManager';
 import useRequest from '@/hooks/useRequest';
@@ -9,6 +10,7 @@ import { useExtensionsStore } from '@/store/extensionsStore';
 import '@/style/global.css';
 import { ExtensionsInfo } from '@/types/extensions';
 import '@ant-design/v5-patch-for-react-19';
+import { ThemeProvider } from 'next-themes';
 import { Poppins } from 'next/font/google';
 import { usePathname, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -138,15 +140,20 @@ export default function RootLayout({
           content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
         />
       </head>
-
       <body className="flex h-[100vh] w-[100vw] flex-col">
-        {loading || (whiteListForNotNeetAuth.includes(pathname) && !user) ? (
-          <div className="flex flex-1 h-auto items-center justify-center">
-            <div className="border-primary h-8 w-8 animate-spin rounded-full border-4 border-t-transparent" />
-          </div>
-        ) : (
-          <>{children}</>
-        )}
+        <ThemeProvider defaultTheme="light" storageKey="legal|theme">
+          {loading || (whiteListForNotNeetAuth.includes(pathname) && !user) ? (
+            <div className="flex flex-col gap-2 flex-1 h-auto items-center justify-center">
+              <IconLogo
+                className="animate-spin size-10 text-primary animation-duration-[2s]"
+                size={40}
+              />
+              <p className="after:animate-point-loading">Loading</p>
+            </div>
+          ) : (
+            <>{children}</>
+          )}
+        </ThemeProvider>
       </body>
     </html>
   );

@@ -6,11 +6,12 @@ import { buttonVariants } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { camelToCapitalizedWords, cn } from '@/lib/utils';
 import { getMissingFieldEmailTemplate } from '@/service/api';
+import { useProfileStore } from '@/store/profileStore';
 import { ICaseItemType } from '@/types/case';
 import Image from 'next/image';
-import { memo, useEffect, useState } from 'react';
-import { PanelProfileVaultDynamicTab } from '../panelProfileVaultDynamicTab';
+import { memo, useCallback, useEffect, useState } from 'react';
 import { PanelProfileVaultRtxDialog } from '../panelProfileVaultRtxDialog';
+import { PanelProfileVaultTabContent } from '../panelProfileVaultTabContent';
 
 interface PanelProfileVaultProps {
   caseInfo: ICaseItemType | null;
@@ -22,11 +23,11 @@ function PurePanelProfileVault(props: PanelProfileVaultProps) {
 
   const [missingFieldsEmail, setMissingFieldsEmail] = useState<string>('');
   const [tabList, setTabList] = useState<any[]>([]);
+  const { schema } = useProfileStore();
 
   useEffect(() => {
-    if (caseInfo?.profileData) {
-      const list = getTabList(caseInfo.profileData);
-      console.log(list);
+    if (schema?.jsonSchema?.properties) {
+      const list = getTabList(schema?.jsonSchema?.properties);
       setTabList([
         {
           label: 'Overview',
@@ -35,15 +36,9 @@ function PurePanelProfileVault(props: PanelProfileVaultProps) {
         ...list,
       ]);
     }
-  }, [caseInfo]);
+  }, [schema]);
 
-  useEffect(() => {
-    if (caseInfo?.id) {
-      getMissingFieldsEmail();
-    }
-  }, [caseInfo]);
-
-  const getMissingFieldsEmail = async () => {
+  const getMissingFieldsEmail = useCallback(async () => {
     try {
       const res = await getMissingFieldEmailTemplate(caseInfo!.id);
       if (res.htmlBody) {
@@ -52,11 +47,17 @@ function PurePanelProfileVault(props: PanelProfileVaultProps) {
     } catch (error) {
       console.error('Error fetching missing fields email:', error);
     }
-  };
+  }, [caseInfo, setMissingFieldsEmail]);
 
-  const getTabList = (profileData: ICaseItemType['profileData']) => {
-    if (!profileData) return [];
-    return Object.keys(profileData)
+  useEffect(() => {
+    if (caseInfo?.id) {
+      getMissingFieldsEmail();
+    }
+  }, [caseInfo, getMissingFieldsEmail]);
+
+  const getTabList = (profileDummyData: ICaseItemType['profileDummyData']) => {
+    if (!profileDummyData) return [];
+    return Object.keys(profileDummyData)
       .map(key => ({
         value: key,
         label: camelToCapitalizedWords(key),
@@ -93,7 +94,7 @@ function PurePanelProfileVault(props: PanelProfileVaultProps) {
         >
           <Tabs defaultValue="overview">
             <TabsList
-              className="rounded-full gap-x-2 bg-[#F1F1F4] mb-2 max-w-full overflow-x-auto justify-start snap-proximity snap-x"
+              className="rounded-full gap-x-2 bg-[#F1F1F4] dark:bg-background mb-2 max-w-full overflow-x-auto justify-start snap-proximity snap-x sticky top-0 z-10"
               style={{
                 scrollbarWidth: 'none',
               }}
@@ -115,13 +116,13 @@ function PurePanelProfileVault(props: PanelProfileVaultProps) {
             </TabsContent>
             {tabList
               .filter(tab => tab.value !== 'overview')
-              .map(({ value, label }) => (
+              .map(({ value }) => (
                 <TabsContent value={value} key={value}>
-                  <PanelProfileVaultDynamicTab
-                    data={caseInfo?.profileData?.[value] as Record<string, unknown>}
-                    label={label}
-                    originalKey={value}
-                    caseId={caseInfo?.id}
+                  <PanelProfileVaultTabContent
+                    fieldKey={value}
+                    data={caseInfo?.profileDummyData?.[value] as Record<string, any>}
+                    caseId={caseInfo.id}
+                    dummyDataFields={caseInfo?.dummyDataFields as any[]}
                   />
                 </TabsContent>
               ))}
@@ -136,7 +137,7 @@ function PurePanelProfileVault(props: PanelProfileVaultProps) {
             alt="default"
             className="mb-4"
           ></Image>
-          <p className="text-base mb-8 relative">
+          <p className="text-base mb-8 relative text-foreground">
             Processing Your Documents
             <span className="after:animate-point-loading inline-block w-1"></span>
           </p>

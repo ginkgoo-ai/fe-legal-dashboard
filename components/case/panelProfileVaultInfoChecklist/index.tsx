@@ -11,7 +11,7 @@ import {
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useEventManager } from '@/hooks/useEventManager';
 import { camelToCapitalizedWords } from '@/lib';
-import { updateMultipleProfileFields } from '@/service/api';
+import { applyDummyData } from '@/service/api';
 import { ICaseProfileChecklistType, ICaseProfileMissingField } from '@/types/case';
 import { cn } from '@/utils';
 import { Zap } from 'lucide-react';
@@ -37,18 +37,13 @@ const PanelProfileVaultInfoTableRow = ({
   const onFillDummyData = async () => {
     setSubmitting(true);
     try {
-      const params = Object.fromEntries(
-        rowValue.map(({ fieldPath, dummyValue }) => [[fieldPath], dummyValue])
-      );
-      const res = await updateMultipleProfileFields(caseId, params);
-      if (!res || res?.failedResults?.length > 0) {
+      const res = await applyDummyData(caseId, rowKey);
+      if (!res?.success) {
         toast.error(`Failed to update field ${camelToCapitalizedWords(rowKey)}`);
         return;
       }
-      if (res.successfulResults.length > 0) {
-        toast.success('Updated successfully');
-        afterFillDummyData();
-      }
+      toast.success('Updated successfully');
+      afterFillDummyData();
     } catch (error) {
       console.error(error);
     } finally {
@@ -139,7 +134,7 @@ export const PanelProfileVaultInfoChecklist = (
       </h2>
       <Table>
         <TableHeader>
-          <TableRow className="bg-[#F9F9F9] hover:bg-[#F9F9F9]">
+          <TableRow>
             <TableHead>Missing Item</TableHead>
             <TableHead className="text-right">Action</TableHead>
           </TableRow>

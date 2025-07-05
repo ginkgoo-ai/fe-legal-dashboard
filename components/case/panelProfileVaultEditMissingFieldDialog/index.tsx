@@ -1,5 +1,5 @@
+import { RJSFEngine } from '@/components/common/formEngine';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import {
   Dialog,
   DialogContent,
@@ -7,18 +7,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
 import { IconLoader } from '@/components/ui/icon';
-import { Input } from '@/components/ui/input';
 import { useEventManager } from '@/hooks/useEventManager';
 import { camelToCapitalizedWords } from '@/lib';
 import { updateMultipleProfileFields } from '@/service/api';
-import { cn } from '@/utils';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { UiSchema } from '@rjsf/utils';
+import { merge } from 'lodash';
+import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { z } from 'zod';
 
 type PurePanelProfileVaultEditMissingFieldDialogProps = {
   caseId: string;
@@ -30,53 +26,9 @@ type PurePanelProfileVaultEditMissingFieldDialogProps = {
   onOpenChange: (open: boolean) => void;
 };
 
-const encodeFieldPath = (path: string) => path.replaceAll('.', '_');
-const decodeFieldPath = (path: string) => path.replaceAll('_', '.');
-
-const getFormDefaultValues = (missingFields?: any[]) => {
-  const results = (missingFields ?? []).reduce(
-    (prev, curr) => {
-      let defaultValue: any;
-      if (curr.fieldType === 'string') {
-        defaultValue = '';
-      } else if (curr.fieldType === 'number') {
-        defaultValue = '';
-      } else if (curr.fieldType === 'boolean') {
-        defaultValue = false;
-      }
-      return { ...prev, [encodeFieldPath(curr.fieldPath)]: defaultValue };
-    },
-    {} as Record<string, string>
-  );
-  return results;
+const uiSchema: UiSchema = {
+  'ui:classNames': 'overflow-y-auto max-h-[70vh]',
 };
-
-const getFormResolver = (missingFields?: any[]) =>
-  zodResolver(
-    z.object(
-      (missingFields ?? []).reduce(
-        (prev, curr) => {
-          let defaultValidator: any;
-          if (curr.fieldType === 'string') {
-            defaultValidator = z
-              .string()
-              .max(255, `${curr.displayName} must be less than 255 characters`);
-          } else if (curr.fieldType === 'number') {
-            defaultValidator = z
-              .number()
-              .min(0, `${curr.displayName} must be greater than or equal to 0`);
-          } else if (curr.fieldType === 'boolean') {
-            defaultValidator = z.boolean();
-          }
-          return {
-            ...prev,
-            [encodeFieldPath(curr.fieldPath)]: defaultValidator,
-          };
-        },
-        {} as Record<string, any>
-      )
-    )
-  );
 
 export const PanelProfileVaultEditMissingFieldDialog = ({
   caseId,
@@ -86,22 +38,43 @@ export const PanelProfileVaultEditMissingFieldDialog = ({
 }: PurePanelProfileVaultEditMissingFieldDialogProps) => {
   const [submitting, setSubmitting] = useState(false);
   const { emit } = useEventManager('ginkgoo-message', () => {});
-  const form = useForm({
-    defaultValues: getFormDefaultValues(field?.value),
-    resolver: getFormResolver(field?.value),
-  });
+  const [formData, setFormData] = useState<any>();
+  const [schemaList, setSchemaList] = useState<any>(null);
+
+  const [key, setKey] = useState(0);
+
+  useEffect(() => {
+    const { value } = field ?? {};
+    if (!value) {
+      return;
+    }
+    if (value?.length > 0) {
+      const result = value.reduce(
+        (prev, curr) => {
+          prev.properties[curr.fieldPath] = {
+            type: [curr.fieldType],
+            ...curr.fieldDefinition,
+          };
+          return prev;
+        },
+        {
+          type: 'object',
+          properties: {},
+        }
+      );
+      setSchemaList(result);
+    }
+  }, [field]);
 
   const onSubmit = async (data: any) => {
     setSubmitting(true);
     try {
-      const params = Object.fromEntries(
-        Object.entries(data).map(([key, value]) => [decodeFieldPath(key), value])
-      ) as Record<string, any>;
+      const params = { ...data.formData };
       const res = await updateMultipleProfileFields(caseId, params);
       emit({
         type: 'update-case-detail',
       });
-      if (res.successfulResults.length > 0) {
+      if (res.failedUpdates === 0) {
         toast.success('Updated successfully');
         onOpenChange(false);
       }
@@ -116,18 +89,23 @@ export const PanelProfileVaultEditMissingFieldDialog = ({
     if (!field) {
       return;
     }
-    (field.value ?? []).forEach(({ fieldPath, fieldType, dummyValue }) => {
-      const formName = encodeFieldPath(fieldPath);
-      const formValue = form.getValues(formName);
-      let hasValue = true;
-      if (['string', 'number'].includes(fieldType) && !formValue) {
-        hasValue = false;
-      }
-      if (!hasValue) {
-        form.setValue(formName, dummyValue);
-      }
-    });
+    const dummyValueRecord = Object.fromEntries(
+      (field.value ?? []).map(item => [item.fieldPath, item.dummyValue])
+    );
+    const newData = merge(dummyValueRecord, formData);
+    setFormData(newData);
+    setKey(pre => pre + 1);
   };
+
+  const onFormDataChange = useCallback(
+    ({ formData }: any, id?: string) => {
+      if (id) {
+        console.log('Field changed, id: ', id);
+      }
+      setFormData(formData);
+    },
+    [setFormData]
+  );
 
   if (!field) {
     return null;
@@ -142,40 +120,17 @@ export const PanelProfileVaultEditMissingFieldDialog = ({
           </DialogTitle>
         </DialogHeader>
 
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)}>
-            <div className={cn('grid grid-cols-2 gap-x-4 gap-y-6 w-full mb-4')}>
-              {(field?.value ?? []).map(field => {
-                return (
-                  <FormField
-                    control={form.control}
-                    name={encodeFieldPath(field.fieldPath)}
-                    key={field.fieldPath}
-                    render={({ field: formField }) => (
-                      <FormItem>
-                        <FormLabel>{field.displayName}</FormLabel>
-                        <FormControl>
-                          {field.fieldType === 'boolean' ? (
-                            <Checkbox
-                              className="size-5"
-                              {...formField}
-                              checked={formField.value === true}
-                              onCheckedChange={checked => formField.onChange(checked)}
-                            />
-                          ) : (
-                            <Input
-                              placeholder={`Enter ${field.displayName}`}
-                              {...formField}
-                            />
-                          )}
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                );
-              })}
-            </div>
-            <DialogFooter>
+        <div key={key}>
+          <RJSFEngine
+            schema={schemaList}
+            uiSchema={uiSchema as any}
+            onSubmit={(data: any) => {
+              onSubmit(data);
+            }}
+            onChange={onFormDataChange}
+            formData={formData}
+          >
+            <DialogFooter className="mt-8">
               <Button
                 variant="outline"
                 onClick={onFillWithDummyData}
@@ -198,8 +153,8 @@ export const PanelProfileVaultEditMissingFieldDialog = ({
                 Confirm
               </Button>
             </DialogFooter>
-          </form>
-        </Form>
+          </RJSFEngine>
+        </div>
       </DialogContent>
     </Dialog>
   );

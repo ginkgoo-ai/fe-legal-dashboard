@@ -3,7 +3,7 @@
 import Header from '@/components/header';
 import { Toaster } from '@/components/ui/sonner';
 import { ConfigProvider, theme } from 'antd';
-import { ThemeProvider, useTheme } from 'next-themes';
+import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
 
 export default function RootLayout({
@@ -11,8 +11,9 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const { theme: nextTheme } = useTheme();
+  const { theme: nextTheme, setTheme } = useTheme();
   const [systemTheme, setSystemTheme] = useState<'light' | 'dark'>('light');
+  const [isDarkMode, setIsDarkMode] = useState(false);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
@@ -26,15 +27,18 @@ export default function RootLayout({
     return () => mediaQuery.removeEventListener('change', handler);
   }, []);
 
-  const isDarkMode =
-    nextTheme === 'dark' || (nextTheme === 'system' && systemTheme === 'dark');
+  useEffect(() => {
+    setIsDarkMode(
+      nextTheme === 'dark' || (nextTheme === 'system' && systemTheme === 'dark')
+    );
+  }, [nextTheme, systemTheme]);
 
   return (
     <ConfigProvider
       theme={{
         algorithm: isDarkMode ? theme.darkAlgorithm : theme.defaultAlgorithm,
         token: {
-          colorPrimary: '#2C9AFF',
+          colorPrimary: '#0061fd',
           fontFamily: "'Poppins', serif",
         },
         components: {
@@ -58,16 +62,24 @@ export default function RootLayout({
             labelColor: '#1A1A1AB2',
             labelFontSize: 14,
           },
+          Breadcrumb: {
+            separatorMargin: 4,
+            ...(isDarkMode
+              ? {
+                  lastItemColor: '#f0f0f0',
+                  linkColor: '#0061fd',
+                  separatorColor: '#f0f0f0',
+                }
+              : {}),
+          },
         },
       }}
     >
-      <ThemeProvider defaultTheme="system" storageKey="legal|theme">
-        <Header className="fixed left-0 top-0 z-10" />
-        <main className="flex h-0 w-[100vw] flex-1 flex-col items-center overflow-y-auto pt-20">
-          {children}
-        </main>
-        <Toaster position="top-center" richColors />
-      </ThemeProvider>
+      <Header className="fixed left-0 top-0 z-10" />
+      <main className="flex h-0 w-[100vw] flex-1 flex-col items-center overflow-y-auto pt-20">
+        {children}
+      </main>
+      <Toaster position="top-center" richColors />
     </ConfigProvider>
   );
 }

@@ -238,7 +238,9 @@ function PureItemFile(props: ItemFileProps) {
         {renderIconFileType({ size: 40, isDot: false })}
         {/* Name */}
         <div className="flex flex-col flex-1 w-0">
-          <div className="font-normal text-[0.9375rem] truncate">{fileName}</div>
+          <div className="font-normal text-[0.9375rem] text-foreground truncate">
+            {fileName}
+          </div>
           <div className="font-semibold text-xs text-[#B4B3B3] truncate">
             {fileUpdate || ' '}
           </div>
