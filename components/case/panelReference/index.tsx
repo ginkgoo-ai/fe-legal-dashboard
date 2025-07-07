@@ -73,7 +73,10 @@ function PurePanelReference(props: PanelReferenceProps) {
               cloneDeep(
                 produce(prev, draft => {
                   const indexFile = draft.findIndex(file => {
-                    return file.documentInitResultFile?.id === documentId;
+                    return (
+                      file.documentInitResultFile?.id === documentId || // for init
+                      file.documentFile?.documentId === documentId // for add
+                    );
                   });
                   if (indexFile >= 0) {
                     draft[indexFile].status =
