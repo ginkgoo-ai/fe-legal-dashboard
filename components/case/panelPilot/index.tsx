@@ -5,14 +5,14 @@ import { PilotNotInstall } from '@/components/case/pilotNotInstall';
 import { PilotReady } from '@/components/case/pilotReady';
 import { PilotWorkflow } from '@/components/case/pilotWorkflow';
 import { Button } from '@/components/ui/button';
-import { IconExtensionStart, IconExtensionStop } from '@/components/ui/icon';
+import { IconExtensionStart, IconExtensionStop, IconLogo } from '@/components/ui/icon';
 import { MESSAGE } from '@/config/message';
 import GlobalManager from '@/customManager/GlobalManager';
 import { cn } from '@/lib/utils';
 import { useExtensionsStore } from '@/store/extensionsStore';
 import { ICaseItemType } from '@/types/case';
 import { IPilotType, PilotStatusEnum } from '@/types/casePilot';
-import { Alert, message as messageAntd, Spin } from 'antd';
+import { Alert, message as messageAntd } from 'antd';
 import { Loader2Icon } from 'lucide-react';
 import { memo, useEffect, useState } from 'react';
 
@@ -117,9 +117,10 @@ function PurePanelPilot(props: PanelPanelPilotProps) {
       <div className="box-border p-4">
         {extensionsInfo?.version ? (
           isLoadingQueryWorkflowList ? (
-            <Spin>
-              <div className="w-full h-40"></div>
-            </Spin>
+            <div className="flex flex-col justify-center items-center text-primary h-40">
+              <IconLogo size={24} className="animate-spin animation-duration-[2s] mb-2" />
+              <p className="after:animate-point-loading">Loading</p>
+            </div>
           ) : (
             <>
               {pilotList?.length === 0 ? (
