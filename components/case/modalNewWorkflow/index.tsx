@@ -106,13 +106,13 @@ function PureModalNewWorkflow(props: ModalNewWorkflowProps) {
           onFinish={handleFormFinish}
           autoComplete="off"
         >
-          <div className="mb-4 text-sm text-[#1A1A1AB2]">
+          <div className="mb-4 text-sm">
             We've noticed some of your information is missing. To proceed now, we will
             temporarily fill these gaps with dummy data.
           </div>
 
           {isShowLoginTip ? (
-            <div className="mb-4 text-sm text-[#1A1A1AB2]">
+            <div className="mb-4 text-sm">
               <span>Please </span>
               <span
                 className="cursor-pointer text-blue-700 underline"
