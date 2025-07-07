@@ -52,7 +52,7 @@ function PureCardCase(props: CardCaseProps) {
         <div className="flex flex-row justify-between items-center w-full mt-1">
           <span className="text-sm">
             <span className="text-[#B4B3B3]">Created at </span>
-            <span className="text-[#1F2937]">
+            <span className="text-[#1F2937] dark:text-foreground pl-2">
               {dayjs.utc(itemCase.createdAt).local().format('DD MMM YYYY')}
             </span>
           </span>

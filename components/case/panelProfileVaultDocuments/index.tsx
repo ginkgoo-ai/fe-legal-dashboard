@@ -187,10 +187,12 @@ export const PanelProfileVaultDocuments = ({
                   <span className="px-5">--</span>
                 ) : (
                   <div className="flex items-center gap-1">
-                    <IconArrowRightTop className="flex-none" />
+                    <div className="flex-none size-4">
+                      <IconArrowRightTop />
+                    </div>
                     <Tooltip delayDuration={1500}>
                       <TooltipTrigger>
-                        <p className="mb-0 line-clamp-2 max-w-4xl whitespace-pre-wrap">
+                        <p className="mb-0 line-clamp-2 max-w-4xl whitespace-pre-wrap text-left">
                           {getDocIssues(doc)}
                         </p>
                       </TooltipTrigger>

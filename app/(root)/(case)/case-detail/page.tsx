@@ -559,7 +559,9 @@ function CaseDetailContent() {
     <div className="box-border flex w-full flex-1 flex-col h-0 case-detail-wrap">
       {/* Breadcrumb */}
       <div
-        className={cn('bg-background flex w-fit items-center justify-between px-8 gap-4')}
+        className={cn(
+          'bg-background flex w-fit items-center justify-between px-8 gap-4 py-4'
+        )}
       >
         <div className="flex items-center gap-4">
           <Breadcrumb separator={<Dot />} items={breadcrumbItems} />

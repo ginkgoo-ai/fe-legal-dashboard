@@ -128,7 +128,7 @@ const Header = (props: { className?: string }) => {
     >
       <div className="flex items-center gap-4">
         <Link
-          href="/"
+          href="/case-portal"
           className="flex flex-[0_0_auto] flex-row items-center space-x-[1rem]"
         >
           <IconLogo size={24} className="text-primary-dark" />
