@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { IconExtensionStart, IconExtensionStop, IconLogo } from '@/components/ui/icon';
 import { MESSAGE } from '@/config/message';
 import GlobalManager from '@/customManager/GlobalManager';
+import UtilsManager from '@/customManager/UtilsManager';
 import { cn } from '@/lib/utils';
 import { useExtensionsStore } from '@/store/extensionsStore';
 import { ICaseItemType } from '@/types/case';
@@ -62,6 +63,9 @@ function PurePanelPilot(props: PanelPanelPilotProps) {
       messageAntd.open({
         type: 'warning',
         content: MESSAGE.TOAST_VERSION_MISMATCH,
+      });
+      UtilsManager.clickTagA({
+        url: GlobalManager.urlInstallExtension,
       });
       return;
     }
