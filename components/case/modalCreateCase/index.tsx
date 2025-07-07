@@ -60,8 +60,7 @@ function PureModalCreateCase(props: ModalCreateCaseProps) {
   };
 
   const handleFormFinish = async (values: any) => {
-    // console.log('handleFormFinish', values);
-    const { clientName, visaType, document } = values || {};
+    const { clientName, visaType } = values || {};
 
     setLoadingSubmit(true);
     const resCreateCase = await createCase({
@@ -80,10 +79,10 @@ function PureModalCreateCase(props: ModalCreateCaseProps) {
 
     // console.log('handleFormFinish', resCreateCase, document);
 
-    const newFiles = document.map((file: File) => ({
+    const newFiles = fileList.map((file: IFileItemType) => ({
       localId: uuid(),
       status: FileStatus.UPLOADING,
-      localFile: file,
+      localFile: file.localFile,
     }));
     const resUploadDocument = await uploadDocument({
       caseId: resCreateCase.id,
