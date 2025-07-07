@@ -55,7 +55,10 @@ function PurePanelPilot(props: PanelPanelPilotProps) {
   ]);
 
   const handleBtnExtensionStartClick = () => {
-    if (GlobalManager.versionExtension !== extensionsInfo?.version) {
+    if (
+      extensionsInfo?.version !== '999.998.997' &&
+      extensionsInfo?.version !== GlobalManager.versionExtension
+    ) {
       messageAntd.open({
         type: 'warning',
         content: MESSAGE.TOAST_VERSION_MISMATCH,

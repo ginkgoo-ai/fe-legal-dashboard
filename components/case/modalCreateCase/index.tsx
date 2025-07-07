@@ -69,15 +69,12 @@ function PureModalCreateCase(props: ModalCreateCaseProps) {
       visaType,
     });
 
-    setTimeout(() => {
-      setLoadingSubmit(false);
-    }, 500);
-
     if (!resCreateCase?.id) {
       messageAntd.open({
         type: 'error',
         content: MESSAGE.TOAST_CREATE_CASE_FAILED,
       });
+      setLoadingSubmit(false);
       return;
     }
 
@@ -88,21 +85,38 @@ function PureModalCreateCase(props: ModalCreateCaseProps) {
       status: FileStatus.UPLOADING,
       localFile: file,
     }));
-    await uploadDocument({
+    const resUploadDocument = await uploadDocument({
       caseId: resCreateCase.id,
       files: newFiles.map((file: IFileItemType) => file.localFile!),
     });
 
-    // console.log('actionUploadFile', newFiles, resUploadDocument);
+    setLoadingSubmit(false);
 
-    router.push(
-      UtilsManager.router2url('/case-detail', {
-        caseId: resCreateCase.id,
-      })
-    );
+    if (resUploadDocument?.acceptedDocuments) {
+      router.push(
+        UtilsManager.router2url('/case-detail', {
+          caseId: resCreateCase.id,
+        })
+      );
+    } else {
+      messageAntd.open({
+        type: 'error',
+        content: MESSAGE.TOAST_UPLOAD_FILE_FAILED,
+      });
+    }
+
+    // console.log('actionUploadFile', newFiles, resUploadDocument);
   };
 
   const handleFileChange = (files: File[]) => {
+    if (fileList.length + files?.length > 10) {
+      messageAntd.open({
+        type: 'error',
+        content: MESSAGE.TOAST_UPLOAD_FILE_MAX,
+      });
+      return;
+    }
+
     const newFiles = files.map(file => ({
       localId: uuid(),
       status: FileStatus.DONE,
