@@ -205,7 +205,8 @@ function PurePanelReference(props: PanelReferenceProps) {
         {isFileLoading ? (
           <div className="w-full h-full flex flex-col justify-center items-center text-primary">
             <IconLogo size={24} className="animate-spin mb-2 animation-duration-[2s]" />
-            <p className="after:animate-point-loading">Loading</p>
+
+            {!isFold && <p className="after:animate-point-loading">Loading</p>}
           </div>
         ) : (
           <div className="flex flex-col gap-8">

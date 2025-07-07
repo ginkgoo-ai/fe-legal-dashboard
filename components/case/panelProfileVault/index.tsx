@@ -55,12 +55,14 @@ function PurePanelProfileVault(props: PanelProfileVaultProps) {
     }
   }, [caseInfo, getMissingFieldsEmail]);
 
-  const getTabList = (properties: Record<string, { 'x-displayName': string }>) => {
+  const getTabList = (properties: Record<string, { title: string; $ref: string }>) => {
     if (!properties) return [];
-    return Object.keys(properties)
-      .map(key => ({
+    return Object.entries(properties)
+      .map(([key, value]) => ({
+        ...value,
         value: key,
-        label: properties[key]['x-displayName'] ?? camelToCapitalizedWords(key),
+        label: value['title'] ?? camelToCapitalizedWords(key),
+        definitionKey: (value['$ref'] ?? '').replace('#/definitions/', ''),
       }))
       .sort((a, b) => a.value.localeCompare(b.value));
   };
@@ -116,11 +118,12 @@ function PurePanelProfileVault(props: PanelProfileVaultProps) {
             </TabsContent>
             {tabList
               .filter(tab => tab.value !== 'overview')
-              .map(({ value }) => {
+              .map(({ value, definitionKey }) => {
                 return (
                   <TabsContent value={value} key={value}>
                     <PanelProfileVaultTabContent
                       fieldKey={value}
+                      definitionKey={definitionKey}
                       data={caseInfo?.profileDummyData?.[value] as Record<string, any>}
                       caseId={caseInfo.id}
                       dummyDataFields={caseInfo?.dummyDataFields as any[]}

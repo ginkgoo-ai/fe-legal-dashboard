@@ -6,14 +6,7 @@ import { useEventManager } from '@/hooks/useEventManager';
 import { camelToCapitalizedWords } from '@/lib';
 import { updateProfileField } from '@/service/api';
 import { useProfileStore } from '@/store/profileStore';
-import {
-  isArray,
-  isBoolean,
-  isNumber,
-  isPlainObject,
-  isString,
-  upperFirst,
-} from 'lodash';
+import { isArray, isBoolean, isNumber, isPlainObject, isString } from 'lodash';
 import { Loader2Icon } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -22,6 +15,7 @@ type PanelProfileVaultTabContentProps = {
   fieldKey: string;
   data: Record<string, any>;
   caseId: string;
+  definitionKey: string;
   dummyDataFields?: string[];
 };
 
@@ -29,6 +23,7 @@ export const PanelProfileVaultTabContent = ({
   fieldKey,
   data,
   caseId,
+  definitionKey,
   dummyDataFields,
 }: PanelProfileVaultTabContentProps) => {
   const { schema } = useProfileStore();
@@ -36,8 +31,7 @@ export const PanelProfileVaultTabContent = ({
 
   useEffect(() => {
     if (schema?.jsonSchema?.definitions) {
-      const schemaKey = upperFirst(fieldKey);
-      const definition = schema.jsonSchema.definitions[schemaKey];
+      const definition = schema.jsonSchema.definitions[definitionKey];
       if (definition) {
         setCurrentSchema({
           ...definition,
@@ -45,7 +39,7 @@ export const PanelProfileVaultTabContent = ({
         });
       }
     }
-  }, [schema, fieldKey]);
+  }, [schema, definitionKey]);
 
   return (
     <div className="w-full">
