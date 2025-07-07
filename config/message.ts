@@ -20,6 +20,7 @@ export const MESSAGE = {
 
   // 文件操作
   TOAST_UPLOAD_FILE_FAILED: 'File upload failed.', // 文件上传失败。
+  TOAST_UPLOAD_FILE_MAX: 'Please upload a maximum of 10 files at a time.', // 上传文件一次性不能超过10个
   TOAST_UPLOAD_PDF_FILE_FAILED: 'Failed to retrieve the PDF from the source system.', // 从源系统获取 PDF 失败。
   TOAST_BIND_PDF_FILE_FAILED: 'Failed to attach the PDF to the workflow.', // 将 PDF 附加到 Workflow 失败。
   TOAST_DOWNLOAD_PDF_FILE_FAILED:

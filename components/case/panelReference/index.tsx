@@ -97,6 +97,14 @@ function PurePanelReference(props: PanelReferenceProps) {
   });
 
   const actionUploadFile = async (newFiles: IFileItemType[]) => {
+    if (newFiles?.length > 10) {
+      messageAntd.open({
+        type: 'error',
+        content: MESSAGE.TOAST_UPLOAD_FILE_MAX,
+      });
+      return;
+    }
+
     const resUploadDocument = await uploadDocument({
       caseId,
       files: newFiles.map(file => file.localFile!),
