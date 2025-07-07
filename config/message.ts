@@ -18,6 +18,9 @@ export const MESSAGE = {
   TOAST_REFRESH_WORKFLOW_DETAIL_FAILED: 'Failed to refresh workflow details.', // 刷新 Workflow 详情失败。
   TOAST_REFRESH_WORKFLOW_LIST_FAILED: 'Failed to refresh the workflow list.', // 刷新 Workflow 列表失败。
 
+  // Action
+  TOAST_ANALYZE_ACTION_ERROR: 'Failed to analyze the action result. Please try again.', //
+
   // 文件操作
   TOAST_UPLOAD_FILE_FAILED: 'File upload failed.', // 文件上传失败。
   TOAST_UPLOAD_FILE_MAX: 'Please upload a maximum of 10 files at a time.', // 上传文件一次性不能超过10个
