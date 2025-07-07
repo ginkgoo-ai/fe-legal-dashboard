@@ -45,7 +45,12 @@ function PurePanelReference(props: PanelReferenceProps) {
           return (
             documents?.map((item: ICaseDocumentInitResultType) => ({
               localId: uuid(),
-              status: item.status === 'COMPLETED' ? FileStatus.DONE : FileStatus.ERROR,
+              status:
+                item.status === 'UPLOADING'
+                  ? FileStatus.UPLOADING
+                  : item.status === 'COMPLETED'
+                    ? FileStatus.DONE
+                    : FileStatus.ERROR,
               documentInitResultFile: item,
             })) || []
           );
@@ -68,7 +73,7 @@ function PurePanelReference(props: PanelReferenceProps) {
               cloneDeep(
                 produce(prev, draft => {
                   const indexFile = draft.findIndex(file => {
-                    return file.documentFile?.documentId === documentId;
+                    return file.documentInitResultFile?.id === documentId;
                   });
                   if (indexFile >= 0) {
                     draft[indexFile].status =
