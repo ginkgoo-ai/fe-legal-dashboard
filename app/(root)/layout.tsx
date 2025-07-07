@@ -40,6 +40,7 @@ export default function RootLayout({
         token: {
           colorPrimary: '#0061fd',
           fontFamily: "'Poppins', serif",
+          colorBgContainer: isDarkMode ? '#2d2e35' : '#ffffff',
         },
         components: {
           Button: {
@@ -48,18 +49,18 @@ export default function RootLayout({
           Input: {
             controlHeight: 36,
             borderRadius: 12,
-            colorBorder: '#E1E1E2',
+            colorBorder: isDarkMode ? '#686868' : '#E1E1E2',
             fontSize: 14,
           },
           Select: {
             controlHeight: 36,
             borderRadius: 12,
-            colorBorder: '#E1E1E2',
+            colorBorder: isDarkMode ? '#686868' : '#E1E1E2',
             fontSize: 14,
             padding: 12,
           },
           Form: {
-            labelColor: '#1A1A1AB2',
+            labelColor: isDarkMode ? '#a1a1a1' : '#1A1A1AB2',
             labelFontSize: 14,
           },
           Breadcrumb: {
@@ -72,10 +73,16 @@ export default function RootLayout({
                 }
               : {}),
           },
+          Modal: isDarkMode
+            ? {
+                contentBg: '#2d2e35',
+                headerBg: '#2d2e35',
+              }
+            : {},
         },
       }}
     >
-      <Header className="fixed left-0 top-0 z-10" />
+      <Header className="fixed left-0 top-0 z-10 border-b" />
       <main className="flex h-0 w-[100vw] flex-1 flex-col items-center overflow-y-auto pt-20">
         {children}
       </main>
