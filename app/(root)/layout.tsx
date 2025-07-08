@@ -46,6 +46,7 @@ export default function RootLayout({
           Button: {
             borderRadius: 12,
             defaultBg: isDarkMode ? 'oklch(26.9% 0 0)' : '#ffffff',
+            primaryColor: isDarkMode ? 'oklch(26.9% 0 0)' : '#ffffff',
           },
           Input: {
             controlHeight: 36,
