@@ -8,6 +8,7 @@ import { camelToCapitalizedWords, cn } from '@/lib/utils';
 import { getMissingFieldEmailTemplate } from '@/service/api';
 import { useProfileStore } from '@/store/profileStore';
 import { ICaseItemType } from '@/types/case';
+import { isWindows } from '@/utils';
 import Image from 'next/image';
 import { memo, useCallback, useEffect, useState } from 'react';
 import { PanelProfileVaultRtxDialog } from '../panelProfileVaultRtxDialog';
@@ -97,9 +98,13 @@ function PurePanelProfileVault(props: PanelProfileVaultProps) {
           <Tabs defaultValue="overview">
             <TabsList
               className="rounded-full gap-x-2 bg-[#F1F1F4] dark:bg-background mb-2 max-w-full overflow-x-auto justify-start snap-proximity snap-x sticky top-0 z-10"
-              style={{
-                scrollbarWidth: 'none',
-              }}
+              style={
+                isWindows()
+                  ? {}
+                  : {
+                      scrollbarWidth: 'none',
+                    }
+              }
             >
               {tabList.map(({ label, value }) => (
                 <TabsTrigger
