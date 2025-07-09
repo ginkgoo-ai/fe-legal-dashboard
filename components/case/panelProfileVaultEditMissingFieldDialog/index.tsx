@@ -37,11 +37,12 @@ export const PanelProfileVaultEditMissingFieldDialog = ({
   onOpenChange,
 }: PurePanelProfileVaultEditMissingFieldDialogProps) => {
   const [submitting, setSubmitting] = useState(false);
-  const { emit } = useEventManager('ginkgoo-message', () => {});
   const [formData, setFormData] = useState<any>();
   const [schemaList, setSchemaList] = useState<any>(null);
 
   const [key, setKey] = useState(0);
+
+  const { emit: emitCase } = useEventManager('ginkgoo-case', () => {});
 
   useEffect(() => {
     const { value } = field ?? {};
@@ -71,7 +72,7 @@ export const PanelProfileVaultEditMissingFieldDialog = ({
     try {
       const params = { ...data.formData };
       const res = await updateMultipleProfileFields(caseId, params);
-      emit({
+      emitCase({
         type: 'update-case-detail',
       });
       if (res.failedUpdates === 0) {

@@ -84,9 +84,7 @@ function CaseDetailContent() {
 
   const lockId = 'pilot-workflow-list';
 
-  const { emit } = useEventManager('ginkgoo-message', async message => {
-    // console.log('🚀 ~ useEventManager ~ data:', message);
-
+  useEventManager('ginkgoo-extensions', async message => {
     const { type: typeMsg } = message || {};
 
     switch (typeMsg) {
@@ -201,6 +199,16 @@ function CaseDetailContent() {
         console.log('CaseDetailContent ginkgoo-background-all-sidepanel-destory');
         break;
       }
+      default: {
+        break;
+      }
+    }
+  });
+
+  useEventManager('ginkgoo-case', async message => {
+    const { type: typeMsg } = message || {};
+
+    switch (typeMsg) {
       case 'update-case-detail': {
         refreshCaseDetail();
         break;
@@ -210,6 +218,8 @@ function CaseDetailContent() {
       }
     }
   });
+
+  const { emit: emitSSE } = useEventManager('ginkgoo-sse', () => {});
 
   const refreshCaseDetail = async () => {
     const resCaseDetail = await queryCaseDetail({
@@ -341,7 +351,7 @@ function CaseDetailContent() {
               const dataStr = res.replace('event:documentStatusUpdate', '').trim();
               try {
                 const data = JSON.parse(dataStr);
-                emit({
+                emitSSE({
                   type: 'event:documentStatusUpdate',
                   data,
                 });
@@ -352,7 +362,7 @@ function CaseDetailContent() {
               const dataStr = res.replace('event:init', '').trim();
               try {
                 const data = JSON.parse(dataStr);
-                emit({
+                emitSSE({
                   type: 'event:init',
                   data,
                 });

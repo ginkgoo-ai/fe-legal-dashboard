@@ -35,7 +35,7 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
   const [stepListItemsBody, setStepListItemsBody] = useState<CollapseProps['items']>([]);
   // const [percent, setPercent] = useState(0);
 
-  useEventManager('ginkgoo-message', message => {
+  useEventManager('ginkgoo-extensions', message => {
     const { type: typeMsg } = message;
 
     switch (typeMsg) {
