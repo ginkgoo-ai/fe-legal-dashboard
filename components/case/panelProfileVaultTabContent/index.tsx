@@ -12,44 +12,52 @@ import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 type PanelProfileVaultTabContentProps = {
-  fieldKey: string;
-  data: Record<string, any>;
   caseId: string;
-  definitionKey: string;
-  dummyDataFields?: string[];
+  caseInfo: Record<string, any>;
 };
 
 export const PanelProfileVaultTabContent = ({
-  fieldKey,
-  data,
   caseId,
-  definitionKey,
-  dummyDataFields,
+  caseInfo,
 }: PanelProfileVaultTabContentProps) => {
   const { schema } = useProfileStore();
-  const [currentSchema, setCurrentSchema] = useState<Record<string, any>>({});
+  const [properties, setProperties] = useState<any[]>([]);
 
   useEffect(() => {
-    if (schema?.jsonSchema?.definitions) {
-      const definition = schema.jsonSchema.definitions[definitionKey];
-      if (definition) {
-        setCurrentSchema({
-          ...definition,
-          definitions: schema.jsonSchema.definitions,
-        });
-      }
+    if (schema && caseInfo) {
+      const list = Object.entries(
+        (schema?.jsonSchema?.properties ?? {}) as Record<string, any>
+      )
+        .map(([key, value]) => {
+          const definitionKey = (value['$ref'] ?? '').replace('#/definitions/', '');
+          const _schema = schema?.jsonSchema.definitions[definitionKey];
+          return {
+            ...value,
+            value: key,
+            label: value['title'] ?? camelToCapitalizedWords(key),
+            definition: _schema
+              ? { ..._schema, definitions: schema.jsonSchema.definitions }
+              : {},
+            data: caseInfo.profileDummyData[key],
+          };
+        })
+        .sort((a, b) => a.value.localeCompare(b.value));
+      setProperties(list);
     }
-  }, [schema, definitionKey]);
+  }, [schema, caseInfo]);
 
   return (
-    <div className="w-full">
-      <ProfileSectionEditorCard
-        formKey={fieldKey}
-        formData={data}
-        definition={currentSchema}
-        caseId={caseId}
-        dummyDataFields={dummyDataFields}
-      />
+    <div className="w-full flex flex-col gap-4">
+      {properties.map(property => (
+        <ProfileSectionEditorCard
+          key={property.value}
+          formKey={property.value}
+          formData={property.data}
+          definition={property.definition}
+          caseId={caseId}
+          dummyDataFields={caseInfo.dummyDataFields}
+        />
+      ))}
     </div>
   );
 };

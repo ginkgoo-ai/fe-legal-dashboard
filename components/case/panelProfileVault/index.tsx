@@ -4,13 +4,12 @@ import { PanelContainer } from '@/components/case/panelContainer';
 import { PanelProfileVaultOverview } from '@/components/case/panelProfileVaultOverview';
 import { buttonVariants } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { camelToCapitalizedWords, cn } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import { getMissingFieldEmailTemplate } from '@/service/api';
-import { useProfileStore } from '@/store/profileStore';
 import { ICaseItemType } from '@/types/case';
 import { isWindows } from '@/utils';
 import Image from 'next/image';
-import { memo, useCallback, useEffect, useState } from 'react';
+import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { PanelProfileVaultRtxDialog } from '../panelProfileVaultRtxDialog';
 import { PanelProfileVaultTabContent } from '../panelProfileVaultTabContent';
 
@@ -23,21 +22,16 @@ function PurePanelProfileVault(props: PanelProfileVaultProps) {
   const { caseInfo = null, isFold } = props;
 
   const [missingFieldsEmail, setMissingFieldsEmail] = useState<string>('');
-  const [tabList, setTabList] = useState<any[]>([]);
-  const { schema } = useProfileStore();
-
-  useEffect(() => {
-    if (schema?.jsonSchema?.properties) {
-      const list = getTabList(schema?.jsonSchema?.properties);
-      setTabList([
-        {
-          label: 'Overview',
-          value: 'overview',
-        },
-        ...list,
-      ]);
-    }
-  }, [schema]);
+  const tabList = useRef<{ label: string; value: string }[]>([
+    {
+      label: 'Full profile',
+      value: 'fullProfile',
+    },
+    {
+      label: 'Missing information',
+      value: 'missingInfomation',
+    },
+  ]);
 
   const getMissingFieldsEmail = useCallback(async () => {
     try {
@@ -55,18 +49,6 @@ function PurePanelProfileVault(props: PanelProfileVaultProps) {
       getMissingFieldsEmail();
     }
   }, [caseInfo, getMissingFieldsEmail]);
-
-  const getTabList = (properties: Record<string, { title: string; $ref: string }>) => {
-    if (!properties) return [];
-    return Object.entries(properties)
-      .map(([key, value]) => ({
-        ...value,
-        value: key,
-        label: value['title'] ?? camelToCapitalizedWords(key),
-        definitionKey: (value['$ref'] ?? '').replace('#/definitions/', ''),
-      }))
-      .sort((a, b) => a.value.localeCompare(b.value));
-  };
 
   return (
     <PanelContainer
@@ -95,7 +77,7 @@ function PurePanelProfileVault(props: PanelProfileVaultProps) {
             'flex flex-col overflow-y-auto px-4 pb-4 box-border flex-1 h-0 text-foreground'
           )}
         >
-          <Tabs defaultValue="overview">
+          <Tabs defaultValue="fullProfile">
             <TabsList
               className="rounded-full gap-x-2 bg-[#F1F1F4] dark:bg-background mb-2 max-w-full overflow-x-auto justify-start snap-proximity snap-x sticky top-0 z-10"
               style={
@@ -106,7 +88,7 @@ function PurePanelProfileVault(props: PanelProfileVaultProps) {
                     }
               }
             >
-              {tabList.map(({ label, value }) => (
+              {tabList.current.map(({ label, value }) => (
                 <TabsTrigger
                   value={value}
                   key={value}
@@ -118,24 +100,12 @@ function PurePanelProfileVault(props: PanelProfileVaultProps) {
                 </TabsTrigger>
               ))}
             </TabsList>
-            <TabsContent value="overview">
+            <TabsContent value="missingInformation">
               <PanelProfileVaultOverview {...caseInfo} />
             </TabsContent>
-            {tabList
-              .filter(tab => tab.value !== 'overview')
-              .map(({ value, definitionKey }) => {
-                return (
-                  <TabsContent value={value} key={value}>
-                    <PanelProfileVaultTabContent
-                      fieldKey={value}
-                      definitionKey={definitionKey}
-                      data={caseInfo?.profileDummyData?.[value] as Record<string, any>}
-                      caseId={caseInfo.id}
-                      dummyDataFields={caseInfo?.dummyDataFields as any[]}
-                    />
-                  </TabsContent>
-                );
-              })}
+            <TabsContent value="fullProfile">
+              <PanelProfileVaultTabContent caseId={caseInfo.id} caseInfo={caseInfo} />
+            </TabsContent>
           </Tabs>
         </div>
       ) : (
