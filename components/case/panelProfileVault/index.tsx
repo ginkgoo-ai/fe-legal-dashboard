@@ -29,7 +29,7 @@ function PurePanelProfileVault(props: PanelProfileVaultProps) {
     },
     {
       label: 'Missing information',
-      value: 'missingInfomation',
+      value: 'missingInformation',
     },
   ]);
 
