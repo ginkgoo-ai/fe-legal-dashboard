@@ -58,7 +58,7 @@ export default function UploadFilePage() {
                 return cloudFile.id === file.cloudFile?.id;
               })
             ) {
-              file.status = FileStatus.DONE;
+              file.status = FileStatus.COMPLETED;
               file.progress = 100;
               file.ocrResult = mockUploadFile;
             }
@@ -75,7 +75,7 @@ export default function UploadFilePage() {
                 return cloudFile.id === file.cloudFile?.id;
               })
             ) {
-              file.status = FileStatus.ERROR;
+              file.status = FileStatus.FAILED;
               file.progress = 0;
             }
           });
@@ -101,7 +101,7 @@ export default function UploadFilePage() {
               newFile => newFile.localId === file.localId
             );
             if (indexNewFile >= 0) {
-              file.status = FileStatus.ANALYSIS;
+              file.status = FileStatus.UPLOAD_COMPLETED;
               file.progress = 100;
               file.cloudFile = data.cloudFiles[indexNewFile];
             }
@@ -115,7 +115,7 @@ export default function UploadFilePage() {
         produce(prev, draft => {
           draft.forEach(file => {
             if (newFiles.some(newFile => newFile.localId === file.localId)) {
-              file.status = FileStatus.ERROR;
+              file.status = FileStatus.FAILED;
               file.progress = 0;
             }
           });
@@ -188,7 +188,7 @@ export default function UploadFilePage() {
                   </div>
                   <div className="flex flex-row items-center gap-2">
                     <Progress value={itemFile.progress} />
-                    {itemFile.status === FileStatus.ANALYSIS && (
+                    {itemFile.status === FileStatus.UPLOAD_COMPLETED && (
                       <Button
                         type="button"
                         variant="ghost"
@@ -198,7 +198,7 @@ export default function UploadFilePage() {
                         <Loader2 className="animate-spin" color="#333333" />
                       </Button>
                     )}
-                    {itemFile.status === FileStatus.ERROR && (
+                    {itemFile.status === FileStatus.FAILED && (
                       <Button
                         type="button"
                         variant="ghost"
@@ -223,7 +223,7 @@ export default function UploadFilePage() {
                   <X className="w-4 h-4" />
                 </Button>
               </div>
-              {itemFile.status === FileStatus.DONE && (
+              {itemFile.status === FileStatus.COMPLETED && (
                 <div className="flex flex-col gap-2">
                   {itemFile.ocrResult?.map((itemResult, indexResult) => (
                     <div key={indexResult} className="flex flex-row gap-2">

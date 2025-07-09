@@ -1,8 +1,5 @@
 import {
   IconFile,
-  IconFileStatusError,
-  IconFileStatusLoading,
-  IconFileStatusSuccess,
   IconFileTypeDoc,
   IconFileTypeExcel,
   IconFileTypeImage,
@@ -62,17 +59,21 @@ const getFileTypeMap = (params: { size: number; type: FileTypeEnum }): ReactElem
 };
 
 const fileStatusMap: Record<FileStatus, ReactElement> = {
-  [FileStatus.UPLOADING]: <IconFileStatusLoading size={20} />,
-  [FileStatus.ANALYSIS]: <IconFileStatusLoading size={20} />,
-  [FileStatus.DONE]: <IconFileStatusSuccess size={20} />,
-  [FileStatus.ERROR]: <IconFileStatusError size={20} />,
+  [FileStatus.UPLOADING]: <div className="text-sm text-[#0061FD]">Uploading...</div>,
+  [FileStatus.UPLOAD_COMPLETED]: (
+    <div className="text-sm text-[#0061FD]">Analyzing...</div>
+  ),
+  [FileStatus.COMPLETED]: <div className="text-sm text-[#27CA40]">Analyzed</div>,
+  [FileStatus.FAILED]: <div className="text-sm text-[#FF0C00]">Failed</div>,
+  [FileStatus.REJECTED]: <div className="text-sm text-[#FF0C00]">Failed</div>,
 };
 
 const fileStatusColorMap: Record<FileStatus, string> = {
   [FileStatus.UPLOADING]: '#0061FD',
-  [FileStatus.ANALYSIS]: '#0061FD',
-  [FileStatus.DONE]: '#27CA40',
-  [FileStatus.ERROR]: '#FF0C00',
+  [FileStatus.UPLOAD_COMPLETED]: '#0061FD',
+  [FileStatus.COMPLETED]: '#27CA40',
+  [FileStatus.FAILED]: '#FF0C00',
+  [FileStatus.REJECTED]: '#FF0C00',
 };
 
 const extMap: Record<string, FileTypeEnum> = {

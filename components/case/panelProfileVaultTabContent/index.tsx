@@ -71,7 +71,8 @@ const ProfileSectionEditorCard = ({
   const [editMode, setEditMode] = useState(false);
   console.log(definition);
   const [RJSFFormData, setRJSFFormData] = useState<any>(null);
-  const { emit } = useEventManager('ginkgoo-message', () => {});
+
+  const { emit: emitCase } = useEventManager('ginkgoo-case', () => {});
 
   useEffect(() => {
     if (formData) {
@@ -91,7 +92,7 @@ const ProfileSectionEditorCard = ({
     setSubmitting(true);
     try {
       const res = await updateProfileField(caseId, formKey, data.formData);
-      emit({
+      emitCase({
         type: 'update-case-detail',
       });
       if (res.success) {
