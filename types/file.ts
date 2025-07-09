@@ -1,10 +1,14 @@
 import { IWorkflowDummyDataType } from '@/types/casePilot';
 
 export enum FileStatus {
+  // ANALYSIS = 'ANALYSIS',
+  // DONE = 'DONE',
+  // ERROR = 'ERROR',
   UPLOADING = 'UPLOADING',
-  ANALYSIS = 'ANALYSIS',
-  DONE = 'DONE',
-  ERROR = 'ERROR',
+  UPLOAD_COMPLETED = 'UPLOAD_COMPLETED',
+  COMPLETED = 'COMPLETED',
+  FAILED = 'FAILED',
+  REJECTED = 'REJECTED',
 }
 
 export enum FileTypeEnum {

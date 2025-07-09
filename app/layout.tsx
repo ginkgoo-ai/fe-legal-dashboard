@@ -39,7 +39,7 @@ export default function RootLayout({
   const { setUserInfo } = useUserStore();
   const { extensionsInfo, setExtensionsInfo } = useExtensionsStore();
 
-  const { emit } = useEventManager('ginkgoo-message', () => {});
+  const { emit: emitExtensions } = useEventManager('ginkgoo-extensions', () => {});
 
   const { data: user } = useRequest(getUserInfo, {
     errorRetryCount: 1,
@@ -77,7 +77,7 @@ export default function RootLayout({
         origin === window.location.origin &&
         (/^ginkgoo-[^-]+-all-.*$/.test(type) || /^ginkgoo-[^-]+-page-.*$/.test(type))
       ) {
-        emit(data);
+        emitExtensions(data);
 
         if (
           type === 'ginkgoo-background-page-register' &&
@@ -87,7 +87,7 @@ export default function RootLayout({
         }
       }
     },
-    [emit, setExtensionsInfo]
+    [emitExtensions, setExtensionsInfo]
   );
 
   const postHeartRegister = () => {

@@ -33,7 +33,7 @@ function PurePanelReference(props: PanelReferenceProps) {
   const [isFileLoading, setFileLoading] = useState<boolean>(true);
   const [fileList, setFileList] = useStateCallback<IFileItemType[]>([]);
 
-  useEventManager('ginkgoo-message', async message => {
+  useEventManager('ginkgoo-sse', async message => {
     const { type: typeMsg } = message;
 
     switch (typeMsg) {
@@ -45,12 +45,7 @@ function PurePanelReference(props: PanelReferenceProps) {
           return (
             documents?.map((item: ICaseDocumentInitResultType) => ({
               localId: uuid(),
-              status:
-                item.status === 'UPLOADING'
-                  ? FileStatus.UPLOADING
-                  : item.status === 'COMPLETED'
-                    ? FileStatus.DONE
-                    : FileStatus.ERROR,
+              status: item.status,
               documentInitResultFile: item,
             })) || []
           );
@@ -79,12 +74,11 @@ function PurePanelReference(props: PanelReferenceProps) {
                     );
                   });
                   if (indexFile >= 0) {
-                    draft[indexFile].status =
-                      status === 'COMPLETED' ? FileStatus.DONE : FileStatus.ERROR;
+                    draft[indexFile].status = status;
                   } else {
                     draft.push({
                       localId: uuid(),
-                      status: status === 'COMPLETED' ? FileStatus.DONE : FileStatus.ERROR,
+                      status: status,
                       documentFile: dataMsg,
                     });
                   }
@@ -129,7 +123,7 @@ function PurePanelReference(props: PanelReferenceProps) {
             );
 
             if (indexNewFile >= 0) {
-              file.status = FileStatus.ANALYSIS;
+              file.status = FileStatus.UPLOADING;
               file.documentFile = resUploadDocument?.acceptedDocuments?.[indexNewFile];
             }
           });
@@ -145,7 +139,7 @@ function PurePanelReference(props: PanelReferenceProps) {
         produce(prev, draft => {
           draft.forEach(file => {
             if (newFiles.some(newFile => newFile.localId === file.localId)) {
-              file.status = FileStatus.ERROR;
+              file.status = FileStatus.FAILED;
             }
           });
         })

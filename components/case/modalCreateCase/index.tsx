@@ -118,7 +118,7 @@ function PureModalCreateCase(props: ModalCreateCaseProps) {
 
     const newFiles = files.map(file => ({
       localId: uuid(),
-      status: FileStatus.DONE,
+      status: FileStatus.COMPLETED,
       localFile: file,
     }));
 

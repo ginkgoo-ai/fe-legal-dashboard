@@ -4,9 +4,9 @@ class GlobalManager {
 
   siteName = 'Ginkgoo.Legal';
   siteDescription = 'Ginkgoo.Legal';
-  versionExtension = '0.1.11';
+  versionExtension = '0.1.12';
   urlInstallExtension =
-    'https://github.com/ginkgoo-ai/fe-chrome-extensions/releases/download/v0.1.11/fe-chrome-extensions-v20250707_180657.zip';
+    'https://github.com/ginkgoo-ai/fe-chrome-extensions/releases/download/v0.1.12/fe-chrome-extensions_20250709034355.zip';
 
   static getInstance() {
     if (!this.instance) {

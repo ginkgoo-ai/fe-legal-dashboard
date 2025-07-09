@@ -109,7 +109,8 @@ export const PanelProfileVaultInfoChecklist = (
     null
   );
   const [showEditDialog, setShowEditDialog] = useState(false);
-  const { emit } = useEventManager('ginkgoo-message', () => {});
+
+  const { emit: emitCase } = useEventManager('ginkgoo-case', () => {});
 
   const handleEdit = ({ key, value }: { key: string; value: any[] }) => {
     setCurrentField({ key, value });
@@ -117,7 +118,7 @@ export const PanelProfileVaultInfoChecklist = (
   };
 
   const handleAfterFillDummyData = () => {
-    emit({
+    emitCase({
       type: 'update-case-detail',
     });
   };
