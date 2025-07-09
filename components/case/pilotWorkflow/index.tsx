@@ -184,7 +184,7 @@ function PurePilotWorkflow(props: PilotWorkflowProps) {
                 )}
               </div>
               <div className="flex flex-col w-0 flex-1">
-                <div className="flex flex-row items-center gap-1">
+                <div className="flex flex-row items-center gap-2">
                   {pilotInfo?.pilotStatus !== PilotStatusEnum.HOLD ? (
                     <IconLoading size={16} className="animate-spin" />
                   ) : null}
