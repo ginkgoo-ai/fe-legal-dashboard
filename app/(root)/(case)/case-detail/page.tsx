@@ -154,13 +154,22 @@ function CaseDetailContent() {
         setPilotList(
           prev =>
             produce(prev, draft => {
-              const indexPilot = draft.findIndex(itemPilot => {
-                return (
-                  itemPilot?.pilotWorkflowInfo?.workflow_instance_id === workflowIdMsg
-                );
+              let indexPilot = -1;
+              draft.forEach((itemDraft, indexDraft) => {
+                if (
+                  itemDraft?.pilotWorkflowInfo?.workflow_instance_id === workflowIdMsg
+                ) {
+                  indexPilot = indexDraft;
+                }
+                itemDraft.pilotStatus = PilotStatusEnum.HOLD;
               });
 
-              console.log('ginkgoo-background-all-pilot-done', workflowIdMsg, indexPilot);
+              console.log(
+                'ginkgoo-background-all-pilot-done',
+                workflowIdMsg,
+                indexPilot,
+                pilotInfoMsg
+              );
 
               if (indexPilot >= 0) {
                 // window.document
@@ -497,7 +506,7 @@ function CaseDetailContent() {
       window.postMessage({
         type: 'ginkgoo-page-all-pilot-start',
         isNewWorkflow: true,
-        caseInfo,
+        caseId,
         workflowDefinitionId,
       });
     } catch (error) {
@@ -512,6 +521,7 @@ function CaseDetailContent() {
       window.postMessage({
         type: 'ginkgoo-page-all-pilot-start',
         workflowId,
+        caseId,
       });
     } catch (error) {
       console.error('[Ginkgoo] Sidepanel handleCardClick error', error);
