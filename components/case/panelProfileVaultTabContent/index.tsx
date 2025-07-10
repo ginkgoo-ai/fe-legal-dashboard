@@ -6,6 +6,7 @@ import { useEventManager } from '@/hooks/useEventManager';
 import { camelToCapitalizedWords } from '@/lib';
 import { updateProfileField } from '@/service/api';
 import { useProfileStore } from '@/store/profileStore';
+import { AnimatePresence, motion } from 'framer-motion';
 import { isArray, isBoolean, isNumber, isPlainObject, isString } from 'lodash';
 import { Loader2Icon } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
@@ -26,11 +27,11 @@ export const PanelProfileVaultTabContent = ({
   useEffect(() => {
     if (schema && caseInfo) {
       const list = Object.entries(
-        (schema?.jsonSchema?.properties ?? {}) as Record<string, any>
+        (schema.jsonSchema?.properties ?? {}) as Record<string, any>
       )
         .map(([key, value]) => {
           const definitionKey = (value['$ref'] ?? '').replace('#/definitions/', '');
-          const _schema = schema?.jsonSchema.definitions[definitionKey];
+          const _schema = schema.jsonSchema.definitions[definitionKey];
           return {
             ...value,
             value: key,
@@ -48,12 +49,12 @@ export const PanelProfileVaultTabContent = ({
 
   return (
     <div className="w-full flex flex-col gap-4">
-      {properties.map(property => (
+      {properties.map(({ value, data, definition }) => (
         <ProfileSectionEditorCard
-          key={property.value}
-          formKey={property.value}
-          formData={property.data}
-          definition={property.definition}
+          key={value}
+          formKey={value}
+          formData={data}
+          definition={definition}
           caseId={caseId}
           dummyDataFields={caseInfo.dummyDataFields}
         />
@@ -77,7 +78,6 @@ const ProfileSectionEditorCard = ({
 }) => {
   const [submitting, setSubmitting] = useState(false);
   const [editMode, setEditMode] = useState(false);
-  console.log(definition);
   const [RJSFFormData, setRJSFFormData] = useState<any>(null);
 
   const { emit: emitCase } = useEventManager('ginkgoo-case', () => {});
@@ -134,20 +134,30 @@ const ProfileSectionEditorCard = ({
             </div>
             {camelToCapitalizedWords(formKey)}
           </h3>
-          {!editMode && (
-            <Button
-              variant={'secondary'}
-              size={'icon'}
-              className="p-1 hover:text-primary hover:bg-primary/5"
-              type="button"
-              onClick={handleEdit}
-            >
-              <IconEdit size={24} className="text-inherit" />
-            </Button>
-          )}
+
+          <AnimatePresence initial={false}>
+            {!editMode && (
+              <motion.div
+                key="editButton"
+                initial={{ opacity: 0, scale: 0 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0 }}
+              >
+                <Button
+                  variant={'secondary'}
+                  size={'icon'}
+                  className="p-1 hover:text-primary hover:bg-primary/5"
+                  type="button"
+                  onClick={handleEdit}
+                >
+                  <IconEdit size={24} className="text-inherit" />
+                </Button>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </CardTitle>
       </CardHeader>
-      <CardContent className="px-16">
+      <CardContent className="px-16 overflow-hidden">
         {!!definition && editMode ? (
           <RJSFEngine
             schema={definition}

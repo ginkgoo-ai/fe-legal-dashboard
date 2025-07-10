@@ -3,6 +3,7 @@
 import { ModalNewWorkflow } from '@/components/case/modalNewWorkflow';
 import { PanelPilot } from '@/components/case/panelPilot';
 import { PanelProfileVault } from '@/components/case/panelProfileVault';
+import { PanelProfileVaultDashboard } from '@/components/case/panelProfileVaultDashboard';
 import { PanelReference } from '@/components/case/panelReference';
 import { TagStatus } from '@/components/case/tagStatus';
 import { MESSAGE } from '@/config/message';
@@ -584,6 +585,11 @@ function CaseDetailContent() {
           />
         )}
       </div>
+
+      <div>
+        <PanelProfileVaultDashboard caseInfo={caseInfo!} />
+      </div>
+
       {/* max-w-[var(--width-max)] px-[var(--width-padding)] */}
       <div className="flex h-0 w-full flex-1 flex-col px-4 py-6">
         {sizeReference && sizeProfileVault && sizePilot ? (

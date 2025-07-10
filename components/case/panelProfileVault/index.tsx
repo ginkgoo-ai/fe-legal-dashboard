@@ -9,7 +9,7 @@ import { getMissingFieldEmailTemplate } from '@/service/api';
 import { ICaseItemType } from '@/types/case';
 import { isWindows } from '@/utils';
 import Image from 'next/image';
-import { memo, useCallback, useEffect, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useState } from 'react';
 import { PanelProfileVaultRtxDialog } from '../panelProfileVaultRtxDialog';
 import { PanelProfileVaultTabContent } from '../panelProfileVaultTabContent';
 
@@ -20,18 +20,7 @@ interface PanelProfileVaultProps {
 
 function PurePanelProfileVault(props: PanelProfileVaultProps) {
   const { caseInfo = null, isFold } = props;
-
   const [missingFieldsEmail, setMissingFieldsEmail] = useState<string>('');
-  const tabList = useRef<{ label: string; value: string }[]>([
-    {
-      label: 'Full profile',
-      value: 'fullProfile',
-    },
-    {
-      label: 'Missing information',
-      value: 'missingInformation',
-    },
-  ]);
 
   const getMissingFieldsEmail = useCallback(async () => {
     try {
@@ -88,17 +77,29 @@ function PurePanelProfileVault(props: PanelProfileVaultProps) {
                     }
               }
             >
-              {tabList.current.map(({ label, value }) => (
-                <TabsTrigger
-                  value={value}
-                  key={value}
-                  className={cn(
-                    'rounded-full px-4 text-[#6B7280] data-[state="active"]:!text-white cursor-pointer snap-start'
+              <TabsTrigger
+                value="fullProfile"
+                className={cn(
+                  'rounded-full px-4 text-[#6B7280] data-[state="active"]:!text-white cursor-pointer snap-start'
+                )}
+              >
+                Full profile
+              </TabsTrigger>
+              <TabsTrigger
+                value="missingInformation"
+                className={cn(
+                  'rounded-full px-4 text-[#6B7280] data-[state="active"]:!text-white cursor-pointer snap-start'
+                )}
+              >
+                <div className="flex items-center gap-1">
+                  Missing information{' '}
+                  {(caseInfo?.profileChecklist.missingFieldsCount ?? 0) > 0 && (
+                    <span className="min-w-4 h-4 px-0.5 bg-red-400 rounded text-xs">
+                      {caseInfo?.profileChecklist.missingFieldsCount}
+                    </span>
                   )}
-                >
-                  {label}
-                </TabsTrigger>
-              ))}
+                </div>
+              </TabsTrigger>
             </TabsList>
             <TabsContent value="missingInformation">
               <PanelProfileVaultOverview {...caseInfo} />
