@@ -1,5 +1,6 @@
 'use client';
 
+import { CaseGrapher } from '@/components/case/caseGrapher';
 import { ModalNewWorkflow } from '@/components/case/modalNewWorkflow';
 import { PanelPilot } from '@/components/case/panelPilot';
 import { PanelProfileVault } from '@/components/case/panelProfileVault';
@@ -621,7 +622,7 @@ function CaseDetailContent() {
       {/* Breadcrumb */}
       <div
         className={cn(
-          'bg-background flex w-full items-center justify-between px-8 gap-4 py-4'
+          'bg-transparent flex w-full items-center justify-between px-8 gap-4 py-4 '
         )}
       >
         <div className="flex flex-row items-center gap-4">
@@ -686,11 +687,6 @@ function CaseDetailContent() {
           </div>
         </div>
       </div>
-
-      <div>
-        <PanelProfileVaultDashboard caseInfo={caseInfo!} />
-      </div>
-
       {/* max-w-[var(--width-max)] px-[var(--width-padding)] */}
       <div className="flex h-0 w-full flex-1 flex-col px-8 pb-6">
         <Splitter
@@ -709,7 +705,10 @@ function CaseDetailContent() {
               'transition-all duration-200': isTransition,
             })}
           >
-            <div className="w-full h-full bg-[#ddddff]">Summary</div>
+            <div className="flex flex-col w-full gap-4">
+              <PanelProfileVaultDashboard caseInfo={caseInfo!} />
+              <CaseGrapher />
+            </div>
           </Splitter.Panel>
           {/* RightPanel */}
           {!!typeRightPanel ? (

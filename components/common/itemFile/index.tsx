@@ -7,7 +7,9 @@ import {
   IconFileTypePPT,
   IconFileTypeTXT,
 } from '@/components/ui/icon';
-import { FileStatus, FileTypeEnum, IFileItemType } from '@/types/file';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { FileStatus, FileTypeEnum, IFileItemType, IOcrFileType } from '@/types/file';
+import { cn } from '@/utils';
 import { Button } from 'antd';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
@@ -262,4 +264,29 @@ function PureItemFile(props: ItemFileProps) {
   );
 }
 
+function PureFileBlock(
+  props: { file: IOcrFileType } & React.HTMLAttributes<HTMLDivElement>
+) {
+  const { file } = props;
+  return (
+    <div
+      className={cn(
+        'w-fit flex p-4 gap-1 bg-panel-background rounded-lg items-center',
+        props.className
+      )}
+    >
+      <div>{getFileTypeMap({ size: 24, type: file.fileType as FileTypeEnum })}</div>
+      <Tooltip delayDuration={1500}>
+        <TooltipTrigger>
+          <div className="max-w-80 truncate">{file.title}</div>
+        </TooltipTrigger>
+        <TooltipContent className="max-w-80">
+          <p className="mb-0">{file.title}</p>
+        </TooltipContent>
+      </Tooltip>
+    </div>
+  );
+}
+
 export const ItemFile = memo(PureItemFile);
+export const FileBlock = memo(PureFileBlock);
