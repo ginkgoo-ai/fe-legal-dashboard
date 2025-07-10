@@ -2,7 +2,8 @@
 
 import { PanelContainer } from '@/components/case/panelContainer';
 import { PanelProfileVaultOverview } from '@/components/case/panelProfileVaultOverview';
-import { buttonVariants } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
+import { IconClose } from '@/components/ui/icon';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { getMissingFieldEmailTemplate } from '@/service/api';
@@ -16,10 +17,12 @@ import { PanelProfileVaultTabContent } from '../panelProfileVaultTabContent';
 interface PanelProfileVaultProps {
   caseInfo: ICaseItemType | null;
   isFold: boolean;
+  oBtnCloseClick: () => void;
 }
 
 function PurePanelProfileVault(props: PanelProfileVaultProps) {
-  const { caseInfo = null, isFold } = props;
+  const { caseInfo = null, isFold, oBtnCloseClick } = props;
+
   const [missingFieldsEmail, setMissingFieldsEmail] = useState<string>('');
 
   const getMissingFieldsEmail = useCallback(async () => {
@@ -45,7 +48,7 @@ function PurePanelProfileVault(props: PanelProfileVaultProps) {
       showTitle={!isFold}
       renderTitleExtend={() => {
         return (
-          <div className="flex flex-row items-center justify-between gap-2.5">
+          <div className="flex flex-row items-center gap-2.5">
             <PanelProfileVaultRtxDialog content={missingFieldsEmail}>
               <div
                 className={cn(
@@ -56,6 +59,14 @@ function PurePanelProfileVault(props: PanelProfileVaultProps) {
                 <span className="font-bold">Draft email</span>
               </div>
             </PanelProfileVaultRtxDialog>
+            <Button
+              type="button"
+              variant="ghost"
+              className={cn('w-9 h-9 flex-shrink-0 cursor-pointer')}
+              onClick={oBtnCloseClick}
+            >
+              <IconClose size={24} />
+            </Button>
           </div>
         );
       }}

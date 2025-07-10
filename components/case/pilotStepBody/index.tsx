@@ -18,6 +18,7 @@ import { PilotStepBodyNormal } from '../pilotStepBodyNormal';
 import './index.css';
 
 interface PilotStepBodyProps {
+  caseId: string;
   pageTabInfo: Record<string, unknown>;
   pilotInfo: IPilotType;
   onCollapseChange?: (key: string) => void;
@@ -25,6 +26,7 @@ interface PilotStepBodyProps {
 
 function PurePilotStepBody(props: PilotStepBodyProps) {
   const {
+    caseId,
     pageTabInfo,
     pilotInfo,
     // onCollapseChange,
@@ -71,10 +73,16 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
       window.postMessage({
         type: 'ginkgoo-page-all-pilot-start',
         workflowId: pilotInfo?.pilotWorkflowInfo?.workflow_instance_id,
+        caseId,
         actionlistPre,
       });
     },
-    [isShowLoginTip, pageTabInfo?.id, pilotInfo?.pilotWorkflowInfo?.workflow_instance_id]
+    [
+      isShowLoginTip,
+      caseId,
+      pageTabInfo?.id,
+      pilotInfo?.pilotWorkflowInfo?.workflow_instance_id,
+    ]
   );
 
   const handleBtnProceedToFormClick = () => {
