@@ -5,7 +5,12 @@ import { PilotNotInstall } from '@/components/case/pilotNotInstall';
 import { PilotReady } from '@/components/case/pilotReady';
 import { PilotWorkflow } from '@/components/case/pilotWorkflow';
 import { Button } from '@/components/ui/button';
-import { IconExtensionStart, IconExtensionStop, IconLogo } from '@/components/ui/icon';
+import {
+  IconClose,
+  IconExtensionStart,
+  IconExtensionStop,
+  IconLogo,
+} from '@/components/ui/icon';
 import { MESSAGE } from '@/config/message';
 import GlobalManager from '@/customManager/GlobalManager';
 import UtilsManager from '@/customManager/UtilsManager';
@@ -26,6 +31,7 @@ interface PanelPanelPilotProps {
   onQueryWorkflowDetail: (params: { workflowId: string }) => void;
   onBtnContinueClick: (params: { workflowId: string }) => void;
   onShowNewWorkflow: () => void;
+  oBtnCloseClick: () => void;
 }
 
 function PurePanelPilot(props: PanelPanelPilotProps) {
@@ -38,6 +44,7 @@ function PurePanelPilot(props: PanelPanelPilotProps) {
     onQueryWorkflowDetail,
     onBtnContinueClick,
     onShowNewWorkflow,
+    oBtnCloseClick,
   } = props;
 
   const [isLoadingExtensionStop, setLoadingExtensionStop] = useState<boolean>(false);
@@ -87,37 +94,47 @@ function PurePanelPilot(props: PanelPanelPilotProps) {
       showTitle={true}
       renderTitleExtend={() => {
         return (
-          !!extensionsInfo?.version && (
-            <div className="flex flex-row items-center justify-between gap-2.5">
-              {!pilotInfoCurrent ||
-              pilotInfoCurrent?.pilotStatus === PilotStatusEnum.HOLD ? (
-                <Button
-                  variant="default"
-                  color="primary"
-                  className="h-9 flex-1"
-                  onClick={handleBtnExtensionStartClick}
-                >
-                  <IconExtensionStart />
-                  <span className="font-bold">Start auto-fill</span>
-                </Button>
-              ) : (
-                <Button
-                  variant="default"
-                  color="primary"
-                  className="h-9 flex-1"
-                  disabled={isLoadingExtensionStop}
-                  onClick={handleBtnExtensionStopClick}
-                >
-                  {isLoadingExtensionStop ? (
-                    <Loader2Icon className="animate-spin" />
-                  ) : (
-                    <IconExtensionStop />
-                  )}
-                  <span className="font-bold">Stop auto-fill</span>
-                </Button>
-              )}
-            </div>
-          )
+          <div className="flex flex-row items-center gap-2.5">
+            {!!extensionsInfo?.version && (
+              <>
+                {!pilotInfoCurrent ||
+                pilotInfoCurrent?.pilotStatus === PilotStatusEnum.HOLD ? (
+                  <Button
+                    variant="default"
+                    color="primary"
+                    className="h-9 flex-1"
+                    onClick={handleBtnExtensionStartClick}
+                  >
+                    <IconExtensionStart />
+                    <span className="font-bold">Start auto-fill</span>
+                  </Button>
+                ) : (
+                  <Button
+                    variant="default"
+                    color="primary"
+                    className="h-9 flex-1"
+                    disabled={isLoadingExtensionStop}
+                    onClick={handleBtnExtensionStopClick}
+                  >
+                    {isLoadingExtensionStop ? (
+                      <Loader2Icon className="animate-spin" />
+                    ) : (
+                      <IconExtensionStop />
+                    )}
+                    <span className="font-bold">Stop auto-fill</span>
+                  </Button>
+                )}
+              </>
+            )}
+            <Button
+              type="button"
+              variant="ghost"
+              className={cn('w-9 h-9 flex-shrink-0 cursor-pointer')}
+              onClick={oBtnCloseClick}
+            >
+              <IconClose size={24} />
+            </Button>
+          </div>
         );
       }}
     >

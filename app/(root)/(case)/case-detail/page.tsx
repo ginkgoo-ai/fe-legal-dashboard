@@ -5,6 +5,13 @@ import { PanelPilot } from '@/components/case/panelPilot';
 import { PanelProfileVault } from '@/components/case/panelProfileVault';
 import { PanelReference } from '@/components/case/panelReference';
 import { TagStatus } from '@/components/case/tagStatus';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+  IconBreadcrumbPilot,
+  IconBreadcrumbPilotProfileVault,
+  IconBreadcrumbReference,
+} from '@/components/ui/icon';
 import { MESSAGE } from '@/config/message';
 import LockManager from '@/customManager/LockManager';
 import UtilsManager from '@/customManager/UtilsManager';
@@ -30,28 +37,26 @@ import { produce } from 'immer';
 import { cloneDeep } from 'lodash';
 import { Dot } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
-import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
 import './index.css';
+
+export enum TypeRightPanelEnum {
+  REFERENCE = 'REFERENCE',
+  PROFILEVAULT = 'PROFILEVAULT',
+  PILOT = 'PILOT',
+}
 
 const breadcrumbItemsCasePortal = {
   title: 'Cases',
   href: '/case-portal',
 };
 
-const PANEL_SIZE_LIMIT = 200;
-const SIZE_REFERENCE_MIN = 70;
-// const SIZE_PROFILEVAULT_MIN = 200;
-const SIZE_PILOT_MIN = 70;
-
 function CaseDetailContent() {
   const searchParams = useSearchParams();
   const caseId = decodeURIComponent(searchParams.get('caseId') || '');
 
-  const SIZE_REFERENCE_DEFAULT = useRef(0);
-  const SIZE_PROFILEVAULT_DEFAULT = useRef(0);
-  const SIZE_PILOT_DEFAULT = useRef(0);
-
-  const sizeReferenceRef = useRef(0);
+  const SIZE_SUMMARY_DEFAULT = useRef(0);
+  const SIZE_RIGHT_PANEL_DEFAULT = useRef(0);
   const sizePilotRef = useRef(0);
 
   const cancelRef = useRef<null | (() => void)>(null);
@@ -61,11 +66,11 @@ function CaseDetailContent() {
   ]);
   const [pageTabInfo, setPageTabInfo] = useState<Record<string, unknown>>({});
 
-  const [isTransitionAll, setTransitionAll] = useState<boolean>(false);
-  const [sizeReference, setSizeReference] = useState<number>(0);
-  const [sizeProfileVault, setSizeProfileVault] = useState<number>(0);
-  const [sizePilot, setSizePilot] = useState<number>(0);
-  const [isShowPilot, setShowPilot] = useState<boolean>(true);
+  const [isTransition, setTransition] = useState<boolean>(false);
+  const [sizeSummary, setSizeSummary] = useState<number>(0);
+  const [sizeRightPanel, setSizeRightPanel] = useState<number>(0);
+  const [typeRightPanel, setTypeRightPanel] = useState<TypeRightPanelEnum | null>(null);
+  const [isShowRightPanel, setShowRightPanel] = useState<boolean>(false);
 
   const [workflowDefinitionId, setWorkflowDefinitionId] = useState<string>('');
   const [pilotInfoCurrent, setPilotInfoCurrent] = useState<IPilotType | null>(null);
@@ -77,10 +82,6 @@ function CaseDetailContent() {
   const { setCaseInfo, caseInfo } = useCaseStore();
   const { userInfo } = useUserStore();
   const { setSchema } = useProfileStore();
-
-  const isFoldReference = useMemo(() => {
-    return sizeReference <= PANEL_SIZE_LIMIT;
-  }, [sizeReference]);
 
   const lockId = 'pilot-workflow-list';
 
@@ -321,15 +322,23 @@ function CaseDetailContent() {
     });
   };
 
-  const init = async () => {
-    SIZE_REFERENCE_DEFAULT.current = window.innerWidth * 0.3;
-    SIZE_PROFILEVAULT_DEFAULT.current = window.innerWidth * 0.4;
-    SIZE_PILOT_DEFAULT.current = window.innerWidth * 0.3;
+  const getProfileVaultSchema = async () => {
+    try {
+      const res = await getProfileSchema(caseId);
+      setSchema(res);
+    } catch (error) {
+      console.error('Error fetching profile schema:', error);
+    }
+  };
 
-    setShowPilot(true);
-    setSizeReference(SIZE_REFERENCE_MIN);
-    setSizeProfileVault(window.innerWidth * 0.7);
-    setSizePilot(window.innerWidth * 0.3 - SIZE_REFERENCE_MIN);
+  const init = async () => {
+    SIZE_SUMMARY_DEFAULT.current = window.innerWidth * 0.7;
+    SIZE_RIGHT_PANEL_DEFAULT.current = window.innerWidth * 0.3;
+
+    setTypeRightPanel(null);
+    setShowRightPanel(false);
+    setSizeSummary(window.innerWidth);
+    setSizeRightPanel(SIZE_RIGHT_PANEL_DEFAULT.current);
 
     await refreshCaseDetail();
     getProfileVaultSchema();
@@ -419,12 +428,8 @@ function CaseDetailContent() {
   }, []);
 
   useEffect(() => {
-    sizeReferenceRef.current = sizeReference;
-  }, [sizeReference]);
-
-  useEffect(() => {
-    sizePilotRef.current = sizePilot;
-  }, [sizePilot]);
+    sizePilotRef.current = sizeRightPanel;
+  }, [sizeRightPanel]);
 
   useEffect(() => {
     if (!caseInfo?.title) {
@@ -444,40 +449,72 @@ function CaseDetailContent() {
     return null;
   }
 
+  const selectTypeRightPanel = async (value: TypeRightPanelEnum | null) => {
+    const isSelect = typeRightPanel !== value;
+    setTransition(true);
+
+    if (!!typeRightPanel) {
+      setShowRightPanel(false);
+      // await UtilsManager.sleep(200);
+      setTimeout(() => {
+        setTypeRightPanel(null);
+      }, 200);
+    }
+
+    if (isSelect) {
+      setTimeout(
+        () => {
+          setTypeRightPanel(value);
+          setTimeout(() => {
+            setShowRightPanel(true);
+            setTimeout(() => {
+              setTransition(false);
+            }, 200);
+          }, 200);
+        },
+        !!typeRightPanel ? 200 : 0
+      );
+    } else {
+      setTimeout(
+        () => {
+          setTransition(false);
+        },
+        !!typeRightPanel ? 400 : 200
+      );
+    }
+  };
+
   const handleSplitterResize = (sizes: number[]) => {
     // console.log('handleSplitterResize', sizes);
-    const [left, mid, right] = sizes || [];
+    const [left, right] = sizes || [];
 
-    setSizeReference(left);
-    setSizeProfileVault(mid);
+    setSizeSummary(left);
     if (typeof right === 'number' && right >= 0) {
-      setSizePilot(right);
+      setSizeRightPanel(right);
     }
   };
 
-  const handleBtnPanelLeftClick = () => {
-    let sizeReferenceTmp = 0;
-    if (sizeReference > SIZE_REFERENCE_MIN) {
-      sizeReferenceTmp = SIZE_REFERENCE_MIN;
-    } else {
-      sizeReferenceTmp = SIZE_REFERENCE_DEFAULT.current;
-    }
+  // const handleBtnPanelLeftClick = () => {
+  //   let sizeReferenceTmp = 0;
+  //   if (sizeReference > SIZE_REFERENCE_MIN) {
+  //     sizeReferenceTmp = SIZE_REFERENCE_MIN;
+  //   } else {
+  //     sizeReferenceTmp = SIZE_REFERENCE_DEFAULT.current;
+  //   }
 
-    setTransitionAll(true);
-    setTimeout(() => {
-      setSizeReference(sizeReferenceTmp);
-      setSizeProfileVault(window.innerWidth - sizeReferenceTmp - sizePilotRef.current);
+  //   setTransitionAll(true);
+  //   setTimeout(() => {
+  //     setSizeReference(sizeReferenceTmp);
+  //     setSizeProfileVault(window.innerWidth - sizeReferenceTmp - sizePilotRef.current);
 
-      setTimeout(() => {
-        setTransitionAll(false);
-      }, 200);
-    }, 60);
-  };
+  //     setTimeout(() => {
+  //       setTransitionAll(false);
+  //     }, 200);
+  //   }, 60);
+  // };
 
   const handleWindowResize = () => {
-    setSizeProfileVault(
-      window.innerWidth - sizeReferenceRef.current - sizePilotRef.current
-    );
+    setSizeSummary(window.innerWidth - sizePilotRef.current);
   };
 
   const handleShowNewWorkflow = () => {
@@ -566,13 +603,16 @@ function CaseDetailContent() {
     );
   };
 
-  const getProfileVaultSchema = async () => {
-    try {
-      const res = await getProfileSchema(caseId);
-      setSchema(res);
-    } catch (error) {
-      console.error('Error fetching profile schema:', error);
-    }
+  const handleBtnReferenceClick = () => {
+    selectTypeRightPanel(TypeRightPanelEnum.REFERENCE);
+  };
+
+  const handleBtnCaseDetailClick = () => {
+    selectTypeRightPanel(TypeRightPanelEnum.PROFILEVAULT);
+  };
+
+  const handleBtnPilotClick = () => {
+    selectTypeRightPanel(TypeRightPanelEnum.PILOT);
   };
 
   return (
@@ -580,73 +620,118 @@ function CaseDetailContent() {
       {/* Breadcrumb */}
       <div
         className={cn(
-          'bg-background flex w-fit items-center justify-between px-8 gap-4 py-4'
+          'bg-background flex w-full items-center justify-between px-8 gap-4 py-4'
         )}
       >
-        <div className="flex items-center gap-4">
+        <div className="flex flex-row items-center gap-4">
           <Breadcrumb separator={<Dot />} items={breadcrumbItems} />
+          {!!caseInfo?.caseStatusForFront?.text && (
+            <TagStatus
+              colorBackground={caseInfo.caseStatusForFront?.colorBackground}
+              colorText={caseInfo.caseStatusForFront?.colorText}
+              text={caseInfo.caseStatusForFront?.text}
+            />
+          )}
         </div>
-        {!!caseInfo?.caseStatusForFront?.text && (
-          <TagStatus
-            colorBackground={caseInfo.caseStatusForFront?.colorBackground}
-            colorText={caseInfo.caseStatusForFront?.colorText}
-            text={caseInfo.caseStatusForFront?.text}
-          />
-        )}
+        <div className="flex flex-row items-center gap-4">
+          {/* Reference */}
+          <div className="relative">
+            <Button
+              type="button"
+              variant="ghost"
+              className={cn('w-9 h-9 flex-shrink-0 cursor-pointer', {
+                'border-[3px] border-solid border-[#61A6FA]':
+                  typeRightPanel === TypeRightPanelEnum.REFERENCE,
+              })}
+              onClick={handleBtnReferenceClick}
+            >
+              <IconBreadcrumbReference size={24} />
+            </Button>
+          </div>
+          {/* Pilot */}
+          <div className="relative">
+            <Button
+              type="button"
+              variant="ghost"
+              className={cn('w-9 h-9 flex-shrink-0 cursor-pointer', {
+                'border-[3px] border-solid border-[#61A6FA]':
+                  typeRightPanel === TypeRightPanelEnum.PILOT,
+              })}
+              onClick={handleBtnPilotClick}
+            >
+              <IconBreadcrumbPilot size={24} />
+            </Button>
+          </div>
+          {/* Case Detail */}
+          <div className="relative">
+            <Button
+              type="button"
+              variant="ghost"
+              className={cn('w-9 h-9 flex-shrink-0 cursor-pointer', {
+                'border-[3px] border-solid border-[#61A6FA]':
+                  typeRightPanel === TypeRightPanelEnum.PROFILEVAULT,
+              })}
+              onClick={handleBtnCaseDetailClick}
+            >
+              <IconBreadcrumbPilotProfileVault size={24} />
+            </Button>
+
+            <Badge
+              className="absolute top-0 right-0 flex justify-center items-center -translate-y-1/2 translate-x-1/2 bg-[#EF4444]"
+              variant="small"
+            >
+              18
+            </Badge>
+          </div>
+        </div>
       </div>
       {/* max-w-[var(--width-max)] px-[var(--width-padding)] */}
-      <div className="flex h-0 w-full flex-1 flex-col px-4 py-6">
-        {sizeReference && sizeProfileVault && sizePilot ? (
-          <Splitter
-            lazy={false}
-            style={{
-              // borderRadius: '12px',
-              gap: '12px',
-            }}
-            onResize={handleSplitterResize}
+      <div className="flex h-0 w-full flex-1 flex-col px-8 pb-6">
+        <Splitter
+          lazy={false}
+          style={{
+            // borderRadius: '12px',
+            gap: '12px',
+          }}
+          onResize={handleSplitterResize}
+        >
+          {/* Summary */}
+          <Splitter.Panel
+            // resizable={false}
+            size={sizeSummary}
+            className={cn('relative rounded-2xl flex-col flex h-full', {
+              'transition-all duration-200': isTransition,
+            })}
           >
-            {/* Reference */}
+            <div className="w-full h-full bg-[#ddddff]">Summary</div>
+          </Splitter.Panel>
+          {/* RightPanel */}
+          {!!typeRightPanel ? (
             <Splitter.Panel
-              min={SIZE_REFERENCE_MIN}
-              size={sizeReference}
+              // resizable={false}
+              size={sizeRightPanel}
               className={cn(
-                'bg-[#F1F1F4] dark:bg-panel-background relative rounded-2xl flex-col flex h-full',
+                'bg-panel-background relative rounded-2xl flex-col flex h-full',
                 {
-                  'transition-all': isTransitionAll,
+                  'transition-all duration-200': isTransition,
+                  'opacity-0': !isShowRightPanel,
+                  'opacity-100': isShowRightPanel,
+                  'translate-x-2': !isShowRightPanel,
+                  'translate-x-0': isShowRightPanel,
                 }
               )}
             >
-              <PanelReference
-                caseId={caseId}
-                isFold={isFoldReference}
-                onBtnPanelLeftClick={handleBtnPanelLeftClick}
-              />
-            </Splitter.Panel>
-            {/* Profile Vault */}
-            <Splitter.Panel
-              // min={SIZE_PROFILEVAULT_MIN}
-              size={sizeProfileVault}
-              className={cn(
-                'bg-panel-background relative rounded-2xl flex-col flex h-full', // min-w-[870px]
-                {
-                  'transition-all': isTransitionAll,
-                }
-              )}
-            >
-              <PanelProfileVault caseInfo={caseInfo} isFold={false} />
-            </Splitter.Panel>
-            {/* Pilot */}
-            {isShowPilot ? (
-              <Splitter.Panel
-                min={SIZE_PILOT_MIN}
-                size={sizePilot}
-                className={cn(
-                  'bg-panel-background relative rounded-2xl flex-col flex h-full',
-                  {
-                    'transition-all': isTransitionAll,
-                  }
-                )}
-              >
+              {typeRightPanel === TypeRightPanelEnum.REFERENCE ? (
+                <PanelReference
+                  caseId={caseId}
+                  isFold={false}
+                  oBtnCloseClick={() => {
+                    selectTypeRightPanel(null);
+                  }}
+                />
+              ) : null}
+
+              {typeRightPanel === TypeRightPanelEnum.PILOT ? (
                 <PanelPilot
                   isLoadingQueryWorkflowList={isLoadingQueryWorkflowList}
                   pageTabInfo={pageTabInfo}
@@ -656,13 +741,27 @@ function CaseDetailContent() {
                   onQueryWorkflowDetail={handleQueryWorkflowDetail}
                   onBtnContinueClick={handleBtnContinueClick}
                   onShowNewWorkflow={handleShowNewWorkflow}
+                  oBtnCloseClick={() => {
+                    selectTypeRightPanel(null);
+                  }}
                 />
-              </Splitter.Panel>
-            ) : null}
-          </Splitter>
-        ) : null}
+              ) : null}
+
+              {typeRightPanel === TypeRightPanelEnum.PROFILEVAULT ? (
+                <PanelProfileVault
+                  caseInfo={caseInfo}
+                  isFold={false}
+                  oBtnCloseClick={() => {
+                    selectTypeRightPanel(null);
+                  }}
+                />
+              ) : null}
+            </Splitter.Panel>
+          ) : null}
+        </Splitter>
       </div>
-      {/* isModalInstallExtension isModalNewWorkflow */}
+
+      {/* isModalNewWorkflowOpen */}
       <ModalNewWorkflow
         isOpen={isModalNewWorkflowOpen}
         pageTabInfo={pageTabInfo}

@@ -3,13 +3,13 @@
 import { PanelContainer } from '@/components/case/panelContainer';
 import { FileUploadSimple } from '@/components/common/form/upload/fileUploadSimple';
 import { ItemFile } from '@/components/common/itemFile';
-import { Button } from '@/components/ui/button';
-import { IconFoldLeft, IconLogo } from '@/components/ui/icon';
+import { IconClose, IconLogo } from '@/components/ui/icon';
 import LockManager from '@/customManager/LockManager';
 import { cn } from '@/lib/utils';
 import { uploadDocument } from '@/service/api/case';
 import { message as messageAntd } from 'antd';
 // import { uploadFiles } from '@/service/api/file';
+import { Button } from '@/components/ui/button';
 import { MESSAGE } from '@/config/message';
 import { useEventManager } from '@/hooks/useEventManager';
 import { useStateCallback } from '@/hooks/useStateCallback';
@@ -23,12 +23,11 @@ import { v4 as uuid } from 'uuid';
 interface PanelReferenceProps {
   caseId: string;
   isFold: boolean;
-  // onFileListUpdate: Dispatch<SetStateAction<IFileItemType[]>>;
-  onBtnPanelLeftClick: () => void;
+  oBtnCloseClick: () => void;
 }
 
 function PurePanelReference(props: PanelReferenceProps) {
-  const { caseId, isFold, onBtnPanelLeftClick } = props;
+  const { caseId, isFold, oBtnCloseClick } = props;
 
   const [isFileLoading, setFileLoading] = useState<boolean>(true);
   const [fileList, setFileList] = useStateCallback<IFileItemType[]>([]);
@@ -185,12 +184,12 @@ function PurePanelReference(props: PanelReferenceProps) {
       renderTitleExtend={() => {
         return (
           <Button
+            type="button"
             variant="ghost"
-            size="icon"
-            className="text-[#52525B] dark:text-white"
-            onClick={onBtnPanelLeftClick}
+            className={cn('w-9 h-9 flex-shrink-0 cursor-pointer')}
+            onClick={oBtnCloseClick}
           >
-            <IconFoldLeft size={24} />
+            <IconClose size={24} />
           </Button>
         );
       }}

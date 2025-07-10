@@ -77,7 +77,12 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
         actionlistPre,
       });
     },
-    [isShowLoginTip, pageTabInfo?.id, pilotInfo?.pilotWorkflowInfo?.workflow_instance_id]
+    [
+      isShowLoginTip,
+      caseId,
+      pageTabInfo?.id,
+      pilotInfo?.pilotWorkflowInfo?.workflow_instance_id,
+    ]
   );
 
   const handleBtnProceedToFormClick = () => {
