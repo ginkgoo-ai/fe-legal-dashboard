@@ -705,7 +705,7 @@ function CaseDetailContent() {
               'transition-all duration-200': isTransition,
             })}
           >
-            <div className="flex flex-col w-full gap-4">
+            <div className="flex flex-col w-full gap-2">
               <PanelProfileVaultDashboard caseInfo={caseInfo!} />
               <CaseGrapher />
             </div>

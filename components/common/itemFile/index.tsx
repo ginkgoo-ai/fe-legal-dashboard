@@ -271,7 +271,7 @@ function PureFileBlock(
   return (
     <div
       className={cn(
-        'w-fit flex p-4 gap-1 bg-panel-background rounded-lg items-center',
+        'w-fit flex p-3 gap-1.5 bg-panel-background rounded-lg items-center',
         props.className
       )}
     >

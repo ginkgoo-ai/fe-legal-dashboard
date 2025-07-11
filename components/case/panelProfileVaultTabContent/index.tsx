@@ -157,7 +157,7 @@ const ProfileSectionEditorCard = ({
           </AnimatePresence>
         </CardTitle>
       </CardHeader>
-      <CardContent className="px-16 overflow-hidden">
+      <CardContent className="px-8 overflow-hidden">
         {!!definition && editMode ? (
           <RJSFEngine
             schema={definition}
@@ -230,7 +230,7 @@ const DynamicProfileSection = ({
     if (isString(field) || isBoolean(field) || isNumber(field)) {
       return (
         <div className="flex items-center gap-4 text-sm py-2 my-1 border-primary-gray/50 border-b border-dashed">
-          <div className="text-primary-gray w-fit min-w-[188px] relative">
+          <div className="text-primary-gray w-fit relative">
             {isDummyData && (
               <div className="absolute -left-8 top-0 bottom-0 my-auto justify-center items-center flex">
                 <IconIssueCheck size={20} />
@@ -250,7 +250,7 @@ const DynamicProfileSection = ({
     if (isPlainObject(field)) {
       return (
         <div className="text-sm">
-          <div className="text-primary-gray relative w-fit min-w-[188px] border-primary-gray/50 border-b border-dashed py-2 my-1">
+          <div className="text-primary-gray relative w-fit border-primary-gray/50 border-b border-dashed py-2 my-1">
             {isDummyData && (
               <div className="absolute -left-8 top-0 bottom-0 my-auto justify-center items-center flex">
                 <IconIssueCheck size={20} />
@@ -258,7 +258,7 @@ const DynamicProfileSection = ({
             )}
             {camelToCapitalizedWords(displayLabel ?? key)}
           </div>
-          <div className="flex flex-col gap-2 pl-8">
+          <div className="flex flex-col gap-2 pl-4">
             {Object.entries(field).map(([_key, value]) => (
               <DynamicProfileSection
                 key={_key}
