@@ -7,6 +7,7 @@ import { PanelProfileVault } from '@/components/case/panelProfileVault';
 import { PanelProfileVaultDashboard } from '@/components/case/panelProfileVaultDashboard';
 import { PanelReference } from '@/components/case/panelReference';
 import { TagStatus } from '@/components/case/tagStatus';
+import { Toolbelt } from '@/components/case/toolbelt';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -622,7 +623,7 @@ function CaseDetailContent() {
       {/* Breadcrumb */}
       <div
         className={cn(
-          'bg-transparent flex w-full items-center justify-between px-8 gap-4 py-4 '
+          'bg-transparent flex w-full items-center justify-between px-8 gap-4 py-4 border-b border-solid'
         )}
       >
         <div className="flex flex-row items-center gap-4">
@@ -688,7 +689,7 @@ function CaseDetailContent() {
         </div>
       </div>
       {/* max-w-[var(--width-max)] px-[var(--width-padding)] */}
-      <div className="flex h-0 w-full flex-1 flex-col px-8 pb-6">
+      <div className="flex h-0 w-full flex-1 flex-col px-8 pt-[24px]">
         <Splitter
           lazy={false}
           style={{
@@ -705,10 +706,12 @@ function CaseDetailContent() {
               'transition-all duration-200': isTransition,
             })}
           >
-            <div className="flex flex-col w-full gap-4">
+            <div className="flex flex-col w-full h-full gap-4 overflow-y-auto">
               <PanelProfileVaultDashboard caseInfo={caseInfo!} />
               <CaseGrapher />
             </div>
+            {/* Toolbelt */}
+            <Toolbelt caseId={caseId} />
           </Splitter.Panel>
           {/* RightPanel */}
           {!!typeRightPanel ? (
@@ -716,7 +719,7 @@ function CaseDetailContent() {
               // resizable={false}
               size={sizeRightPanel}
               className={cn(
-                'bg-panel-background relative rounded-2xl flex-col flex h-full',
+                'bg-panel-background relative rounded-2xl flex-col flex h-[calc(100%-24px)]',
                 {
                   'transition-all duration-200': isTransition,
                   'opacity-0': !isShowRightPanel,
