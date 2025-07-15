@@ -1,4 +1,5 @@
 import {
+  IconFailed,
   IconFile,
   IconFileTypeDoc,
   IconFileTypeExcel,
@@ -6,6 +7,9 @@ import {
   IconFileTypePDF,
   IconFileTypePPT,
   IconFileTypeTXT,
+  IconLoading,
+  IconReupload,
+  IconSuccess,
 } from '@/components/ui/icon';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { FileStatus, FileTypeEnum, IFileItemType, IOcrFileType } from '@/types/file';
@@ -70,6 +74,14 @@ const fileStatusMap: Record<FileStatus, ReactElement> = {
   [FileStatus.REJECTED]: <div className="text-sm text-[#FF0C00]">Failed</div>,
 };
 
+const fileStatusIconMap: Record<FileStatus, ReactElement> = {
+  [FileStatus.UPLOADING]: <div></div>,
+  [FileStatus.UPLOAD_COMPLETED]: <IconSuccess size={16} />,
+  [FileStatus.COMPLETED]: <IconSuccess size={16} />,
+  [FileStatus.FAILED]: <IconFailed size={16} />,
+  [FileStatus.REJECTED]: <IconFailed size={16} />,
+};
+
 const fileStatusColorMap: Record<FileStatus, string> = {
   [FileStatus.UPLOADING]: '#0061FD',
   [FileStatus.UPLOAD_COMPLETED]: '#0061FD',
@@ -98,14 +110,17 @@ const extMap: Record<string, FileTypeEnum> = {
 };
 
 interface ItemFileProps {
-  mode: 'CreateCase' | 'Reference';
+  mode: 'ActionBar' | 'CreateCase' | 'Reference';
   file: IFileItemType;
   isFold?: boolean;
+  customWrapStyle?: Record<string, string>;
   onBtnDeleteClick?: () => void;
+  onBtnReuploadClick?: () => void;
 }
 
 function PureItemFile(props: ItemFileProps) {
-  const { mode, file, isFold, onBtnDeleteClick } = props;
+  const { mode, file, isFold, customWrapStyle, onBtnDeleteClick, onBtnReuploadClick } =
+    props;
 
   const [fileName, setFileName] = useState<string>('');
   const [fileType, setFileType] = useState<FileTypeEnum>(FileTypeEnum.UNKNOW);
@@ -180,6 +195,10 @@ function PureItemFile(props: ItemFileProps) {
     onBtnDeleteClick?.();
   };
 
+  const handleBtnReuploadClick = () => {
+    onBtnReuploadClick?.();
+  };
+
   const renderIconFileType = (params: {
     size: number;
     isDot?: boolean;
@@ -203,6 +222,57 @@ function PureItemFile(props: ItemFileProps) {
 
   const renderIconFileStatus = () => {
     return fileStatusMap[file?.status] || null;
+  };
+
+  const renderIconFileStatusIcon = () => {
+    return fileStatusIconMap[file?.status] || null;
+  };
+
+  const renderModeActioBar = () => {
+    return (
+      <div
+        className="flex-1 flex flex-row justify-start items-center h-9 rounded-lg border border-solid border-[#E1E1E2] bg-[#FCFCFC] pl-3 pr-0.5 box-border gap-2"
+        style={customWrapStyle}
+      >
+        {/* Name */}
+        <div className="flex flex-row items-center flex-1 w-0 gap-2">
+          <div className="font-normal text-xs truncate">{fileName}</div>
+          <div className="flex-[0_0_auto]">{renderIconFileStatusIcon()}</div>
+        </div>
+        {/* Status */}
+        <div className="flex justify-center items-center">
+          {[FileStatus.UPLOADING].includes(file?.status) ? (
+            <div className="flex justify-center items-center p-1">
+              <IconLoading size={20} className="animate-spin" />
+            </div>
+          ) : null}
+
+          {[FileStatus.UPLOAD_COMPLETED, FileStatus.COMPLETED].includes(file?.status) ? (
+            <Button
+              type="text"
+              icon={
+                <div className="flex justify-center items-center">
+                  <X size={20} color="#A1A1AA" />
+                </div>
+              }
+              onClick={handleBtnDeleteClick}
+            />
+          ) : null}
+
+          {[FileStatus.FAILED, FileStatus.REJECTED].includes(file?.status) ? (
+            <Button
+              type="text"
+              icon={
+                <div className="flex justify-center items-center">
+                  <IconReupload size={20} />
+                </div>
+              }
+              onClick={handleBtnReuploadClick}
+            />
+          ) : null}
+        </div>
+      </div>
+    );
   };
 
   const renderModeCreateCase = () => {
@@ -258,6 +328,7 @@ function PureItemFile(props: ItemFileProps) {
 
   return (
     {
+      ActionBar: renderModeActioBar(),
       CreateCase: renderModeCreateCase(),
       Reference: renderModeReference(),
     }[mode] || null

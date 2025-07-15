@@ -3,7 +3,7 @@
 import { PanelContainer } from '@/components/case/panelContainer';
 import { FileUploadSimple } from '@/components/common/form/upload/fileUploadSimple';
 import { ItemFile } from '@/components/common/itemFile';
-import { IconClose, IconLogo } from '@/components/ui/icon';
+import { IconLogo } from '@/components/ui/icon';
 import LockManager from '@/customManager/LockManager';
 import { cn } from '@/lib/utils';
 import { uploadDocument } from '@/service/api/case';
@@ -16,6 +16,7 @@ import { useStateCallback } from '@/hooks/useStateCallback';
 import { FileStatus, ICaseDocumentInitResultType, IFileItemType } from '@/types/file';
 import { produce } from 'immer';
 import { cloneDeep } from 'lodash';
+import { X } from 'lucide-react';
 import { memo, useState } from 'react';
 import { toast } from 'sonner';
 import { v4 as uuid } from 'uuid';
@@ -189,7 +190,7 @@ function PurePanelReference(props: PanelReferenceProps) {
             className={cn('w-9 h-9 flex-shrink-0 cursor-pointer')}
             onClick={oBtnCloseClick}
           >
-            <IconClose size={24} />
+            <X size={24} />
           </Button>
         );
       }}

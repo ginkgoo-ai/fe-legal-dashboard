@@ -1555,7 +1555,7 @@ export const IconBreadcrumbReference = ({ size = 20, className = '' }: IconProps
   );
 };
 
-export const IconToolbeltDraftEmail = ({ size = 24, className = '' }: IconProps) => {
+export const IconActionBarDraftEmail = ({ size = 24, className = '' }: IconProps) => {
   return (
     <svg
       width={size}
@@ -1573,7 +1573,10 @@ export const IconToolbeltDraftEmail = ({ size = 24, className = '' }: IconProps)
   );
 };
 
-export const IconToolbeltStartExtensions = ({ size = 24, className = '' }: IconProps) => {
+export const IconActionBarStartExtensions = ({
+  size = 24,
+  className = '',
+}: IconProps) => {
   return (
     <svg
       width={size}
@@ -1591,7 +1594,7 @@ export const IconToolbeltStartExtensions = ({ size = 24, className = '' }: IconP
   );
 };
 
-export const IconToolbeltUpload = ({ size = 24, className = '' }: IconProps) => {
+export const IconActionBarUpload = ({ size = 24, className = '' }: IconProps) => {
   return (
     <svg
       width={size}
@@ -1609,19 +1612,79 @@ export const IconToolbeltUpload = ({ size = 24, className = '' }: IconProps) => 
   );
 };
 
-export const IconClose = ({ size = 24, className = '' }: IconProps) => {
+export const IconActionBarSend = ({ size = 24, className = '' }: IconProps) => {
   return (
     <svg
       width={size}
       height={size}
       className={cn(className)}
-      viewBox="0 0 24 24"
+      viewBox="0 0 21 20"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >
       <path
-        d="M11.9997 10.5862L16.9497 5.63623L18.3637 7.05023L13.4137 12.0002L18.3637 16.9502L16.9497 18.3642L11.9997 13.4142L7.04974 18.3642L5.63574 16.9502L10.5857 12.0002L5.63574 7.05023L7.04974 5.63623L11.9997 10.5862Z"
+        fillRule="evenodd"
+        clipRule="evenodd"
+        d="M1.33325 9.99992C1.33325 4.93731 5.43731 0.833252 10.4999 0.833252C15.5625 0.833252 19.6666 4.93731 19.6666 9.99992C19.6666 15.0625 15.5625 19.1666 10.4999 19.1666C5.43731 19.1666 1.33325 15.0625 1.33325 9.99992ZM9.66658 13.9583V8.4701L7.33917 10.7975C7.01374 11.1229 6.4861 11.1229 6.16066 10.7975C5.83523 10.4721 5.83523 9.94443 6.16066 9.619L9.91613 5.86358C9.99176 5.78933 10.0815 5.72939 10.1809 5.68815C10.483 5.56317 10.8442 5.62399 11.0897 5.86952L14.8392 9.619C15.1646 9.94443 15.1646 10.4721 14.8392 10.7975C14.5137 11.1229 13.9861 11.1229 13.6607 10.7975L11.3333 8.4701V13.9583C11.3333 14.4185 10.9602 14.7916 10.4999 14.7916C10.0397 14.7916 9.66658 14.4185 9.66658 13.9583Z"
         fill="currentColor"
+      />
+    </svg>
+  );
+};
+
+export const IconSuccess = ({ size = 24, className = '' }: IconProps) => {
+  return (
+    <svg
+      width={size}
+      height={size}
+      className={cn(className)}
+      viewBox="0 0 14 14"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        fillRule="evenodd"
+        clipRule="evenodd"
+        d="M7.00016 13.6666C10.6821 13.6666 13.6668 10.6818 13.6668 6.99992C13.6668 3.31802 10.6821 0.333252 7.00016 0.333252C3.31826 0.333252 0.333496 3.31802 0.333496 6.99992C0.333496 10.6818 3.31826 13.6666 7.00016 13.6666ZM10.3336 5.94272C10.5939 5.68237 10.5939 5.26026 10.3336 4.99991C10.0732 4.73956 9.6511 4.73956 9.39075 4.99991L5.89981 8.49085L4.36833 6.70412C4.12871 6.42457 3.70784 6.39219 3.42829 6.63181C3.14874 6.87142 3.11637 7.29229 3.35598 7.57184L5.35598 9.90517C5.47683 10.0462 5.65101 10.1304 5.83657 10.1375C6.02213 10.1446 6.20225 10.074 6.33356 9.94272L10.3336 5.94272Z"
+        fill="#149041"
+      />
+    </svg>
+  );
+};
+
+export const IconFailed = ({ size = 24, className = '' }: IconProps) => {
+  return (
+    <svg
+      width={size}
+      height={size}
+      className={cn(className)}
+      viewBox="0 0 15 14"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        fillRule="evenodd"
+        clipRule="evenodd"
+        d="M14.1668 6.99992C14.1668 10.6818 11.1821 13.6666 7.50016 13.6666C3.81826 13.6666 0.833496 10.6818 0.833496 6.99992C0.833496 3.31802 3.81826 0.333252 7.50016 0.333252C11.1821 0.333252 14.1668 3.31802 14.1668 6.99992ZM8.99543 4.56191L7.50009 6.05725L6.00476 4.56191C5.74445 4.3016 5.3224 4.3016 5.06209 4.56191C4.80178 4.82222 4.80178 5.24427 5.0621 5.50458L6.55743 6.99991L5.06209 8.49524C4.80178 8.75556 4.80178 9.1776 5.06209 9.43791C5.3224 9.69822 5.74445 9.69822 6.00476 9.43791L7.50009 7.94258L8.99543 9.43791C9.25574 9.69822 9.67779 9.69822 9.9381 9.43791C10.1984 9.1776 10.1984 8.75556 9.9381 8.49524L8.44276 6.99991L9.9381 5.50458C10.1984 5.24427 10.1984 4.82222 9.9381 4.56191C9.67778 4.3016 9.25574 4.3016 8.99543 4.56191Z"
+        fill="#EB5757"
+      />
+    </svg>
+  );
+};
+
+export const IconReupload = ({ size = 24, className = '' }: IconProps) => {
+  return (
+    <svg
+      width={size}
+      height={size}
+      className={cn(className)}
+      viewBox="0 0 21 20"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M5.05234 3.69426C6.56447 2.38397 8.49899 1.66396 10.4998 1.66676C15.1023 1.66676 18.8332 5.39759 18.8332 10.0001C18.8332 11.7801 18.2748 13.4301 17.3248 14.7834L14.6665 10.0001H17.1665C17.1666 8.69311 16.7825 7.41493 16.0621 6.32447C15.3416 5.23401 14.3164 4.37939 13.1142 3.86686C11.9119 3.35433 10.5854 3.20651 9.2998 3.44177C8.01417 3.67703 6.82605 4.28501 5.88317 5.19009L5.05234 3.69426ZM15.9473 16.3059C14.4352 17.6162 12.5007 18.3362 10.4998 18.3334C5.89734 18.3334 2.1665 14.6026 2.1665 10.0001C2.1665 8.22009 2.72484 6.57009 3.67484 5.21676L6.33317 10.0001H3.83317C3.83306 11.3071 4.21713 12.5853 4.93762 13.6757C5.6581 14.7662 6.68323 15.6208 7.88552 16.1333C9.08782 16.6458 10.4142 16.7937 11.6999 16.5584C12.9855 16.3231 14.1736 15.7152 15.1165 14.8101L15.9473 16.3059Z"
+        fill="#A1A1AA"
       />
     </svg>
   );

@@ -1,5 +1,6 @@
 'use client';
 
+import { ActionBar } from '@/components/case/actionBar';
 import { CaseGrapher } from '@/components/case/caseGrapher';
 import { ModalNewWorkflow } from '@/components/case/modalNewWorkflow';
 import { PanelPilot } from '@/components/case/panelPilot';
@@ -7,7 +8,6 @@ import { PanelProfileVault } from '@/components/case/panelProfileVault';
 import { PanelProfileVaultDashboard } from '@/components/case/panelProfileVaultDashboard';
 import { PanelReference } from '@/components/case/panelReference';
 import { TagStatus } from '@/components/case/tagStatus';
-import { Toolbelt } from '@/components/case/toolbelt';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -70,10 +70,10 @@ function CaseDetailContent() {
   const [pageTabInfo, setPageTabInfo] = useState<Record<string, unknown>>({});
 
   const [isTransition, setTransition] = useState<boolean>(false);
+  const [isShowRightPanel, setShowRightPanel] = useState<boolean>(false);
   const [sizeSummary, setSizeSummary] = useState<number>(0);
   const [sizeRightPanel, setSizeRightPanel] = useState<number>(0);
   const [typeRightPanel, setTypeRightPanel] = useState<TypeRightPanelEnum | null>(null);
-  const [isShowRightPanel, setShowRightPanel] = useState<boolean>(false);
 
   const [workflowDefinitionId, setWorkflowDefinitionId] = useState<string>('');
   const [pilotInfoCurrent, setPilotInfoCurrent] = useState<IPilotType | null>(null);
@@ -363,33 +363,35 @@ function CaseDetailContent() {
             // setRequestController({ cancel: () => controller.abort() });
           },
           async res => {
+            const [resType, resData] = res?.split('\n') || [];
+
             console.log('🚀 ~ res:', res);
-            // originalMessageLogRef.current = res;
+            // const eventTypes = [
+            //   'event:connected',
+            //   'event:init',
+            //   'event:initialData',
+            //   'event:conversationMessage',
+            //   'event:documentUploadCompleted',
+            // ];
 
-            if (res.indexOf('event:documentStatusUpdate') === 0) {
+            const parseAndEmitEvent = (eventPrefix: string) => {
+              const dataStr = resData.trim();
+              try {
+                const data = JSON.parse(dataStr);
+                emitSSE({
+                  type: eventPrefix,
+                  data,
+                });
+              } catch (error) {
+                console.warn('[Debug] Error parse message', error);
+              }
+            };
+
+            if (resType === 'event:documentStatusUpdate') {
               refreshCaseDetail();
-
-              const dataStr = res.replace('event:documentStatusUpdate', '').trim();
-              try {
-                const data = JSON.parse(dataStr);
-                emitSSE({
-                  type: 'event:documentStatusUpdate',
-                  data,
-                });
-              } catch (error) {
-                console.warn('[Debug] Error parse message', error);
-              }
-            } else if (res.indexOf('event:init') === 0) {
-              const dataStr = res.replace('event:init', '').trim();
-              try {
-                const data = JSON.parse(dataStr);
-                emitSSE({
-                  type: 'event:init',
-                  data,
-                });
-              } catch (error) {
-                console.warn('[Debug] Error parse message', error);
-              }
+              parseAndEmitEvent('event:documentStatusUpdate');
+            } else {
+              parseAndEmitEvent(resType);
             }
           }
         );
@@ -679,12 +681,14 @@ function CaseDetailContent() {
               <IconBreadcrumbPilotProfileVault size={24} />
             </Button>
 
-            <Badge
-              className="absolute top-0 right-0 flex justify-center items-center -translate-y-1/2 translate-x-1/2 bg-[#EF4444]"
-              variant="small"
-            >
-              18
-            </Badge>
+            {Number(caseInfo?.profileChecklist.missingFieldsCount) > 0 ? (
+              <Badge
+                className="absolute top-0 right-0 flex justify-center items-center -translate-y-1/2 translate-x-1/2 bg-[#EF4444]"
+                variant="small"
+              >
+                {caseInfo?.profileChecklist.missingFieldsCount}
+              </Badge>
+            ) : null}
           </div>
         </div>
       </div>
@@ -710,8 +714,8 @@ function CaseDetailContent() {
               <PanelProfileVaultDashboard caseInfo={caseInfo!} />
               <CaseGrapher />
             </div>
-            {/* Toolbelt */}
-            <Toolbelt caseId={caseId} />
+            {/* ActionBar */}
+            <ActionBar caseId={caseId} />
           </Splitter.Panel>
           {/* RightPanel */}
           {!!typeRightPanel ? (
