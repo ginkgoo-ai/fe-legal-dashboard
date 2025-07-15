@@ -39,7 +39,7 @@ function PurePanelReference(props: PanelReferenceProps) {
       setFileList(fileListTmp);
       setFileLoading(false);
     }
-  }, [caseInfo]);
+  }, [caseInfo, setFileList, setFileLoading]);
 
   return (
     <PanelContainer

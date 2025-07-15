@@ -43,7 +43,7 @@ import { useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useRef, useState } from 'react';
 import './index.css';
 
-export enum TypeRightPanelEnum {
+enum TypeRightPanelEnum {
   REFERENCE = 'REFERENCE',
   PROFILEVAULT = 'PROFILEVAULT',
   PILOT = 'PILOT',
