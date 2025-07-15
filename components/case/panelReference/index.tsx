@@ -39,7 +39,8 @@ function PurePanelReference(props: PanelReferenceProps) {
       setFileList(fileListTmp);
       setFileLoading(false);
     }
-  }, [caseInfo, setFileList, setFileLoading]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fileList]);
 
   return (
     <PanelContainer

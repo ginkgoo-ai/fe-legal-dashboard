@@ -45,7 +45,7 @@ function PureActionBar(props: ActionBarProps) {
     TypeActionBarEnum.INIT
   );
   const [isLoadingBtnSend, setLoadingBtnSend] = useState<boolean>(false);
-  const [referenceFileDesc, setReferenceFileDesc] = useState<string>('');
+  const [actionBarDesc, setActionBarDesc] = useState<string>('');
 
   const [referenceFileList, setReferenceFileList] = useStateCallback<IFileItemType[]>([]);
 
@@ -114,8 +114,10 @@ function PureActionBar(props: ActionBarProps) {
   useEffect(() => {
     if (typeActionBar === TypeActionBarEnum.INIT) {
       setReferenceFileList([]);
+      setActionBarDesc('');
     }
-  }, [typeActionBar, setReferenceFileList]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [typeActionBar]);
 
   useEffect(() => {
     if (!actionBarRef.current) return;
@@ -238,9 +240,8 @@ function PureActionBar(props: ActionBarProps) {
     actionUploadFile([referenceFileList[index]]);
   };
 
-  const handleReferenceFileDescChange = (e: any) => {
-    // console.log('handleReferenceFileDescChange', e?.target?.value);
-    setReferenceFileDesc(e?.target?.value?.trim() || '');
+  const handleActionBarDescChange = (e: any) => {
+    setActionBarDesc(e?.target?.value?.trim() || '');
   };
 
   const handleReferenceBtnSendClick = async () => {
@@ -255,7 +256,7 @@ function PureActionBar(props: ActionBarProps) {
     const resProcessDocument = await processDocument({
       caseId,
       documentIds,
-      description: referenceFileDesc,
+      description: actionBarDesc,
     });
 
     setLoadingBtnSend(false);
@@ -265,9 +266,13 @@ function PureActionBar(props: ActionBarProps) {
     }
   };
 
-  const handleBtnDraftEmailClick = () => {};
+  const handleBtnDraftEmailClick = () => {
+    setTypeActionBar(TypeActionBarEnum.DRAFT_EMAIL_MISS_INFO);
+  };
 
-  const handleBtnSummarizeClick = () => {};
+  const handleBtnSummarizeClick = () => {
+    setTypeActionBar(TypeActionBarEnum.DRAFT_EMAIL_PDF);
+  };
 
   const handleBtnStartClick = () => {};
 
@@ -364,7 +369,7 @@ function PureActionBar(props: ActionBarProps) {
                 type="text"
                 placeholder="Give your files a brief description."
                 isBorder={false}
-                onChange={handleReferenceFileDescChange}
+                onChange={handleActionBarDescChange}
               />
             </div>
           );
@@ -407,10 +412,31 @@ function PureActionBar(props: ActionBarProps) {
           console.log('renderactionbarDraftEmailMissInfo onBtnSendClick');
         }}
         renderContent={() => {
-          return 'renderactionbarDraftEmailMissInfo renderContent';
+          return (
+            <div className="flex flex-col gap-1 bg-[#F0F0F0] dark:bg-primary-gray box-border p-3 rounded-xl">
+              <div>renderactionbarDraftEmailMissInfo renderContent</div>
+              <Input
+                name="draft-email-miss-info-desc-input"
+                className="px-2"
+                type="text"
+                placeholder="Give your files a brief description."
+                isBorder={false}
+                onChange={handleActionBarDescChange}
+              />
+            </div>
+          );
         }}
         renderFooter={() => {
-          return 'renderactionbarDraftEmailMissInfo renderFooter';
+          return (
+            <div className="flex flex-row gap-1">
+              <Button
+                variant="ghost"
+                className="border border-solid border-[rgba(225, 225, 226, 1)] h-11"
+              >
+                renderactionbarDraftEmailMissInfo renderFooter
+              </Button>
+            </div>
+          );
         }}
       />
     );
@@ -429,10 +455,31 @@ function PureActionBar(props: ActionBarProps) {
           console.log('renderactionbarDraftEmailPDF onBtnSendClick');
         }}
         renderContent={() => {
-          return 'renderactionbarDraftEmailPDF renderContent';
+          return (
+            <div className="flex flex-col gap-1 bg-[#F0F0F0] dark:bg-primary-gray box-border p-3 rounded-xl">
+              <div>renderactionbarDraftEmailPDF renderContent</div>
+              <Input
+                name="draft-email-miss-info-desc-input"
+                className="px-2"
+                type="text"
+                placeholder="Give your files a brief description."
+                isBorder={false}
+                onChange={handleActionBarDescChange}
+              />
+            </div>
+          );
         }}
         renderFooter={() => {
-          return 'renderactionbarDraftEmailPDF renderFooter';
+          return (
+            <div className="flex flex-row gap-1">
+              <Button
+                variant="ghost"
+                className="border border-solid border-[rgba(225, 225, 226, 1)] h-11"
+              >
+                renderactionbarDraftEmailPDF renderFooter
+              </Button>
+            </div>
+          );
         }}
       />
     );
