@@ -115,13 +115,13 @@ function PureActionBar(props: ActionBarProps) {
     if (typeActionBar === TypeActionBarEnum.INIT) {
       setReferenceFileList([]);
     }
-  }, [typeActionBar]);
+  }, [typeActionBar, setReferenceFileList]);
 
   useEffect(() => {
     if (!actionBarRef.current) return;
 
     const observer = new window.ResizeObserver(entries => {
-      for (let entry of entries) {
+      for (const entry of entries) {
         if (entry.target === actionBarRef.current) {
           onSizeChange?.(entry.contentRect);
         }

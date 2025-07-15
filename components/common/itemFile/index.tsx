@@ -64,15 +64,15 @@ const getFileTypeMap = (params: { size: number; type: FileTypeEnum }): ReactElem
   return typeMap[type] || typeMap[FileTypeEnum.UNKNOW];
 };
 
-const fileStatusMap: Record<FileStatus, ReactElement> = {
-  [FileStatus.UPLOADING]: <div className="text-sm text-[#0061FD]">Uploading...</div>,
-  [FileStatus.UPLOAD_COMPLETED]: (
-    <div className="text-sm text-[#0061FD]">Analyzing...</div>
-  ),
-  [FileStatus.COMPLETED]: <div className="text-sm text-[#27CA40]">Analyzed</div>,
-  [FileStatus.FAILED]: <div className="text-sm text-[#FF0C00]">Failed</div>,
-  [FileStatus.REJECTED]: <div className="text-sm text-[#FF0C00]">Failed</div>,
-};
+// const fileStatusMap: Record<FileStatus, ReactElement> = {
+//   [FileStatus.UPLOADING]: <div className="text-sm text-[#0061FD]">Uploading...</div>,
+//   [FileStatus.UPLOAD_COMPLETED]: (
+//     <div className="text-sm text-[#0061FD]">Analyzing...</div>
+//   ),
+//   [FileStatus.COMPLETED]: <div className="text-sm text-[#27CA40]">Analyzed</div>,
+//   [FileStatus.FAILED]: <div className="text-sm text-[#FF0C00]">Failed</div>,
+//   [FileStatus.REJECTED]: <div className="text-sm text-[#FF0C00]">Failed</div>,
+// };
 
 const fileStatusIconMap: Record<FileStatus, ReactElement> = {
   [FileStatus.UPLOADING]: <div></div>,
@@ -220,9 +220,9 @@ function PureItemFile(props: ItemFileProps) {
     );
   };
 
-  const renderIconFileStatus = () => {
-    return fileStatusMap[file?.status] || null;
-  };
+  // const renderIconFileStatus = () => {
+  //   return fileStatusMap[file?.status] || null;
+  // };
 
   const renderIconFileStatusIcon = () => {
     return fileStatusIconMap[file?.status] || null;
