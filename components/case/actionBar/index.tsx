@@ -20,7 +20,7 @@ import { FileStatus, IFileItemType } from '@/types/file';
 import { message as messageAntd } from 'antd';
 import { produce } from 'immer';
 import { cloneDeep } from 'lodash';
-import { memo, useEffect, useMemo, useState } from 'react';
+import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import { v4 as uuid } from 'uuid';
 import './index.css';
 
@@ -33,16 +33,13 @@ export enum TypeActionBarEnum {
 
 interface ActionBarProps {
   caseId: string;
-  // onBtnUploadClick: () => void;
-  // onBtnDraftEmail: () => void;
-  // onBtnStartClick: () => void;
+  onSizeChange?: (size: DOMRectReadOnly) => void;
 }
 
 function PureActionBar(props: ActionBarProps) {
-  const {
-    caseId,
-    // onBtnUploadClick, onBtnDraftEmail, onBtnStartClick
-  } = props || {};
+  const { caseId, onSizeChange } = props || {};
+
+  const actionBarRef = useRef<HTMLDivElement>(null);
 
   const [typeActionBar, setTypeActionBar] = useState<TypeActionBarEnum>(
     TypeActionBarEnum.INIT
@@ -120,7 +117,27 @@ function PureActionBar(props: ActionBarProps) {
     }
   }, [typeActionBar]);
 
-  useEffect(() => {}, []);
+  useEffect(() => {
+    if (!actionBarRef.current) return;
+
+    const observer = new window.ResizeObserver(entries => {
+      for (let entry of entries) {
+        if (entry.target === actionBarRef.current) {
+          onSizeChange?.(entry.contentRect);
+        }
+      }
+    });
+
+    observer.observe(actionBarRef.current);
+
+    const rect = actionBarRef.current.getBoundingClientRect();
+
+    onSizeChange?.(rect);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [onSizeChange]);
 
   const actionUploadFile = async (newFiles: IFileItemType[]) => {
     const resUploadDocument = await uploadDocumentOnlyUpload({
@@ -221,8 +238,8 @@ function PureActionBar(props: ActionBarProps) {
     actionUploadFile([referenceFileList[index]]);
   };
 
-  const handleReferenceFileDescChnage = (e: any) => {
-    console.log('handleReferenceFileDescChnage', e?.target?.value);
+  const handleReferenceFileDescChange = (e: any) => {
+    // console.log('handleReferenceFileDescChange', e?.target?.value);
     setReferenceFileDesc(e?.target?.value?.trim() || '');
   };
 
@@ -321,31 +338,33 @@ function PureActionBar(props: ActionBarProps) {
         renderContent={() => {
           return (
             <div className="flex flex-col gap-1 bg-[#F0F0F0] dark:bg-primary-gray box-border p-3 rounded-xl">
-              <div className="grid grid-cols-3 gap-2 w-full">
-                {referenceFileList.map((itemReferenceFile, indexReferenceFile) => {
-                  return (
-                    <ItemFile
-                      key={`action-bar-reference-${indexReferenceFile}`}
-                      mode="ActionBar"
-                      file={itemReferenceFile}
-                      isFold={false}
-                      onBtnDeleteClick={() =>
-                        handleReferenceFileBtnDeleteClick(indexReferenceFile)
-                      }
-                      onBtnReuploadClick={() =>
-                        handleReferenceFileBtnReuploadClick(indexReferenceFile)
-                      }
-                    />
-                  );
-                })}
-              </div>
+              {referenceFileList?.length > 0 ? (
+                <div className="grid grid-cols-3 gap-2 w-full">
+                  {referenceFileList.map((itemReferenceFile, indexReferenceFile) => {
+                    return (
+                      <ItemFile
+                        key={`action-bar-reference-${indexReferenceFile}`}
+                        mode="ActionBar"
+                        file={itemReferenceFile}
+                        isFold={false}
+                        onBtnDeleteClick={() =>
+                          handleReferenceFileBtnDeleteClick(indexReferenceFile)
+                        }
+                        onBtnReuploadClick={() =>
+                          handleReferenceFileBtnReuploadClick(indexReferenceFile)
+                        }
+                      />
+                    );
+                  })}
+                </div>
+              ) : null}
               <Input
                 name="add-reference-desc-input"
                 className="px-2"
                 type="text"
                 placeholder="Give your files a brief description."
                 isBorder={false}
-                onChange={handleReferenceFileDescChnage}
+                onChange={handleReferenceFileDescChange}
               />
             </div>
           );
@@ -421,6 +440,7 @@ function PureActionBar(props: ActionBarProps) {
 
   return (
     <div
+      ref={actionBarRef}
       className={cn(
         'absolute bottom-10 left-[50%] -translate-x-1/2 bg-background action-bar-wrap box-border rounded-[12px] border border-solid border-[rgba(225, 225, 226, 1)] transition-all',
         {

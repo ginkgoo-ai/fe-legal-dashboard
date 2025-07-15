@@ -37,7 +37,7 @@ import { IPilotType, PilotStatusEnum, WorkflowTypeEnum } from '@/types/casePilot
 import { message as messageAntd, Splitter } from 'antd';
 import Breadcrumb, { ItemType } from 'antd/es/breadcrumb/Breadcrumb';
 import { produce } from 'immer';
-import { cloneDeep } from 'lodash';
+import { cloneDeep, debounce } from 'lodash';
 import { Dot } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useRef, useState } from 'react';
@@ -63,6 +63,7 @@ function CaseDetailContent() {
   const sizePilotRef = useRef(0);
 
   const cancelRef = useRef<null | (() => void)>(null);
+  const lastActionBarHeight = useRef<number | null>(null);
 
   const [breadcrumbItems, setBreadcrumbItems] = useState<ItemType[]>([
     breadcrumbItemsCasePortal,
@@ -72,6 +73,7 @@ function CaseDetailContent() {
   const [isTransition, setTransition] = useState<boolean>(false);
   const [isShowRightPanel, setShowRightPanel] = useState<boolean>(false);
   const [sizeSummary, setSizeSummary] = useState<number>(0);
+  const [pbSummary, setPBSummary] = useState<number>(0);
   const [sizeRightPanel, setSizeRightPanel] = useState<number>(0);
   const [typeRightPanel, setTypeRightPanel] = useState<TypeRightPanelEnum | null>(null);
 
@@ -499,28 +501,20 @@ function CaseDetailContent() {
     }
   };
 
-  // const handleBtnPanelLeftClick = () => {
-  //   let sizeReferenceTmp = 0;
-  //   if (sizeReference > SIZE_REFERENCE_MIN) {
-  //     sizeReferenceTmp = SIZE_REFERENCE_MIN;
-  //   } else {
-  //     sizeReferenceTmp = SIZE_REFERENCE_DEFAULT.current;
-  //   }
-
-  //   setTransitionAll(true);
-  //   setTimeout(() => {
-  //     setSizeReference(sizeReferenceTmp);
-  //     setSizeProfileVault(window.innerWidth - sizeReferenceTmp - sizePilotRef.current);
-
-  //     setTimeout(() => {
-  //       setTransitionAll(false);
-  //     }, 200);
-  //   }, 60);
-  // };
-
   const handleWindowResize = () => {
     setSizeSummary(window.innerWidth - sizePilotRef.current);
   };
+
+  // 使用防抖，避免频繁 setState
+  const handleActionBarSizeChange = debounce((size: DOMRectReadOnly) => {
+    const { height } = size || {};
+    // 只在高度变化时才 setPBSummary
+    console.log('handleActionBarSizeChange', size, height);
+    if (lastActionBarHeight.current !== height) {
+      setPBSummary(height + 100);
+      lastActionBarHeight.current = height;
+    }
+  }, 100);
 
   const handleShowNewWorkflow = () => {
     if (workflowDefinitionId) {
@@ -710,12 +704,17 @@ function CaseDetailContent() {
               'transition-all duration-200': isTransition,
             })}
           >
-            <div className="flex flex-col w-full h-full gap-4 overflow-y-auto">
+            <div
+              className="flex flex-col w-full h-full gap-4 overflow-y-auto box-border"
+              style={{
+                paddingBottom: `${pbSummary}px`,
+              }}
+            >
               <PanelProfileVaultDashboard caseInfo={caseInfo!} />
               <CaseGrapher />
             </div>
             {/* ActionBar */}
-            <ActionBar caseId={caseId} />
+            <ActionBar caseId={caseId} onSizeChange={handleActionBarSizeChange} />
           </Splitter.Panel>
           {/* RightPanel */}
           {!!typeRightPanel ? (
