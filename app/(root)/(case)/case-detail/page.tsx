@@ -735,7 +735,7 @@ function CaseDetailContent() {
             >
               {typeRightPanel === TypeRightPanelEnum.REFERENCE ? (
                 <PanelReference
-                  caseId={caseId}
+                  caseInfo={caseInfo}
                   isFold={false}
                   oBtnCloseClick={() => {
                     selectTypeRightPanel(null);

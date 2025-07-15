@@ -68,6 +68,7 @@ export const DocumentsApi = {
   markValid: '/legalcase/cases/:caseId/documents/:documentId/mark-valid',
   uploadSingle: '/legalcase/cases/:caseId/documents/single',
   uploadOnly: '/legalcase/cases/:caseId/documents/upload',
+  process: '/legalcase/cases/{caseId}/documents/process',
   documents: '/legalcase/cases/:caseId/documents/:documentId',
 };
 
@@ -326,7 +327,7 @@ export const processDocument = async (params: {
 }): Promise<ICaseDocumentResultType> => {
   const { caseId, documentIds, description } = params;
 
-  return ApiRequest.post(`${baseUrl}${CaseApi.documents}`.replace(':caseId', caseId), {
+  return ApiRequest.post(`${baseUrl}${DocumentsApi.process}`.replace(':caseId', caseId), {
     documentIds,
     description,
   });

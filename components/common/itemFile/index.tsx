@@ -127,16 +127,16 @@ function PureItemFile(props: ItemFileProps) {
   const [fileUpdate, setFileUpdate] = useState<string>('');
 
   useEffect(() => {
-    const { localFile, documentFile, documentInitResultFile } = file || {};
+    const { localFile, documentFile, ocrFile } = file || {};
     let dayjsUpdate = dayjs();
     let fileNameTmp = '';
     let fileTypeTmp = FileTypeEnum.UNKNOW;
     let fileUpdateTmp = '';
 
-    if (documentInitResultFile) {
-      fileNameTmp = documentInitResultFile.filename;
-      fileTypeTmp = documentInitResultFile.fileType as FileTypeEnum;
-      dayjsUpdate = dayjs.utc(documentInitResultFile.updatedAt).local();
+    if (ocrFile) {
+      fileNameTmp = ocrFile.title;
+      fileTypeTmp = ocrFile.fileType as FileTypeEnum;
+      dayjsUpdate = dayjs.utc(ocrFile.updatedAt).local();
     } else if (documentFile) {
       fileNameTmp = documentFile.filename;
       fileTypeTmp = documentFile.fileType as FileTypeEnum;
@@ -319,9 +319,9 @@ function PureItemFile(props: ItemFileProps) {
           </div>
         </div>
         {/* Status */}
-        <div className="flex justify-center items-center">
+        {/* <div className="flex justify-center items-center">
           <div>{renderIconFileStatus()}</div>
-        </div>
+        </div> */}
       </div>
     );
   };
