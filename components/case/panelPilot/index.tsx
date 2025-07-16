@@ -5,12 +5,7 @@ import { PilotNotInstall } from '@/components/case/pilotNotInstall';
 import { PilotReady } from '@/components/case/pilotReady';
 import { PilotWorkflow } from '@/components/case/pilotWorkflow';
 import { Button } from '@/components/ui/button';
-import {
-  IconClose,
-  IconExtensionStart,
-  IconExtensionStop,
-  IconLogo,
-} from '@/components/ui/icon';
+import { IconExtensionStart, IconExtensionStop, IconLogo } from '@/components/ui/icon';
 import { MESSAGE } from '@/config/message';
 import GlobalManager from '@/customManager/GlobalManager';
 import UtilsManager from '@/customManager/UtilsManager';
@@ -19,7 +14,7 @@ import { useExtensionsStore } from '@/store/extensionsStore';
 import { ICaseItemType } from '@/types/case';
 import { IPilotType, PilotStatusEnum } from '@/types/casePilot';
 import { Alert, message as messageAntd } from 'antd';
-import { Loader2Icon } from 'lucide-react';
+import { Loader2Icon, X } from 'lucide-react';
 import { memo, useEffect, useState } from 'react';
 
 interface PanelPanelPilotProps {
@@ -132,7 +127,7 @@ function PurePanelPilot(props: PanelPanelPilotProps) {
               className={cn('w-9 h-9 flex-shrink-0 cursor-pointer')}
               onClick={oBtnCloseClick}
             >
-              <IconClose size={24} />
+              <X size={24} />
             </Button>
           </div>
         );

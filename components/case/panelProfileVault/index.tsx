@@ -2,13 +2,14 @@
 
 import { PanelContainer } from '@/components/case/panelContainer';
 import { PanelProfileVaultOverview } from '@/components/case/panelProfileVaultOverview';
+import { Badge } from '@/components/ui/badge';
 import { Button, buttonVariants } from '@/components/ui/button';
-import { IconClose } from '@/components/ui/icon';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { getMissingFieldEmailTemplate } from '@/service/api';
 import { ICaseItemType } from '@/types/case';
 import { isWindows } from '@/utils';
+import { X } from 'lucide-react';
 import Image from 'next/image';
 import { memo, useCallback, useEffect, useState } from 'react';
 import { PanelProfileVaultRtxDialog } from '../panelProfileVaultRtxDialog';
@@ -65,7 +66,7 @@ function PurePanelProfileVault(props: PanelProfileVaultProps) {
               className={cn('w-9 h-9 flex-shrink-0 cursor-pointer')}
               onClick={oBtnCloseClick}
             >
-              <IconClose size={24} />
+              <X size={24} />
             </Button>
           </div>
         );
@@ -104,11 +105,19 @@ function PurePanelProfileVault(props: PanelProfileVaultProps) {
               >
                 <div className="flex items-center gap-1">
                   Missing information{' '}
-                  {(caseInfo?.profileChecklist.missingFieldsCount ?? 0) > 0 && (
+                  {/* {(caseInfo?.profileChecklist.missingFieldsCount ?? 0) > 0 && (
                     <span className="min-w-4 h-4 px-0.5 bg-red-400 rounded text-xs">
                       {caseInfo?.profileChecklist.missingFieldsCount}
                     </span>
-                  )}
+                  )} */}
+                  {Number(caseInfo?.profileChecklist.missingFieldsCount) > 0 ? (
+                    <Badge
+                      className="flex justify-center items-center bg-[#EF4444]"
+                      variant="small"
+                    >
+                      {caseInfo?.profileChecklist.missingFieldsCount}
+                    </Badge>
+                  ) : null}
                 </div>
               </TabsTrigger>
             </TabsList>

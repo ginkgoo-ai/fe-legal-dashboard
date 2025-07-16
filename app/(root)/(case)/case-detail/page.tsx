@@ -1,12 +1,12 @@
 'use client';
 
+import { ActionBar } from '@/components/case/actionBar';
 import { CaseGrapherGround } from '@/components/case/caseGrapherGround';
 import { ModalNewWorkflow } from '@/components/case/modalNewWorkflow';
 import { PanelPilot } from '@/components/case/panelPilot';
 import { PanelProfileVault } from '@/components/case/panelProfileVault';
 import { PanelReference } from '@/components/case/panelReference';
 import { TagStatus } from '@/components/case/tagStatus';
-import { Toolbelt } from '@/components/case/toolbelt';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -36,13 +36,13 @@ import { IPilotType, PilotStatusEnum, WorkflowTypeEnum } from '@/types/casePilot
 import { message as messageAntd, Splitter } from 'antd';
 import Breadcrumb, { ItemType } from 'antd/es/breadcrumb/Breadcrumb';
 import { produce } from 'immer';
-import { cloneDeep } from 'lodash';
+import { cloneDeep, debounce } from 'lodash';
 import { Dot } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useRef, useState } from 'react';
 import './index.css';
 
-export enum TypeRightPanelEnum {
+enum TypeRightPanelEnum {
   REFERENCE = 'REFERENCE',
   PROFILEVAULT = 'PROFILEVAULT',
   PILOT = 'PILOT',
@@ -62,6 +62,7 @@ function CaseDetailContent() {
   const sizePilotRef = useRef(0);
 
   const cancelRef = useRef<null | (() => void)>(null);
+  const lastActionBarHeight = useRef<number | null>(null);
 
   const [breadcrumbItems, setBreadcrumbItems] = useState<ItemType[]>([
     breadcrumbItemsCasePortal,
@@ -69,10 +70,11 @@ function CaseDetailContent() {
   const [pageTabInfo, setPageTabInfo] = useState<Record<string, unknown>>({});
 
   const [isTransition, setTransition] = useState<boolean>(false);
+  const [isShowRightPanel, setShowRightPanel] = useState<boolean>(false);
   const [sizeSummary, setSizeSummary] = useState<number>(0);
+  const [pbSummary, setPBSummary] = useState<number>(0);
   const [sizeRightPanel, setSizeRightPanel] = useState<number>(0);
   const [typeRightPanel, setTypeRightPanel] = useState<TypeRightPanelEnum | null>(null);
-  const [isShowRightPanel, setShowRightPanel] = useState<boolean>(false);
 
   const [workflowDefinitionId, setWorkflowDefinitionId] = useState<string>('');
   const [pilotInfoCurrent, setPilotInfoCurrent] = useState<IPilotType | null>(null);
@@ -362,33 +364,35 @@ function CaseDetailContent() {
             // setRequestController({ cancel: () => controller.abort() });
           },
           async res => {
+            const [resType, resData] = res?.split('\n') || [];
+
             console.log('🚀 ~ res:', res);
-            // originalMessageLogRef.current = res;
+            // const eventTypes = [
+            //   'event:connected',
+            //   'event:init',
+            //   'event:initialData',
+            //   'event:conversationMessage',
+            //   'event:documentUploadCompleted',
+            // ];
 
-            if (res.indexOf('event:documentStatusUpdate') === 0) {
+            const parseAndEmitEvent = (eventPrefix: string) => {
+              const dataStr = resData.trim();
+              try {
+                const data = JSON.parse(dataStr);
+                emitSSE({
+                  type: eventPrefix,
+                  data,
+                });
+              } catch (error) {
+                console.warn('[Debug] Error parse message', error);
+              }
+            };
+
+            if (resType === 'event:documentStatusUpdate') {
               refreshCaseDetail();
-
-              const dataStr = res.replace('event:documentStatusUpdate', '').trim();
-              try {
-                const data = JSON.parse(dataStr);
-                emitSSE({
-                  type: 'event:documentStatusUpdate',
-                  data,
-                });
-              } catch (error) {
-                console.warn('[Debug] Error parse message', error);
-              }
-            } else if (res.indexOf('event:init') === 0) {
-              const dataStr = res.replace('event:init', '').trim();
-              try {
-                const data = JSON.parse(dataStr);
-                emitSSE({
-                  type: 'event:init',
-                  data,
-                });
-              } catch (error) {
-                console.warn('[Debug] Error parse message', error);
-              }
+              parseAndEmitEvent('event:documentStatusUpdate');
+            } else {
+              parseAndEmitEvent(resType);
             }
           }
         );
@@ -496,28 +500,20 @@ function CaseDetailContent() {
     }
   };
 
-  // const handleBtnPanelLeftClick = () => {
-  //   let sizeReferenceTmp = 0;
-  //   if (sizeReference > SIZE_REFERENCE_MIN) {
-  //     sizeReferenceTmp = SIZE_REFERENCE_MIN;
-  //   } else {
-  //     sizeReferenceTmp = SIZE_REFERENCE_DEFAULT.current;
-  //   }
-
-  //   setTransitionAll(true);
-  //   setTimeout(() => {
-  //     setSizeReference(sizeReferenceTmp);
-  //     setSizeProfileVault(window.innerWidth - sizeReferenceTmp - sizePilotRef.current);
-
-  //     setTimeout(() => {
-  //       setTransitionAll(false);
-  //     }, 200);
-  //   }, 60);
-  // };
-
   const handleWindowResize = () => {
     setSizeSummary(window.innerWidth - sizePilotRef.current);
   };
+
+  // 使用防抖，避免频繁 setState
+  const handleActionBarSizeChange = debounce((size: DOMRectReadOnly) => {
+    const { height } = size || {};
+    // 只在高度变化时才 setPBSummary
+    console.log('handleActionBarSizeChange', size, height);
+    if (lastActionBarHeight.current !== height) {
+      setPBSummary(height + 100);
+      lastActionBarHeight.current = height;
+    }
+  }, 100);
 
   const handleShowNewWorkflow = () => {
     if (workflowDefinitionId) {
@@ -678,12 +674,14 @@ function CaseDetailContent() {
               <IconBreadcrumbPilotProfileVault size={24} />
             </Button>
 
-            <Badge
-              className="absolute top-0 right-0 flex justify-center items-center -translate-y-1/2 translate-x-1/2 bg-[#EF4444]"
-              variant="small"
-            >
-              18
-            </Badge>
+            {Number(caseInfo?.profileChecklist.missingFieldsCount) > 0 ? (
+              <Badge
+                className="absolute top-0 right-0 flex justify-center items-center -translate-y-1/2 translate-x-1/2 bg-[#EF4444]"
+                variant="small"
+              >
+                {caseInfo?.profileChecklist.missingFieldsCount}
+              </Badge>
+            ) : null}
           </div>
         </div>
       </div>
@@ -705,14 +703,8 @@ function CaseDetailContent() {
               'transition-all duration-200': isTransition,
             })}
           >
-            {/* <div className="flex flex-col w-full h-full gap-4 overflow-y-auto">
-              <PanelProfileVaultDashboard caseInfo={caseInfo!} />
-              <CaseGrapher />
-            </div>
-            <Toolbelt caseId={caseId} /> */}
-
             <CaseGrapherGround caseInfo={caseInfo!}>
-              <Toolbelt caseId={caseId} />
+              <ActionBar caseId={caseId} onSizeChange={handleActionBarSizeChange} />
             </CaseGrapherGround>
           </Splitter.Panel>
           {/* RightPanel */}
@@ -733,7 +725,7 @@ function CaseDetailContent() {
             >
               {typeRightPanel === TypeRightPanelEnum.REFERENCE ? (
                 <PanelReference
-                  caseId={caseId}
+                  caseInfo={caseInfo}
                   isFold={false}
                   oBtnCloseClick={() => {
                     selectTypeRightPanel(null);

@@ -67,6 +67,8 @@ const StorageApi = {
 export const DocumentsApi = {
   markValid: '/legalcase/cases/:caseId/documents/:documentId/mark-valid',
   uploadSingle: '/legalcase/cases/:caseId/documents/single',
+  uploadOnly: '/legalcase/cases/:caseId/documents/upload',
+  process: '/legalcase/cases/:caseId/documents/process',
   documents: '/legalcase/cases/:caseId/documents/:documentId',
 };
 
@@ -295,6 +297,40 @@ export const uploadDocument = async (params: {
       },
     }
   );
+};
+
+export const uploadDocumentOnlyUpload = async (params: {
+  caseId: string;
+  files: File[];
+}): Promise<ICaseDocumentResultType> => {
+  const { caseId, files } = params || {};
+  const formData = new FormData();
+  files.forEach(file => {
+    formData.append('files', file);
+  });
+
+  return ApiRequest.post(
+    `${baseUrl}${DocumentsApi.uploadOnly}`.replace(':caseId', caseId),
+    formData,
+    {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    }
+  );
+};
+
+export const processDocument = async (params: {
+  caseId: string;
+  documentIds: string[];
+  description: string;
+}): Promise<ICaseDocumentResultType> => {
+  const { caseId, documentIds, description } = params;
+
+  return ApiRequest.post(`${baseUrl}${DocumentsApi.process}`.replace(':caseId', caseId), {
+    documentIds,
+    description,
+  });
 };
 
 export const postFilesPDFHighlight = async (

@@ -94,7 +94,6 @@ export interface IFileItemType {
   progress?: number; // ignore
   localFile?: File;
   documentFile?: ICaseDocumentType;
-  documentInitResultFile?: ICaseDocumentInitResultType;
   cloudFile?: ICloudFileType;
   ocrFile?: IOcrFileType;
   ocrResult?: Record<string, string>[];
