@@ -363,13 +363,12 @@ function PureItemFile(props: ItemFileProps) {
 
   return (
     <div
-      className={cn(
-        'bg-[#F2F3F7] dark:bg-background rounded-lg overflow-hidden border border-solid border-[#E1E1E2] box-border',
-        {
-          'cursor-pointer hover:bg-[#E5E7EB] hover:text-accent-foreground dark:hover:bg-accent/50':
-            !!onItemClick,
-        }
-      )}
+      className={cn('rounded-lg overflow-hidden box-border', {
+        'bg-[#F2F3F7] dark:bg-background border border-solid border-[#E1E1E2]':
+          mode !== 'Reference',
+        'cursor-pointer hover:bg-[#E5E7EB] hover:text-accent-foreground dark:hover:bg-accent/50':
+          !!onItemClick,
+      })}
       onClick={onItemClick}
     >
       {{

@@ -127,6 +127,7 @@ function PureActionBar(props: ActionBarProps) {
   }, [typeActionBar]);
 
   const draftEmailMissInfoOption = useMemo(() => {
+    console.log('caseInfo', caseInfo);
     return [
       { label: 'Date of Birth', value: 'Date of Birth' },
       { label: 'Visa Application Date', value: 'Visa Application Date' },

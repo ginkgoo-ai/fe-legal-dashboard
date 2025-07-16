@@ -291,7 +291,7 @@ export const uploadDocument = async (params: {
 
   if (IS_MOCK_LIST.includes('uploadDocument')) {
     return new Promise(resolve => {
-      resolve(mockUploadDocument);
+      resolve(mockUploadDocument as ICaseDocumentResultType);
     });
   }
 

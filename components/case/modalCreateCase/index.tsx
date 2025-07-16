@@ -11,13 +11,12 @@ import { MESSAGE } from '@/config/message';
 import UtilsManager from '@/customManager/UtilsManager';
 import { createCase } from '@/service/api/case';
 import { useUserStore } from '@/store/userStore';
-import { FileStatus, IFileItemType } from '@/types/file';
+import { IFileItemType } from '@/types/file';
 import { Button, Form, Input, message as messageAntd, Modal, Select } from 'antd';
 import { produce } from 'immer';
 import { ChevronDown } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { memo, useEffect, useState } from 'react';
-import { v4 as uuid } from 'uuid';
 
 interface ModalCreateCaseProps {
   isOpen: boolean;
@@ -107,31 +106,31 @@ function PureModalCreateCase(props: ModalCreateCaseProps) {
     // console.log('actionUploadFile', newFiles, resUploadDocument);
   };
 
-  const handleFileChange = (files: File[]) => {
-    if (fileList.length + files?.length > 10) {
-      messageAntd.open({
-        type: 'error',
-        content: MESSAGE.TOAST_UPLOAD_FILE_MAX,
-      });
-      return;
-    }
+  // const handleFileChange = (files: File[]) => {
+  //   if (fileList.length + files?.length > 10) {
+  //     messageAntd.open({
+  //       type: 'error',
+  //       content: MESSAGE.TOAST_UPLOAD_FILE_MAX,
+  //     });
+  //     return;
+  //   }
 
-    const newFiles = files.map(file => ({
-      localId: uuid(),
-      status: FileStatus.COMPLETED,
-      localFile: file,
-    }));
+  //   const newFiles = files.map(file => ({
+  //     localId: uuid(),
+  //     status: FileStatus.COMPLETED,
+  //     localFile: file,
+  //   }));
 
-    setFileList(prev =>
-      produce(prev, draft => {
-        draft.push(...newFiles);
-      })
-    );
-  };
+  //   setFileList(prev =>
+  //     produce(prev, draft => {
+  //       draft.push(...newFiles);
+  //     })
+  //   );
+  // };
 
-  const handleFileError = (e: any) => {
-    console.log('handleFileError', e);
-  };
+  // const handleFileError = (e: any) => {
+  //   console.log('handleFileError', e);
+  // };
 
   const handleBtnFileDeleteClick = (index: number) => {
     setFileList(prev =>
