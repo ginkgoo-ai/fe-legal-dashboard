@@ -90,10 +90,10 @@ const CaseLoggerAction = (
   const { action, label, parameters, onClick } = props;
   return (
     <div
-      className="w-full bg-slate-100 rounded-[6px] h-11 p-2 hover:bg-slate-200 hover:cursor-pointer transition-all flex items-center gap-4"
+      className="w-full bg-slate-100 dark:bg-slate-700 dark:hover:bg-slate-500 rounded-[6px] h-11 p-2 hover:bg-slate-200 hover:cursor-pointer transition-all flex items-center gap-4"
       onClick={onClick}
     >
-      <div className="min-w-[113px] bg-slate-300 w-fit px-2 rounded h-full flex items-center justify-center">
+      <div className="min-w-[113px] bg-slate-300 dark:bg-slate-500 w-fit px-2 rounded h-full flex items-center justify-center">
         {'default'}
       </div>
       <div className="text-slate-500 line-clamp-1">{label}</div>

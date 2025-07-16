@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import { getHistoryConversation } from '@/service/api';
 import {
   ICaseConversationAction,
@@ -27,12 +28,15 @@ export const CaseGrapherGround = (props: CaseGrapherGroundProps) => {
     message: ICaseConversationItem;
     action: ICaseConversationAction;
   } | null>(null);
+  const [loading, setLoading] = useState(true);
 
   const getConversations = useCallback(async () => {
+    setLoading(true);
     const res = await getHistoryConversation(caseInfo!.id, { page: 0, size: 50 });
     if (res?.messages) {
       setConversations(res.messages);
     }
+    setLoading(false);
   }, [caseInfo]);
 
   useEffect(() => {
@@ -45,7 +49,7 @@ export const CaseGrapherGround = (props: CaseGrapherGroundProps) => {
     message: ICaseConversationItem;
     action: ICaseConversationAction;
   }) => {
-    if (params) {
+    if (currentConversation) {
       setCurrentConversation(params);
     }
   };
@@ -95,6 +99,13 @@ export const CaseGrapherGround = (props: CaseGrapherGroundProps) => {
                     />
                   );
                 })}
+                {loading && (
+                  <>
+                    <Skeleton className="h-[120px] bg-gray-300 dark:bg-gray-600 w-full rounded-xl" />
+                    <Skeleton className="h-[120px] bg-gray-300 dark:bg-gray-600 w-full rounded-xl" />
+                    <Skeleton className="h-[120px] bg-gray-300 dark:bg-gray-600 w-full rounded-xl" />
+                  </>
+                )}
                 <div>{props.children}</div>
               </div>
             </div>
