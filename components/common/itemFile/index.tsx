@@ -1,4 +1,5 @@
 import {
+  IconActionBarDraftEmail,
   IconFailed,
   IconFile,
   IconFileTypeDoc,
@@ -58,6 +59,7 @@ const getFileTypeMap = (params: { size: number; type: FileTypeEnum }): ReactElem
     [FileTypeEnum.BMP]: <IconFileTypeImage size={size} />,
     [FileTypeEnum.ICO]: <IconFileTypeImage size={size} />,
     [FileTypeEnum.TXT]: <IconFileTypeTXT size={size} />,
+    [FileTypeEnum.MISS_INFO]: <IconActionBarDraftEmail size={size} />,
     [FileTypeEnum.UNKNOW]: <IconFile size={size} />,
   };
 
@@ -77,6 +79,7 @@ const getFileTypeMap = (params: { size: number; type: FileTypeEnum }): ReactElem
 const fileStatusIconMap: Record<FileStatus, ReactElement> = {
   [FileStatus.UPLOADING]: <div></div>,
   [FileStatus.UPLOAD_COMPLETED]: <IconSuccess size={16} />,
+  [FileStatus.UPLOAD_FAILED]: <IconFailed size={16} />,
   [FileStatus.COMPLETED]: <IconSuccess size={16} />,
   [FileStatus.FAILED]: <IconFailed size={16} />,
   [FileStatus.REJECTED]: <IconFailed size={16} />,
@@ -85,6 +88,7 @@ const fileStatusIconMap: Record<FileStatus, ReactElement> = {
 const fileStatusColorMap: Record<FileStatus, string> = {
   [FileStatus.UPLOADING]: '#0061FD',
   [FileStatus.UPLOAD_COMPLETED]: '#0061FD',
+  [FileStatus.UPLOAD_FAILED]: '#FF0C00',
   [FileStatus.COMPLETED]: '#27CA40',
   [FileStatus.FAILED]: '#FF0C00',
   [FileStatus.REJECTED]: '#FF0C00',
@@ -110,17 +114,27 @@ const extMap: Record<string, FileTypeEnum> = {
 };
 
 interface ItemFileProps {
-  mode: 'ActionBar' | 'CreateCase' | 'Reference';
+  mode: 'ActionBarReference' | 'ActionBarDraftEmail' | 'CreateCase' | 'Reference';
   file: IFileItemType;
   isFold?: boolean;
   customWrapStyle?: Record<string, string>;
+  renderExtend?: () => React.ReactNode;
+  onItemClick?: () => void;
   onBtnDeleteClick?: () => void;
   onBtnReuploadClick?: () => void;
 }
 
 function PureItemFile(props: ItemFileProps) {
-  const { mode, file, isFold, customWrapStyle, onBtnDeleteClick, onBtnReuploadClick } =
-    props;
+  const {
+    mode,
+    file,
+    isFold = false,
+    customWrapStyle,
+    renderExtend,
+    onItemClick,
+    onBtnDeleteClick,
+    onBtnReuploadClick,
+  } = props;
 
   const [fileName, setFileName] = useState<string>('');
   const [fileType, setFileType] = useState<FileTypeEnum>(FileTypeEnum.UNKNOW);
@@ -228,25 +242,26 @@ function PureItemFile(props: ItemFileProps) {
     return fileStatusIconMap[file?.status] || null;
   };
 
-  const renderModeActioBar = () => {
+  const renderModeActionBarReference = () => {
     return (
       <div
-        className="flex-1 flex flex-row justify-start items-center h-9 rounded-lg border border-solid border-[#E1E1E2] bg-[#FCFCFC] pl-3 pr-0.5 box-border gap-2"
+        className="flex-1 flex flex-row justify-start items-center rounded-lg border border-solid border-[#E1E1E2] bg-[#F2F3F7] dark:bg-background pl-3 pr-0.5 box-border gap-2"
         style={customWrapStyle}
       >
         {/* Name */}
-        <div className="flex flex-row items-center flex-1 w-0 gap-2">
+        <div className="flex flex-row items-center flex-1 w-0 gap-2 h-9">
           <div className="font-normal text-xs truncate">{fileName}</div>
           <div className="flex-[0_0_auto]">{renderIconFileStatusIcon()}</div>
         </div>
         {/* Status */}
         <div className="flex justify-center items-center">
+          {/* Loading */}
           {[FileStatus.UPLOADING].includes(file?.status) ? (
             <div className="flex justify-center items-center p-1">
               <IconLoading size={20} className="animate-spin" />
             </div>
           ) : null}
-
+          {/* Success */}
           {[FileStatus.UPLOAD_COMPLETED, FileStatus.COMPLETED].includes(file?.status) ? (
             <Button
               type="text"
@@ -258,8 +273,10 @@ function PureItemFile(props: ItemFileProps) {
               onClick={handleBtnDeleteClick}
             />
           ) : null}
-
-          {[FileStatus.FAILED, FileStatus.REJECTED].includes(file?.status) ? (
+          {/* Failed */}
+          {[FileStatus.UPLOAD_FAILED, FileStatus.FAILED, FileStatus.REJECTED].includes(
+            file?.status
+          ) ? (
             <Button
               type="text"
               icon={
@@ -275,9 +292,27 @@ function PureItemFile(props: ItemFileProps) {
     );
   };
 
+  const renderModeActionBarDraftEmail = () => {
+    return (
+      <div
+        className="flex-1 flex flex-row justify-start items-center rounded-lg border border-solid border-[#E1E1E2] bg-[#F2F3F7] dark:bg-background px-2.5 box-border gap-2"
+        style={customWrapStyle}
+      >
+        {/* Icon */}
+        {renderIconFileType({ size: 16, isDot: false })}
+        {/* Name */}
+        <div className="flex flex-row items-center flex-1 min-w-0 gap-2 h-9">
+          <div className="font-normal text-xs truncate">{fileName}</div>
+        </div>
+        {/* Extend */}
+        {renderExtend?.()}
+      </div>
+    );
+  };
+
   const renderModeCreateCase = () => {
     return (
-      <div className="flex flex-row justify-start items-center h-14 rounded-lg border border-solid border-[#E1E1E2] bg-[#FCFCFC] pl-6 pr-2 box-border gap-2">
+      <div className="flex flex-row justify-start items-center h-14 rounded-lg border border-solid border-[#E1E1E2] bg-[#F2F3F7] dark:bg-background pl-6 pr-2 box-border gap-2">
         {/* Icon */}
         {renderIconFileType({ size: 16, isDot: false })}
         {/* Name */}
@@ -327,11 +362,19 @@ function PureItemFile(props: ItemFileProps) {
   };
 
   return (
-    {
-      ActionBar: renderModeActioBar(),
-      CreateCase: renderModeCreateCase(),
-      Reference: renderModeReference(),
-    }[mode] || null
+    <div
+      className={cn('', {
+        'cursor-pointer': !!onItemClick,
+      })}
+      onClick={onItemClick}
+    >
+      {{
+        ActionBarReference: renderModeActionBarReference(),
+        ActionBarDraftEmail: renderModeActionBarDraftEmail(),
+        CreateCase: renderModeCreateCase(),
+        Reference: renderModeReference(),
+      }[mode] || null}
+    </div>
   );
 }
 

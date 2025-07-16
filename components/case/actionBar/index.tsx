@@ -3,6 +3,7 @@
 import { ActionBarContainer } from '@/components/case/actionBarContainer';
 import { FileUploadSimple } from '@/components/common/form/upload/fileUploadSimple';
 import { ItemFile } from '@/components/common/itemFile';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent } from '@/components/ui/dropdown-menu';
 import {
@@ -19,7 +20,7 @@ import { useEventManager } from '@/hooks/useEventManager';
 import { useStateCallback } from '@/hooks/useStateCallback';
 import { cn } from '@/lib/utils';
 import { processDocument, uploadDocumentOnlyUpload } from '@/service/api/case';
-import { FileStatus, IFileItemType } from '@/types/file';
+import { FileStatus, FileTypeEnum, IFileItemType } from '@/types/file';
 import { DropdownMenuTrigger } from '@radix-ui/react-dropdown-menu';
 import { message as messageAntd } from 'antd';
 import { motion } from 'framer-motion';
@@ -72,6 +73,11 @@ function PureActionBar(props: ActionBarProps) {
   const [actionBarDesc, setActionBarDesc] = useState<string>('');
 
   const [referenceFileList, setReferenceFileList] = useStateCallback<IFileItemType[]>([]);
+
+  const [draftEmailMissInfo, setDraftEmailMissInfo] = useState<IFileItemType | null>(
+    null
+  );
+  const [draftEmailPDF, setDraftEmailPDF] = useState<IFileItemType | null>(null);
 
   const isDisabledBtnSend = useMemo(() => {
     if (typeActionBar === TypeActionBarEnum.ADD_REFERENCE) {
@@ -149,11 +155,59 @@ function PureActionBar(props: ActionBarProps) {
   });
 
   useEffect(() => {
-    if (typeActionBar === TypeActionBarEnum.INIT) {
-      setReferenceFileList([]);
-      setActionBarDesc('');
-    }
     setShowDropdownMenuDraftEmail(false);
+    setDraftEmailPDF(null);
+
+    switch (typeActionBar) {
+      case TypeActionBarEnum.INIT: {
+        setReferenceFileList([]);
+        setActionBarDesc('');
+        break;
+      }
+      case TypeActionBarEnum.DRAFT_EMAIL_MISS_INFO: {
+        setDraftEmailMissInfo({
+          localId: uuid(),
+          status: FileStatus.COMPLETED,
+          documentFile: {
+            success: true,
+            documentId: uuid(),
+            caseId,
+            message: 'Missing information',
+            filename: 'Missing information',
+            fileSize: 2245148,
+            fileType: FileTypeEnum.MISS_INFO,
+            description: null,
+            receivedAt: null,
+            errorCode: null,
+            errorDetails: null,
+          },
+        });
+        break;
+      }
+      case TypeActionBarEnum.DRAFT_EMAIL_PDF: {
+        setDraftEmailPDF({
+          localId: uuid(),
+          status: FileStatus.COMPLETED,
+          documentFile: {
+            success: true,
+            documentId: uuid(),
+            caseId,
+            message: 'Draft Email PDF',
+            filename: 'Draft Email PDF.pdf',
+            fileSize: 2245148,
+            fileType: 'application/pdf',
+            description: null,
+            receivedAt: null,
+            errorCode: null,
+            errorDetails: null,
+          },
+        });
+        break;
+      }
+      default: {
+        break;
+      }
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [typeActionBar]);
 
@@ -406,9 +460,8 @@ function PureActionBar(props: ActionBarProps) {
                     return (
                       <ItemFile
                         key={`action-bar-reference-${indexReferenceFile}`}
-                        mode="ActionBar"
+                        mode="ActionBarReference"
                         file={itemReferenceFile}
-                        isFold={false}
                         onBtnDeleteClick={() =>
                           handleReferenceFileBtnDeleteClick(indexReferenceFile)
                         }
@@ -470,11 +523,29 @@ function PureActionBar(props: ActionBarProps) {
         }}
         renderContent={() => {
           return (
-            <div className="flex flex-col gap-1 bg-[#F0F0F0] dark:bg-primary-gray box-border p-3 rounded-xl">
-              <div>renderActionbarDraftEmailMissInfo renderContent</div>
+            <div className="flex flex-col items-start gap-1 bg-[#F0F0F0] dark:bg-primary-gray box-border p-3 rounded-xl">
+              {!!draftEmailMissInfo ? (
+                <ItemFile
+                  mode="ActionBarDraftEmail"
+                  file={draftEmailMissInfo}
+                  renderExtend={() => {
+                    return (
+                      <Badge
+                        className="flex justify-center items-center bg-transparent border border-solid border-[#E5E7EB] text-[#1559EA]"
+                        variant="small"
+                      >
+                        0
+                      </Badge>
+                    );
+                  }}
+                  onItemClick={() => {
+                    console.log('onItemClick onItemClickonItemClick');
+                  }}
+                />
+              ) : null}
               <Input
                 name="draft-email-miss-info-desc-input"
-                className="px-2"
+                className="px-2 w-full"
                 type="text"
                 placeholder="Give your files a brief description."
                 isBorder={false}
@@ -502,11 +573,13 @@ function PureActionBar(props: ActionBarProps) {
         }}
         renderContent={() => {
           return (
-            <div className="flex flex-col gap-1 bg-[#F0F0F0] dark:bg-primary-gray box-border p-3 rounded-xl">
-              <div>renderactionbarDraftEmailPDF renderContent</div>
+            <div className="flex flex-col items-start gap-1 bg-[#F0F0F0] dark:bg-primary-gray box-border p-3 rounded-xl">
+              {!!draftEmailPDF ? (
+                <ItemFile mode="ActionBarDraftEmail" file={draftEmailPDF} />
+              ) : null}
               <Input
                 name="draft-email-miss-info-desc-input"
-                className="px-2"
+                className="px-2 w-full"
                 type="text"
                 placeholder="Give your files a brief description."
                 isBorder={false}

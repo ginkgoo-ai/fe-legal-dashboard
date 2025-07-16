@@ -5,6 +5,7 @@ export enum FileStatus {
   // DONE = 'DONE',
   // ERROR = 'ERROR',
   UPLOADING = 'UPLOADING',
+  UPLOAD_FAILED = 'UPLOAD_FAILED',
   UPLOAD_COMPLETED = 'UPLOAD_COMPLETED',
   COMPLETED = 'COMPLETED',
   FAILED = 'FAILED',
@@ -27,6 +28,7 @@ export enum FileTypeEnum {
   BMP = 'image/bmp',
   ICO = 'image/x-icon',
   TXT = 'text/plain',
+  MISS_INFO = 'custom/miss-info',
   UNKNOW = 'unknow',
 }
 
@@ -70,22 +72,10 @@ export interface ICaseDocumentType {
   filename: string;
   fileSize: number;
   fileType: string; // 'application/pdf';
-  receivedAt: string; // '2025-06-19T15:07:37.719299';
+  description: string | null;
+  receivedAt: string | null; // '2025-06-19T15:07:37.719299';
   errorCode: null;
   errorDetails: null;
-}
-
-export interface ICaseDocumentInitResultType {
-  createdAt: string;
-  filename: string;
-  fileSize: number;
-  documentType: string;
-  documentCategory: string;
-  id: string;
-  fileType: string;
-  status: string; // 'REJECTED';
-  updatedAt: string;
-  storageId: null;
 }
 
 export interface IFileItemType {

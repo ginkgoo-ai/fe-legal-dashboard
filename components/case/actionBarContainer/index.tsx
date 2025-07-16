@@ -7,7 +7,7 @@ import { ChevronLeft, LoaderCircle } from 'lucide-react';
 import { memo } from 'react';
 
 interface ActionBarContainerProps {
-  title?: string;
+  title?: string | React.ReactNode;
   isShowBtnSend?: boolean;
   isLoadingBtnSend?: boolean;
   isDisabledBtnSend?: boolean;
