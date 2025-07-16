@@ -49,7 +49,7 @@ export const CaseGrapherGround = (props: CaseGrapherGroundProps) => {
     message: ICaseConversationItem;
     action: ICaseConversationAction;
   }) => {
-    if (currentConversation) {
+    if (params) {
       setCurrentConversation(params);
     }
   };
