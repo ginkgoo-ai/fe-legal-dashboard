@@ -89,13 +89,13 @@ function PureActionBar(props: ActionBarProps) {
                   });
                   if (indexFile >= 0) {
                     draft[indexFile].status = status;
-                  } else {
-                    draft.push({
-                      localId: uuid(),
-                      status: status,
-                      documentFile: dataMsg,
-                    });
                   }
+                  // else
+                  // draft.push({
+                  //   localId: uuid(),
+                  //   status: status,
+                  //   documentFile: dataMsg,
+                  // });
                 })
               ),
             () => {

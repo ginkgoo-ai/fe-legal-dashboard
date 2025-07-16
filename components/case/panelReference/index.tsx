@@ -40,7 +40,7 @@ function PurePanelReference(props: PanelReferenceProps) {
       setFileLoading(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fileList]);
+  }, [caseInfo?.documents]);
 
   return (
     <PanelContainer

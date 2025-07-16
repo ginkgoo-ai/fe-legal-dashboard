@@ -68,7 +68,7 @@ export const DocumentsApi = {
   markValid: '/legalcase/cases/:caseId/documents/:documentId/mark-valid',
   uploadSingle: '/legalcase/cases/:caseId/documents/single',
   uploadOnly: '/legalcase/cases/:caseId/documents/upload',
-  process: '/legalcase/cases/{caseId}/documents/process',
+  process: '/legalcase/cases/:caseId/documents/process',
   documents: '/legalcase/cases/:caseId/documents/:documentId',
 };
 
