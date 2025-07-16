@@ -1,6 +1,6 @@
 'use client';
 
-import { FileUpload } from '@/components/common/form/upload/fileUpload';
+// import { FileUpload } from '@/components/common/form/upload/fileUpload';
 import { ItemFile } from '@/components/common/itemFile';
 import {
   IconFormItemClientName,
@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/icon';
 import { MESSAGE } from '@/config/message';
 import UtilsManager from '@/customManager/UtilsManager';
-import { createCase, uploadDocument } from '@/service/api/case';
+import { createCase } from '@/service/api/case';
 import { useUserStore } from '@/store/userStore';
 import { FileStatus, IFileItemType } from '@/types/file';
 import { Button, Form, Input, message as messageAntd, Modal, Select } from 'antd';
@@ -79,30 +79,30 @@ function PureModalCreateCase(props: ModalCreateCaseProps) {
 
     // console.log('handleFormFinish', resCreateCase, document);
 
-    const newFiles = fileList.map((file: IFileItemType) => ({
-      localId: uuid(),
-      status: FileStatus.UPLOADING,
-      localFile: file.localFile,
-    }));
-    const resUploadDocument = await uploadDocument({
-      caseId: resCreateCase.id,
-      files: newFiles.map((file: IFileItemType) => file.localFile!),
-    });
+    // const newFiles = fileList.map((file: IFileItemType) => ({
+    //   localId: uuid(),
+    //   status: FileStatus.UPLOADING,
+    //   localFile: file.localFile,
+    // }));
+    // const resUploadDocument = await uploadDocument({
+    //   caseId: resCreateCase.id,
+    //   files: newFiles.map((file: IFileItemType) => file.localFile!),
+    // });
 
     setLoadingSubmit(false);
 
-    if (resUploadDocument?.acceptedDocuments) {
-      router.push(
-        UtilsManager.router2url('/case-detail', {
-          caseId: resCreateCase.id,
-        })
-      );
-    } else {
-      messageAntd.open({
-        type: 'error',
-        content: MESSAGE.TOAST_UPLOAD_FILE_FAILED,
-      });
-    }
+    // if (resUploadDocument?.acceptedDocuments) {
+    router.push(
+      UtilsManager.router2url('/case-detail', {
+        caseId: resCreateCase.id,
+      })
+    );
+    // } else {
+    //   messageAntd.open({
+    //     type: 'error',
+    //     content: MESSAGE.TOAST_UPLOAD_FILE_FAILED,
+    //   });
+    // }
 
     // console.log('actionUploadFile', newFiles, resUploadDocument);
   };
@@ -239,7 +239,7 @@ function PureModalCreateCase(props: ModalCreateCaseProps) {
           </Form.Item>
         </div> */}
 
-          <Form.Item
+          {/* <Form.Item
             className="flex-1 !mt-3"
             label=""
             name="document"
@@ -256,7 +256,7 @@ function PureModalCreateCase(props: ModalCreateCaseProps) {
               triggerText=""
               hideUploadIcon
             />
-          </Form.Item>
+          </Form.Item> */}
 
           {fileList.length > 0 ? (
             <div className="flex flex-col gap-4">

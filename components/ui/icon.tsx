@@ -1573,6 +1573,63 @@ export const IconActionBarDraftEmail = ({ size = 24, className = '' }: IconProps
   );
 };
 
+export const IconActionBarDraftEmailMissInfo = ({
+  size = 24,
+  className = '',
+}: IconProps) => {
+  return (
+    <svg
+      width={size}
+      height={size}
+      className={cn(className)}
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M14 3V5H4V18.385L5.763 17H20V10H22V18C22 18.2652 21.8946 18.5196 21.7071 18.7071C21.5196 18.8946 21.2652 19 21 19H6.455L2 22.5V4C2 3.73478 2.10536 3.48043 2.29289 3.29289C2.48043 3.10536 2.73478 3 3 3H14ZM19 3V0H21V3H24V5H21V8H19V5H16V3H19Z"
+        fill="currentColor"
+      />
+    </svg>
+  );
+};
+
+export const IconActionBarDraftEmailPDF = ({ size = 24, className = '' }: IconProps) => {
+  return (
+    <svg
+      width={size}
+      height={size}
+      className={cn(className)}
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M15 4H5V20H19V8H15V4ZM3 2.992C3 2.444 3.447 2 3.999 2H16L21 7V20.993C21.0009 21.1243 20.976 21.2545 20.9266 21.3762C20.8772 21.4979 20.8043 21.6087 20.7121 21.7022C20.6199 21.7957 20.5101 21.8701 20.3892 21.9212C20.2682 21.9723 20.1383 21.9991 20.007 22H3.993C3.73038 21.9982 3.47902 21.8931 3.29322 21.7075C3.10742 21.5219 3.00209 21.2706 3 21.008V2.992ZM12 11V8L16 12L12 16V13H8V11H12Z"
+        fill="currentColor"
+      />
+    </svg>
+  );
+};
+
+export const IconActionBarSummarize = ({ size = 24, className = '' }: IconProps) => {
+  return (
+    <svg
+      width={size}
+      height={size}
+      className={cn(className)}
+      viewBox="0 0 20 20"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M14.1667 1.6665V3.33317H16.6725C17.1292 3.33317 17.5 3.704 17.5 4.16067V17.5057C17.5 17.9623 17.1292 18.3332 16.6725 18.3332H3.3275C2.87083 18.3332 2.5 17.9623 2.5 17.5057V4.16067C2.5 3.704 2.87083 3.33317 3.3275 3.33317H5.83333V1.6665H14.1667ZM5.83333 4.99984H4.16667V16.6665H15.8333V4.99984H14.1667V6.6665H5.83333V4.99984ZM7.5 13.3332V14.9998H5.83333V13.3332H7.5ZM7.5 10.8332V12.4998H5.83333V10.8332H7.5ZM7.5 8.33317V9.99984H5.83333V8.33317H7.5ZM12.5 3.33317H7.5V4.99984H12.5V3.33317Z"
+        fill="currentColor"
+      />
+    </svg>
+  );
+};
+
 export const IconActionBarStartExtensions = ({
   size = 24,
   className = '',

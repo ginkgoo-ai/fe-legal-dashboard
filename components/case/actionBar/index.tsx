@@ -4,8 +4,11 @@ import { ActionBarContainer } from '@/components/case/actionBarContainer';
 import { FileUploadSimple } from '@/components/common/form/upload/fileUploadSimple';
 import { ItemFile } from '@/components/common/itemFile';
 import { Button } from '@/components/ui/button';
+import { DropdownMenu, DropdownMenuContent } from '@/components/ui/dropdown-menu';
 import {
   IconActionBarDraftEmail,
+  IconActionBarDraftEmailMissInfo,
+  IconActionBarDraftEmailPDF,
   IconActionBarStartExtensions,
   IconActionBarUpload,
 } from '@/components/ui/icon';
@@ -17,9 +20,12 @@ import { useStateCallback } from '@/hooks/useStateCallback';
 import { cn } from '@/lib/utils';
 import { processDocument, uploadDocumentOnlyUpload } from '@/service/api/case';
 import { FileStatus, IFileItemType } from '@/types/file';
+import { DropdownMenuTrigger } from '@radix-ui/react-dropdown-menu';
 import { message as messageAntd } from 'antd';
+import { motion } from 'framer-motion';
 import { produce } from 'immer';
 import { cloneDeep } from 'lodash';
+import { ChevronDown } from 'lucide-react';
 import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import { v4 as uuid } from 'uuid';
 import './index.css';
@@ -36,14 +42,32 @@ interface ActionBarProps {
   onSizeChange?: (size: DOMRectReadOnly) => void;
 }
 
+const optionDraftEmailList = [
+  {
+    label: 'Send information request',
+    icon: <IconActionBarDraftEmailMissInfo size={24} className="w-6! h-6!" />,
+    value: TypeActionBarEnum.DRAFT_EMAIL_MISS_INFO,
+  },
+  {
+    label: 'Email Visa Application (PDF)',
+    icon: <IconActionBarDraftEmailPDF size={24} className="w-6! h-6!" />,
+    value: TypeActionBarEnum.DRAFT_EMAIL_PDF,
+  },
+];
+
 function PureActionBar(props: ActionBarProps) {
   const { caseId, onSizeChange } = props || {};
 
   const actionBarRef = useRef<HTMLDivElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null); // 新增ref
 
   const [typeActionBar, setTypeActionBar] = useState<TypeActionBarEnum>(
-    TypeActionBarEnum.INIT
+    TypeActionBarEnum.DRAFT_EMAIL_MISS_INFO
   );
+  const [isShowDropdownMenuDraftEmail, setShowDropdownMenuDraftEmail] =
+    useState<boolean>(false);
+  const [isShowDropdownMenuDraftEmailChild, setShowDropdownMenuDraftEmailChild] =
+    useState<boolean>(false);
   const [isLoadingBtnSend, setLoadingBtnSend] = useState<boolean>(false);
   const [actionBarDesc, setActionBarDesc] = useState<string>('');
 
@@ -63,6 +87,19 @@ function PureActionBar(props: ActionBarProps) {
     }
     return false;
   }, [typeActionBar, referenceFileList]);
+
+  const currentDraftEmail = useMemo(() => {
+    return (
+      optionDraftEmailList.find(item => {
+        return item.value === typeActionBar;
+      }) || {
+        label: '',
+        icon: null,
+        value: '',
+        width: 'auto',
+      }
+    );
+  }, [typeActionBar]);
 
   useEventManager('ginkgoo-sse', async message => {
     const { type: typeMsg } = message;
@@ -116,6 +153,7 @@ function PureActionBar(props: ActionBarProps) {
       setReferenceFileList([]);
       setActionBarDesc('');
     }
+    setShowDropdownMenuDraftEmail(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [typeActionBar]);
 
@@ -140,6 +178,21 @@ function PureActionBar(props: ActionBarProps) {
       observer.disconnect();
     };
   }, [onSizeChange]);
+
+  useEffect(() => {
+    if (!isShowDropdownMenuDraftEmail) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowDropdownMenuDraftEmail(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isShowDropdownMenuDraftEmail]);
 
   const actionUploadFile = async (newFiles: IFileItemType[]) => {
     const resUploadDocument = await uploadDocumentOnlyUpload({
@@ -267,7 +320,9 @@ function PureActionBar(props: ActionBarProps) {
   };
 
   const handleBtnDraftEmailClick = () => {
-    setTypeActionBar(TypeActionBarEnum.DRAFT_EMAIL_MISS_INFO);
+    if (!isShowDropdownMenuDraftEmail) {
+      setShowDropdownMenuDraftEmail(true);
+    }
   };
 
   const handleBtnSummarizeClick = () => {
@@ -299,7 +354,9 @@ function PureActionBar(props: ActionBarProps) {
 
           <Button
             variant="ghost"
-            className="border border-solid border-[rgba(225, 225, 226, 1)] h-11"
+            className={cn('border border-solid border-[rgba(225, 225, 226, 1)] h-11', {
+              'pointer-events-none': isShowDropdownMenuDraftEmail,
+            })}
             onClick={handleBtnDraftEmailClick}
           >
             <IconActionBarDraftEmail />
@@ -399,7 +456,7 @@ function PureActionBar(props: ActionBarProps) {
     );
   };
 
-  const renderactionbarDraftEmailMissInfo = () => {
+  const renderActionbarDraftEmailMissInfo = () => {
     return (
       <ActionBarContainer
         title="Draft email"
@@ -409,12 +466,12 @@ function PureActionBar(props: ActionBarProps) {
           setTypeActionBar(TypeActionBarEnum.INIT);
         }}
         onBtnSendClick={() => {
-          console.log('renderactionbarDraftEmailMissInfo onBtnSendClick');
+          console.log('renderActionbarDraftEmailMissInfo onBtnSendClick');
         }}
         renderContent={() => {
           return (
             <div className="flex flex-col gap-1 bg-[#F0F0F0] dark:bg-primary-gray box-border p-3 rounded-xl">
-              <div>renderactionbarDraftEmailMissInfo renderContent</div>
+              <div>renderActionbarDraftEmailMissInfo renderContent</div>
               <Input
                 name="draft-email-miss-info-desc-input"
                 className="px-2"
@@ -426,18 +483,7 @@ function PureActionBar(props: ActionBarProps) {
             </div>
           );
         }}
-        renderFooter={() => {
-          return (
-            <div className="flex flex-row gap-1">
-              <Button
-                variant="ghost"
-                className="border border-solid border-[rgba(225, 225, 226, 1)] h-11"
-              >
-                renderactionbarDraftEmailMissInfo renderFooter
-              </Button>
-            </div>
-          );
-        }}
+        renderFooter={renderActionbarDraftEmailFooter}
       />
     );
   };
@@ -469,44 +515,124 @@ function PureActionBar(props: ActionBarProps) {
             </div>
           );
         }}
-        renderFooter={() => {
-          return (
-            <div className="flex flex-row gap-1">
-              <Button
-                variant="ghost"
-                className="border border-solid border-[rgba(225, 225, 226, 1)] h-11"
-              >
-                renderactionbarDraftEmailPDF renderFooter
-              </Button>
-            </div>
-          );
-        }}
+        renderFooter={renderActionbarDraftEmailFooter}
       />
     );
   };
 
+  const renderActionbarDraftEmailFooter = () => {
+    return (
+      <div className="flex flex-row gap-1">
+        <DropdownMenu
+          open={isShowDropdownMenuDraftEmailChild}
+          onOpenChange={e => {
+            setShowDropdownMenuDraftEmailChild(e);
+          }}
+        >
+          <DropdownMenuTrigger>
+            <Button variant="ghost" asChild className="h-11">
+              <div className="border border-solid border-[rgba(225, 225, 226, 1)] flex flex-row justify-start items-center text-[#5F5F5F] dark:text-[#FFFFFF]">
+                {currentDraftEmail.icon}
+                <span>{currentDraftEmail.label}</span>
+                <ChevronDown
+                  className={cn('transition-all', {
+                    'rotate-180': isShowDropdownMenuDraftEmailChild,
+                  })}
+                />
+              </div>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="relative w-full flex flex-col">
+            {optionDraftEmailList.map((itemOption, indexOption) => {
+              return (
+                <Button
+                  key={`dropdown-menu-draft-email-btn-${indexOption}`}
+                  variant="ghost"
+                  asChild
+                  className="h-11"
+                  onClick={() => {
+                    setShowDropdownMenuDraftEmailChild(false);
+                    setTypeActionBar(itemOption.value);
+                  }}
+                >
+                  <div className="flex flex-row justify-start items-center text-[#5F5F5F] dark:text-[#FFFFFF]">
+                    {itemOption.icon}
+                    <span>{itemOption.label}</span>
+                  </div>
+                </Button>
+              );
+            })}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    );
+  };
+
+  const customStyle = {
+    'w-[43rem]': typeActionBar === TypeActionBarEnum.INIT,
+    'w-[80%]': typeActionBar !== TypeActionBarEnum.INIT,
+  };
+
   return (
-    <div
-      ref={actionBarRef}
-      className={cn(
-        'absolute bottom-10 left-[50%] -translate-x-1/2 bg-background action-bar-wrap box-border rounded-[12px] border border-solid border-[rgba(225, 225, 226, 1)] transition-all',
-        {
-          'w-[43rem]': typeActionBar === TypeActionBarEnum.INIT,
-          'w-[80%]': typeActionBar !== TypeActionBarEnum.INIT,
-        }
-      )}
-    >
-      {typeActionBar === TypeActionBarEnum.INIT ? renderActionBarInit() : null}
-      {typeActionBar === TypeActionBarEnum.ADD_REFERENCE
-        ? renderActionBarAddReference()
-        : null}
-      {typeActionBar === TypeActionBarEnum.DRAFT_EMAIL_MISS_INFO
-        ? renderactionbarDraftEmailMissInfo()
-        : null}
-      {typeActionBar === TypeActionBarEnum.DRAFT_EMAIL_PDF
-        ? renderactionbarDraftEmailPDF()
-        : null}
-    </div>
+    <>
+      {/* DropdownMenu for DraftEmail */}
+      <div
+        ref={actionBarRef}
+        className="absolute bottom-10 left-[50%] -translate-x-1/2 flex flex-col items-center gap-3 w-full"
+      >
+        {typeActionBar === TypeActionBarEnum.INIT && isShowDropdownMenuDraftEmail && (
+          <motion.div
+            ref={dropdownRef}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 10 }}
+            transition={{ duration: 0.2 }}
+            className={cn(
+              'bg-background box-border rounded-[12px] border border-solid border-[rgba(225, 225, 226, 1)] gap-0.5 p-1 w-full flex flex-col',
+              customStyle
+            )}
+          >
+            {optionDraftEmailList.map((itemOption, indexOption) => {
+              return (
+                <Button
+                  key={`dropdown-menu-draft-email-btn-${indexOption}`}
+                  variant="ghost"
+                  asChild
+                  className="h-11"
+                  onClick={() => {
+                    setTypeActionBar(itemOption.value);
+                  }}
+                >
+                  <div className="flex flex-row justify-start items-center text-[#5F5F5F] dark:text-[#FFFFFF]">
+                    {itemOption.icon}
+                    <span>{itemOption.label}</span>
+                  </div>
+                </Button>
+              );
+            })}
+          </motion.div>
+        )}
+
+        {/* Base */}
+        <div
+          className={cn(
+            'action-bar-content bg-background box-border rounded-[12px] border border-solid border-[rgba(225, 225, 226, 1)] transition-all',
+            customStyle
+          )}
+        >
+          {typeActionBar === TypeActionBarEnum.INIT ? renderActionBarInit() : null}
+          {typeActionBar === TypeActionBarEnum.ADD_REFERENCE
+            ? renderActionBarAddReference()
+            : null}
+          {typeActionBar === TypeActionBarEnum.DRAFT_EMAIL_MISS_INFO
+            ? renderActionbarDraftEmailMissInfo()
+            : null}
+          {typeActionBar === TypeActionBarEnum.DRAFT_EMAIL_PDF
+            ? renderactionbarDraftEmailPDF()
+            : null}
+        </div>
+      </div>
+    </>
   );
 }
 

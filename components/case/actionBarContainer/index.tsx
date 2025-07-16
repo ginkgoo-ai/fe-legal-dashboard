@@ -34,17 +34,15 @@ function PureActionBarContainer(props: ActionBarContainerProps) {
       {/* title */}
       {!!onBtnBackClick || title ? (
         <div className="flex flex-row items-center gap-1 -mb-1">
-          {!!onBtnBackClick ? (
-            <Button
-              type="button"
-              variant="ghost"
-              className={cn('w-9 h-9 flex-shrink-0 cursor-pointer', {})}
-              onClick={onBtnBackClick}
-            >
-              <ChevronLeft />
-            </Button>
-          ) : null}
-          <div>{title}</div>
+          <Button
+            type="button"
+            variant="ghost"
+            className={cn('h-9 flex-shrink-0 cursor-pointer', {})}
+            onClick={onBtnBackClick}
+          >
+            <ChevronLeft />
+            <div>{title}</div>
+          </Button>
         </div>
       ) : null}
       {/* content */}
