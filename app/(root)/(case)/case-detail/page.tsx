@@ -686,7 +686,7 @@ function CaseDetailContent() {
         </div>
       </div>
       {/* max-w-[var(--width-max)] px-[var(--width-padding)] */}
-      <div className="flex h-0 w-full flex-1 flex-col px-8 pt-[24px]">
+      <div className="flex h-0 w-full flex-1 flex-col px-8 pt-[24px] bg-[#F2F3F7] dark:bg-background">
         <Splitter
           lazy={false}
           style={{
@@ -703,7 +703,7 @@ function CaseDetailContent() {
               'transition-all duration-200': isTransition,
             })}
           >
-            <CaseGrapherGround caseInfo={caseInfo!}>
+            <CaseGrapherGround caseInfo={caseInfo!} bottomPadding={pbSummary}>
               <ActionBar caseId={caseId} onSizeChange={handleActionBarSizeChange} />
             </CaseGrapherGround>
           </Splitter.Panel>

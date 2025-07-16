@@ -1,6 +1,9 @@
 import {
+  ICaseConversationItem,
+  ICaseConversationStats,
   ICaseDocumentResultType,
   ICaseItemType,
+  ICasePagination,
   ICaseStreamParamsType,
   ICreateCaseParamsType,
   IOcrDocumentsParamsType,
@@ -70,6 +73,10 @@ export const DocumentsApi = {
   uploadOnly: '/legalcase/cases/:caseId/documents/upload',
   process: '/legalcase/cases/:caseId/documents/process',
   documents: '/legalcase/cases/:caseId/documents/:documentId',
+};
+
+export const ConversationApi = {
+  historyConversation: '/legalcase/cases/:caseId/conversation',
 };
 
 // const baseUrl = process.env.LOCAL_BASE_URL
@@ -441,5 +448,27 @@ export const applyDummyData = async (
   return ApiRequest.post(
     `${baseUrl}${CaseApi.applyDummyData.replace(':caseId', caseId).replace(':fieldPath', fieldPath)}`,
     {}
+  );
+};
+
+export const getHistoryConversation = async (
+  caseId: string,
+  queries: {
+    page: number;
+    size: number;
+    threadId?: string;
+    messageType?: 'ASSISTANT' | 'USER';
+  }
+): Promise<{
+  messages: ICaseConversationItem[];
+  availableThreads: string[];
+  pagination: ICasePagination;
+  stats: ICaseConversationStats;
+}> => {
+  return ApiRequest.get(
+    `${baseUrl}${ConversationApi.historyConversation.replace(':caseId', caseId)}`,
+    {
+      ...queries,
+    }
   );
 };

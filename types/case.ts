@@ -215,3 +215,54 @@ export interface IOcrDocumentsParamsType {
   caseId: string;
   storageIds: string[];
 }
+
+export interface ICasePagination {
+  totalPages: number;
+  totalElements: number;
+  size: number;
+  page: number;
+  last: boolean;
+  first: boolean;
+  isLast: boolean;
+  isFirst: boolean;
+  hasNext: boolean;
+  hasPrevious: boolean;
+}
+
+export interface ICaseConversationItem {
+  actions: ICaseConversationAction[];
+  content: string;
+  createdAt: string;
+  dismissible: boolean;
+  eventId: string;
+  icon: string;
+  id: string;
+  isRead: boolean;
+  messageType: 'ASSISTANT' | 'USER';
+  metadata: Record<string, any>;
+  progress: unknown;
+  requiresUserInteraction: boolean;
+  status: string;
+  threadId: string;
+  title: string;
+  updatedAt: string;
+}
+
+export interface ICaseConversationAction {
+  action: string;
+  label: string;
+  parameters: any;
+  style: string;
+  url: any;
+}
+
+export interface ICaseConversationStats {
+  assistantMessages: number;
+  interactionRequiredMessages: number;
+  lastMessageTime: string;
+  notificationMessages: number;
+  systemMessages: number;
+  totalMessages: number;
+  unreadMessages: number;
+  userMessages: number;
+}

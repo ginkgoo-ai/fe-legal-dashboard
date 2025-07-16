@@ -110,7 +110,7 @@ function PurePanelProfileVaultDashboard(props: PurePanelProfileVaultDashboardPro
   }, [renderCard]);
 
   return (
-    <div className="w-full grid grid-cols-4 items-center gap-6 bg-background pb-2">
+    <div className="w-full grid grid-cols-4 items-center gap-6 pb-2">
       {dashboardCards.map(item => {
         return <DashboardCard {...item} key={item.label} />;
       })}
