@@ -1,10 +1,9 @@
 'use client';
 
-import { CaseGrapher } from '@/components/case/caseGrapher';
+import { CaseGrapherGround } from '@/components/case/caseGrapherGround';
 import { ModalNewWorkflow } from '@/components/case/modalNewWorkflow';
 import { PanelPilot } from '@/components/case/panelPilot';
 import { PanelProfileVault } from '@/components/case/panelProfileVault';
-import { PanelProfileVaultDashboard } from '@/components/case/panelProfileVaultDashboard';
 import { PanelReference } from '@/components/case/panelReference';
 import { TagStatus } from '@/components/case/tagStatus';
 import { Toolbelt } from '@/components/case/toolbelt';
@@ -706,12 +705,15 @@ function CaseDetailContent() {
               'transition-all duration-200': isTransition,
             })}
           >
-            <div className="flex flex-col w-full h-full gap-4 overflow-y-auto">
+            {/* <div className="flex flex-col w-full h-full gap-4 overflow-y-auto">
               <PanelProfileVaultDashboard caseInfo={caseInfo!} />
               <CaseGrapher />
             </div>
-            {/* Toolbelt */}
-            <Toolbelt caseId={caseId} />
+            <Toolbelt caseId={caseId} /> */}
+
+            <CaseGrapherGround caseInfo={caseInfo!}>
+              <Toolbelt caseId={caseId} />
+            </CaseGrapherGround>
           </Splitter.Panel>
           {/* RightPanel */}
           {!!typeRightPanel ? (
