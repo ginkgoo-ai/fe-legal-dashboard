@@ -8,7 +8,6 @@ import { memo } from 'react';
 
 interface ActionBarContainerProps {
   title?: string | React.ReactNode;
-  isShowBtnSend?: boolean;
   isLoadingBtnSend?: boolean;
   isDisabledBtnSend?: boolean;
   onBtnBackClick?: () => void;
@@ -20,7 +19,6 @@ interface ActionBarContainerProps {
 function PureActionBarContainer(props: ActionBarContainerProps) {
   const {
     title,
-    isShowBtnSend = true,
     isLoadingBtnSend = false,
     isDisabledBtnSend = false,
     onBtnBackClick,
@@ -48,9 +46,9 @@ function PureActionBarContainer(props: ActionBarContainerProps) {
       {/* content */}
       <>{renderContent?.()}</>
       {/* footer */}
-      <div className="flex flex-row justify-between items-center">
-        <>{renderFooter?.()}</>
-        {isShowBtnSend ? (
+      {!!renderFooter && (
+        <div className="flex flex-row justify-between items-center">
+          <>{renderFooter?.()}</>
           <Button
             type="button"
             variant="default"
@@ -64,8 +62,8 @@ function PureActionBarContainer(props: ActionBarContainerProps) {
               <IconActionBarSend />
             )}
           </Button>
-        ) : null}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

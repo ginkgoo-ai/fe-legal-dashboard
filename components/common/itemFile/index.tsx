@@ -245,7 +245,7 @@ function PureItemFile(props: ItemFileProps) {
   const renderModeActionBarReference = () => {
     return (
       <div
-        className="flex-1 flex flex-row justify-start items-center rounded-lg border border-solid border-[#E1E1E2] bg-[#F2F3F7] dark:bg-background pl-3 pr-0.5 box-border gap-2"
+        className="flex-1 flex flex-row justify-start items-center pl-3 pr-0.5 box-border gap-2"
         style={customWrapStyle}
       >
         {/* Name */}
@@ -295,7 +295,7 @@ function PureItemFile(props: ItemFileProps) {
   const renderModeActionBarDraftEmail = () => {
     return (
       <div
-        className="flex-1 flex flex-row justify-start items-center rounded-lg border border-solid border-[#E1E1E2] bg-[#F2F3F7] dark:bg-background px-2.5 box-border gap-2"
+        className="flex-1 flex flex-row justify-start items-center px-2.5 box-border gap-2"
         style={customWrapStyle}
       >
         {/* Icon */}
@@ -312,7 +312,7 @@ function PureItemFile(props: ItemFileProps) {
 
   const renderModeCreateCase = () => {
     return (
-      <div className="flex flex-row justify-start items-center h-14 rounded-lg border border-solid border-[#E1E1E2] bg-[#F2F3F7] dark:bg-background pl-6 pr-2 box-border gap-2">
+      <div className="flex flex-row justify-start items-center h-14 pl-6 pr-2 box-border gap-2">
         {/* Icon */}
         {renderIconFileType({ size: 16, isDot: false })}
         {/* Name */}
@@ -363,9 +363,13 @@ function PureItemFile(props: ItemFileProps) {
 
   return (
     <div
-      className={cn('', {
-        'cursor-pointer': !!onItemClick,
-      })}
+      className={cn(
+        'bg-[#F2F3F7] dark:bg-background rounded-lg overflow-hidden border border-solid border-[#E1E1E2] box-border',
+        {
+          'cursor-pointer hover:bg-[#E5E7EB] hover:text-accent-foreground dark:hover:bg-accent/50':
+            !!onItemClick,
+        }
+      )}
       onClick={onItemClick}
     >
       {{

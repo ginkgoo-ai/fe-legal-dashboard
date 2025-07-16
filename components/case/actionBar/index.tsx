@@ -20,9 +20,10 @@ import { useEventManager } from '@/hooks/useEventManager';
 import { useStateCallback } from '@/hooks/useStateCallback';
 import { cn } from '@/lib/utils';
 import { processDocument, uploadDocumentOnlyUpload } from '@/service/api/case';
+import { ICaseItemType } from '@/types/case';
 import { FileStatus, FileTypeEnum, IFileItemType } from '@/types/file';
 import { DropdownMenuTrigger } from '@radix-ui/react-dropdown-menu';
-import { message as messageAntd } from 'antd';
+import { Checkbox as AntdCheckbox, message as messageAntd } from 'antd';
 import { motion } from 'framer-motion';
 import { produce } from 'immer';
 import { cloneDeep } from 'lodash';
@@ -39,7 +40,7 @@ export enum TypeActionBarEnum {
 }
 
 interface ActionBarProps {
-  caseId: string;
+  caseInfo: ICaseItemType | null;
   onSizeChange?: (size: DOMRectReadOnly) => void;
 }
 
@@ -57,26 +58,44 @@ const optionDraftEmailList = [
 ];
 
 function PureActionBar(props: ActionBarProps) {
-  const { caseId, onSizeChange } = props || {};
+  const { caseInfo, onSizeChange } = props || {};
 
   const actionBarRef = useRef<HTMLDivElement>(null);
-  const dropdownRef = useRef<HTMLDivElement>(null); // 新增ref
+  const dropdownDraftEmailRef = useRef<HTMLDivElement>(null); // 新增ref
+  const dropdownDraftEmailMissInfoRef = useRef<HTMLDivElement>(null); // 新增ref
 
   const [typeActionBar, setTypeActionBar] = useState<TypeActionBarEnum>(
-    TypeActionBarEnum.DRAFT_EMAIL_MISS_INFO
+    TypeActionBarEnum.INIT
   );
   const [isShowDropdownMenuDraftEmail, setShowDropdownMenuDraftEmail] =
-    useState<boolean>(false);
+    useState<boolean>(false); // custom
   const [isShowDropdownMenuDraftEmailChild, setShowDropdownMenuDraftEmailChild] =
     useState<boolean>(false);
+  const [isShowDropdownMenuDraftEmailMissInfo, setShowDropdownMenuDraftEmailMissInfo] =
+    useState<boolean>(false); // custom
   const [isLoadingBtnSend, setLoadingBtnSend] = useState<boolean>(false);
   const [actionBarDesc, setActionBarDesc] = useState<string>('');
 
   const [referenceFileList, setReferenceFileList] = useStateCallback<IFileItemType[]>([]);
 
-  const [draftEmailMissInfo, setDraftEmailMissInfo] = useState<IFileItemType | null>(
-    null
-  );
+  const [draftEmailMissInfo] = useState<IFileItemType | null>({
+    localId: uuid(),
+    status: FileStatus.COMPLETED,
+    documentFile: {
+      success: true,
+      documentId: uuid(),
+      caseId: caseInfo?.id || '',
+      message: 'Missing information',
+      filename: 'Missing information',
+      fileSize: 2245148,
+      fileType: FileTypeEnum.MISS_INFO,
+      description: null,
+      receivedAt: null,
+      errorCode: null,
+      errorDetails: null,
+    },
+  });
+  const [draftEmailMissInfoList, setDraftEmailMissInfoList] = useState<any[]>([]);
   const [draftEmailPDF, setDraftEmailPDF] = useState<IFileItemType | null>(null);
 
   const isDisabledBtnSend = useMemo(() => {
@@ -106,6 +125,29 @@ function PureActionBar(props: ActionBarProps) {
       }
     );
   }, [typeActionBar]);
+
+  const draftEmailMissInfoOption = useMemo(() => {
+    return [
+      { label: 'Date of Birth', value: 'Date of Birth' },
+      { label: 'Visa Application Date', value: 'Visa Application Date' },
+      { label: 'Visa Submission Date', value: 'Visa Submission Date' },
+      { label: 'Visa Request Date', value: 'Visa Request Date' },
+      { label: 'Visa Processing Date', value: 'Visa Processing Date' },
+      { label: 'Visa Processing Date', value: 'Visa Processing Date1' },
+      { label: 'Visa Processing Date', value: 'Visa Processing Date2' },
+      { label: 'Visa Processing Date', value: 'Visa Processing Date3' },
+      { label: 'Visa Processing Date', value: 'Visa Processing Date4' },
+      { label: 'Visa Processing Date', value: 'Visa Processing Date5' },
+      { label: 'Visa Processing Date', value: 'Visa Processing Date6' },
+      { label: 'Visa Processing Date', value: 'Visa Processing Date7' },
+      { label: 'Visa Processing Date', value: 'Visa Processing Date8' },
+      { label: 'Visa Processing Date', value: 'Visa Processing Date9' },
+      { label: 'Visa Processing Date', value: 'Visa Processing Date10' },
+      { label: 'Visa Processing Date', value: 'Visa Processing Date11' },
+      { label: 'Visa Processing Date', value: 'Visa Processing Date12' },
+      { label: 'Visa Processing Date', value: 'Visa Processing Date13' },
+    ];
+  }, [caseInfo]);
 
   useEventManager('ginkgoo-sse', async message => {
     const { type: typeMsg } = message;
@@ -156,7 +198,10 @@ function PureActionBar(props: ActionBarProps) {
 
   useEffect(() => {
     setShowDropdownMenuDraftEmail(false);
+    setShowDropdownMenuDraftEmailChild(false);
+    setShowDropdownMenuDraftEmailMissInfo(false);
     setDraftEmailPDF(null);
+    setDraftEmailMissInfoList([]);
 
     switch (typeActionBar) {
       case TypeActionBarEnum.INIT: {
@@ -165,23 +210,6 @@ function PureActionBar(props: ActionBarProps) {
         break;
       }
       case TypeActionBarEnum.DRAFT_EMAIL_MISS_INFO: {
-        setDraftEmailMissInfo({
-          localId: uuid(),
-          status: FileStatus.COMPLETED,
-          documentFile: {
-            success: true,
-            documentId: uuid(),
-            caseId,
-            message: 'Missing information',
-            filename: 'Missing information',
-            fileSize: 2245148,
-            fileType: FileTypeEnum.MISS_INFO,
-            description: null,
-            receivedAt: null,
-            errorCode: null,
-            errorDetails: null,
-          },
-        });
         break;
       }
       case TypeActionBarEnum.DRAFT_EMAIL_PDF: {
@@ -191,7 +219,7 @@ function PureActionBar(props: ActionBarProps) {
           documentFile: {
             success: true,
             documentId: uuid(),
-            caseId,
+            caseId: caseInfo?.id || '',
             message: 'Draft Email PDF',
             filename: 'Draft Email PDF.pdf',
             fileSize: 2245148,
@@ -237,7 +265,10 @@ function PureActionBar(props: ActionBarProps) {
     if (!isShowDropdownMenuDraftEmail) return;
 
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownDraftEmailRef.current &&
+        !dropdownDraftEmailRef.current.contains(event.target as Node)
+      ) {
         setShowDropdownMenuDraftEmail(false);
       }
     };
@@ -248,9 +279,27 @@ function PureActionBar(props: ActionBarProps) {
     };
   }, [isShowDropdownMenuDraftEmail]);
 
+  useEffect(() => {
+    if (!isShowDropdownMenuDraftEmailMissInfo) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownDraftEmailMissInfoRef.current &&
+        !dropdownDraftEmailMissInfoRef.current.contains(event.target as Node)
+      ) {
+        setShowDropdownMenuDraftEmail(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isShowDropdownMenuDraftEmailMissInfo]);
+
   const actionUploadFile = async (newFiles: IFileItemType[]) => {
     const resUploadDocument = await uploadDocumentOnlyUpload({
-      caseId,
+      caseId: caseInfo?.id || '',
       files: newFiles.map(file => file.localFile!),
     });
 
@@ -361,7 +410,7 @@ function PureActionBar(props: ActionBarProps) {
       .map(file => file.documentFile?.documentId || '');
 
     const resProcessDocument = await processDocument({
-      caseId,
+      caseId: caseInfo?.id || '',
       documentIds,
       description: actionBarDesc,
     });
@@ -379,9 +428,7 @@ function PureActionBar(props: ActionBarProps) {
     }
   };
 
-  const handleBtnSummarizeClick = () => {
-    setTypeActionBar(TypeActionBarEnum.DRAFT_EMAIL_PDF);
-  };
+  const handleBtnSummarizeClick = () => {};
 
   const handleBtnStartClick = () => {};
 
@@ -531,15 +578,15 @@ function PureActionBar(props: ActionBarProps) {
                   renderExtend={() => {
                     return (
                       <Badge
-                        className="flex justify-center items-center bg-transparent border border-solid border-[#E5E7EB] text-[#1559EA]"
+                        className="flex justify-center items-center bg-transparent border border-solid border-[#E1E1E2] text-[#1559EA]"
                         variant="small"
                       >
-                        0
+                        {draftEmailMissInfoList.length}
                       </Badge>
                     );
                   }}
                   onItemClick={() => {
-                    console.log('onItemClick onItemClickonItemClick');
+                    setShowDropdownMenuDraftEmailMissInfo(true);
                   }}
                 />
               ) : null}
@@ -648,14 +695,14 @@ function PureActionBar(props: ActionBarProps) {
 
   return (
     <>
-      {/* DropdownMenu for DraftEmail */}
       <div
         ref={actionBarRef}
         className="absolute bottom-10 left-[50%] -translate-x-1/2 flex flex-col items-center gap-3 w-full"
       >
+        {/* Custom DropdownMenu for DraftEmail */}
         {typeActionBar === TypeActionBarEnum.INIT && isShowDropdownMenuDraftEmail && (
           <motion.div
-            ref={dropdownRef}
+            ref={dropdownDraftEmailRef}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 10 }}
@@ -704,6 +751,76 @@ function PureActionBar(props: ActionBarProps) {
             ? renderactionbarDraftEmailPDF()
             : null}
         </div>
+
+        {/* Custom DropdownMenu for DraftEmail Miss Info */}
+        {typeActionBar === TypeActionBarEnum.DRAFT_EMAIL_MISS_INFO &&
+          isShowDropdownMenuDraftEmailMissInfo && (
+            <motion.div
+              ref={dropdownDraftEmailMissInfoRef}
+              initial={{ opacity: 0, y: 0 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 0 }}
+              transition={{ duration: 0.2 }}
+              className={cn(
+                'absolute bottom-0 left-[50%] -translate-x-1/2 action-bar-content bg-background box-border rounded-[12px] border border-solid border-[rgba(225, 225, 226, 1)] transition-all',
+                customStyle
+              )}
+            >
+              <ActionBarContainer
+                title={
+                  <div className="flex flex-row gap-1">
+                    <div>Missing information</div>
+                    <Badge
+                      className="flex justify-center items-center bg-transparent border border-solid border-[#E1E1E2] text-[#1559EA]"
+                      variant="small"
+                    >
+                      {draftEmailMissInfoList.length}
+                    </Badge>
+                  </div>
+                }
+                isLoadingBtnSend={isLoadingBtnSend}
+                isDisabledBtnSend={isDisabledBtnSend}
+                onBtnBackClick={() => {
+                  setShowDropdownMenuDraftEmailMissInfo(false);
+                }}
+                renderContent={() => {
+                  return (
+                    <div className="w-full h-80 overflow-y-auto">
+                      <div className="flex flex-col gap-3 box-border px-5">
+                        {draftEmailMissInfoOption.map((itemOption, indexOption) => {
+                          const checked = draftEmailMissInfoList.some(
+                            (item: any) => item.value === itemOption.value
+                          );
+                          return (
+                            <div
+                              key={`dropdown-menu-draft-email-miss-info-checkbox-${indexOption}`}
+                              className="scale-125 origin-left"
+                            >
+                              <AntdCheckbox
+                                className="w-full"
+                                checked={checked}
+                                onChange={e => {
+                                  setDraftEmailMissInfoList((prev: any[]) => {
+                                    return !!e?.target?.checked
+                                      ? [...prev, itemOption]
+                                      : prev.filter(
+                                          (item: any) => item.value !== itemOption.value
+                                        );
+                                  });
+                                }}
+                              >
+                                <span className="text-xs">{itemOption.label}</span>
+                              </AntdCheckbox>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                }}
+              />
+            </motion.div>
+          )}
       </div>
     </>
   );

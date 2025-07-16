@@ -704,7 +704,7 @@ function CaseDetailContent() {
             })}
           >
             <CaseGrapherGround caseInfo={caseInfo!} bottomPadding={pbSummary}>
-              <ActionBar caseId={caseId} onSizeChange={handleActionBarSizeChange} />
+              <ActionBar caseInfo={caseInfo} onSizeChange={handleActionBarSizeChange} />
             </CaseGrapherGround>
           </Splitter.Panel>
           {/* RightPanel */}
