@@ -2,7 +2,7 @@
 class GlobalManager {
   static instance: null | GlobalManager = null;
 
-  siteName = 'Ginkgoo.Legal';
+  siteName = 'Xeni';
   siteDescription = 'Ginkgoo.Legal';
   versionExtension = '0.1.14';
   urlInstallExtension =

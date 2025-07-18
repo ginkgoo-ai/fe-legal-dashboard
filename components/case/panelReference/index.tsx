@@ -2,7 +2,6 @@
 
 import { PanelContainer } from '@/components/case/panelContainer';
 import { ItemFile } from '@/components/common/itemFile';
-import { IconLogo } from '@/components/ui/icon';
 import { cn } from '@/lib/utils';
 // import { uploadFiles } from '@/service/api/file';
 import { Button } from '@/components/ui/button';
@@ -12,6 +11,7 @@ import { FileStatus, IFileItemType } from '@/types/file';
 import { X } from 'lucide-react';
 import { memo, useEffect, useState } from 'react';
 import { v4 as uuid } from 'uuid';
+import { SiteLogo } from '../siteLogo';
 
 interface PanelReferenceProps {
   caseInfo: ICaseItemType | null;
@@ -66,7 +66,7 @@ function PurePanelReference(props: PanelReferenceProps) {
       >
         {isFileLoading ? (
           <div className="w-full h-full flex flex-col justify-center items-center text-primary">
-            <IconLogo size={24} className="animate-spin mb-2 animation-duration-[2s]" />
+            <SiteLogo size={24} className="animate-spin mb-2 animation-duration-[2s]" />
 
             {!isFold && <p className="after:animate-point-loading">Loading</p>}
           </div>

@@ -1,11 +1,11 @@
 import { FileBlock } from '@/components/common/itemFile';
-import { IconLogo } from '@/components/ui/icon';
 import { ICaseConversationAction, ICaseConversationItem } from '@/types/case';
 import { cn } from '@/utils';
 import { ChevronRight } from 'lucide-react';
 import { HTMLAttributes, memo, useRef } from 'react';
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { SiteLogo } from '../siteLogo';
 
 const CaseActionLogWrapper = ({
   children,
@@ -53,7 +53,7 @@ const ServerCaseLogger = (
   return (
     <CaseActionLogWrapper type="server">
       <div className="mb-2">
-        <IconLogo size={24} className="text-primary-dark" />
+        <SiteLogo size={24} className="text-primary-dark" />
       </div>
       <div className="dark:text-foreground text-[#1B2559]">
         <Markdown remarkPlugins={[remarkGfm]}>{props.content}</Markdown>

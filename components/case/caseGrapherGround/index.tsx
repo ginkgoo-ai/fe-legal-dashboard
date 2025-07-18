@@ -94,7 +94,7 @@ export const CaseGrapherGround = (props: CaseGrapherGroundProps) => {
   };
 
   return (
-    <div className={cn('w-full h-full flex flex-col gap-2 pb-8', props.className)}>
+    <div className={cn('w-full h-full flex flex-col gap-4 pb-8', props.className)}>
       <PanelProfileVaultDashboard caseInfo={props.caseInfo} />
       <div className="h-[calc(100%_-_98px)]">
         <Splitter

@@ -1472,7 +1472,7 @@ export const IconIndividualInfo = ({ size = 28 }: IconProps) => {
   );
 };
 
-export const IconLogo = ({ className, size }: IconProps) => {
+export const IconGinkgooLogo = ({ className, size }: IconProps) => {
   return (
     <svg
       width={size}
@@ -1497,6 +1497,44 @@ export const IconLogo = ({ className, size }: IconProps) => {
     </svg>
   );
 };
+
+export const IconLogo = ({ className, size }: IconProps) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 40.62 33.29"
+    width={size}
+    height={size}
+    className={className}
+  >
+    <path
+      className="fill-[#1a1a1a]"
+      d="M12.77.8c-.44-.51-1.07-.8-1.74-.8H1.32l13.61,15.88L0,33.29h9.72c.67,0,1.31-.29,1.74-.8l8.85-10.33,8.85,10.33c.44.51,1.07.8,1.74.8h9.72L12.77.8Z"
+    />
+    <path
+      className="fill-primary"
+      d="M32.15,8.35L39.3,0h-9.26c-.96,0-1.87.42-2.49,1.15l-7.15,8.34h9.24c.96.01,1.87-.41,2.5-1.14Z"
+    />
+  </svg>
+);
+
+export const IconLogoDark = ({ className, size }: IconProps) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 40.62 33.29"
+    width={size}
+    height={size}
+    className={className}
+  >
+    <path
+      className="fill-[#ffffff]"
+      d="M12.77.8c-.44-.51-1.07-.8-1.74-.8H1.32l13.61,15.88L0,33.29h9.72c.67,0,1.31-.29,1.74-.8l8.85-10.33,8.85,10.33c.44.51,1.07.8,1.74.8h9.72L12.77.8Z"
+    />
+    <path
+      className="fill-primary"
+      d="M32.15,8.35L39.3,0h-9.26c-.96,0-1.87.42-2.49,1.15l-7.15,8.34h9.24c.96.01,1.87-.41,2.5-1.14Z"
+    />
+  </svg>
+);
 
 export const IconBreadcrumbPilot = ({ size = 20, className = '' }: IconProps) => {
   return (
