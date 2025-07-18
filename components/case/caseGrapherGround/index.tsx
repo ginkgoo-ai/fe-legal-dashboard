@@ -6,6 +6,7 @@ import {
   ICaseConversationAction,
   ICaseConversationItem,
   ICaseItemType,
+  ICasePagination,
 } from '@/types/case';
 import { cn } from '@/utils';
 import { Splitter } from 'antd';
@@ -25,12 +26,15 @@ export const CaseGrapherGround = (props: CaseGrapherGroundProps) => {
   const [sizeLeftPanel, setSizeLeftPanel] = useState<string | number>('100%');
   const [pandelGap, setPanelGap] = useState('0px');
   const [conversations, setConversations] = useState<ICaseConversationItem[]>([]);
+  const [conversationPagination, setConversationPagination] =
+    useState<ICasePagination | null>();
   const [currentConversation, setCurrentConversation] = useState<{
     message: ICaseConversationItem;
     action: ICaseConversationAction;
   } | null>(null);
   const [loading, setLoading] = useState(true);
   const conversationRef = useRef<HTMLDivElement>(null);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
 
   useEventManager('ginkgoo-sse', message => {
     const { type, data } = message;
@@ -47,6 +51,9 @@ export const CaseGrapherGround = (props: CaseGrapherGroundProps) => {
     const res = await getHistoryConversation(caseInfo!.id, { page: 0, size: 50 });
     if (res?.messages) {
       setConversations(res.messages);
+    }
+    if (res?.pagination) {
+      setConversationPagination(res.pagination);
     }
     setLoading(false);
   }, [caseInfo]);
@@ -110,7 +117,7 @@ export const CaseGrapherGround = (props: CaseGrapherGroundProps) => {
               'relative rounded flex-col flex h-full transition-all duration-200'
             )}
           >
-            <div className="h-full overflow-auto">
+            <div className="h-full overflow-auto scroll-smooth">
               <div
                 className="flex flex-col gap-4"
                 style={{
@@ -118,6 +125,14 @@ export const CaseGrapherGround = (props: CaseGrapherGroundProps) => {
                 }}
               >
                 <div className="flex flex-col gap-4" ref={conversationRef}>
+                  {!conversationPagination?.hasNext && (
+                    <div
+                      ref={loadMoreRef}
+                      className="w-full text-gray-300 text-center text-sm"
+                    >
+                      -- load more messages --
+                    </div>
+                  )}
                   {conversations.map(con => {
                     return (
                       <CaseGrapher
