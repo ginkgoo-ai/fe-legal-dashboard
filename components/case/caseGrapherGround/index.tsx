@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useEventManager } from '@/hooks/useEventManager';
 import { getHistoryConversation } from '@/service/api';
 import {
   ICaseConversationAction,
@@ -9,7 +10,7 @@ import {
 import { cn } from '@/utils';
 import { Splitter } from 'antd';
 import { X } from 'lucide-react';
-import { HTMLAttributes, useCallback, useEffect, useState } from 'react';
+import { HTMLAttributes, useCallback, useEffect, useRef, useState } from 'react';
 import { CaseGrapher } from '../caseGrapher';
 import { PanelProfileVaultDashboard } from '../panelProfileVaultDashboard';
 
@@ -29,6 +30,17 @@ export const CaseGrapherGround = (props: CaseGrapherGroundProps) => {
     action: ICaseConversationAction;
   } | null>(null);
   const [loading, setLoading] = useState(true);
+  const conversationRef = useRef<HTMLDivElement>(null);
+
+  useEventManager('ginkgoo-sse', message => {
+    const { type, data } = message;
+
+    switch (type) {
+      case 'event:conversationMessage':
+        pushMessage(data);
+        break;
+    }
+  });
 
   const getConversations = useCallback(async () => {
     setLoading(true);
@@ -42,6 +54,10 @@ export const CaseGrapherGround = (props: CaseGrapherGroundProps) => {
   useEffect(() => {
     if (caseInfo?.id) {
       getConversations();
+      setTimeout(() => {
+        const lastConversationNode = conversationRef.current?.lastChild as HTMLDivElement;
+        lastConversationNode?.scrollIntoView({ behavior: 'smooth' });
+      }, 1000);
     }
   }, [caseInfo, getConversations]);
 
@@ -65,6 +81,17 @@ export const CaseGrapherGround = (props: CaseGrapherGroundProps) => {
       setPanelGap('0');
     }
   }, [currentConversation]);
+
+  const pushMessage = (message: ICaseConversationItem) => {
+    if (!message) {
+      return;
+    }
+    setConversations(prev => [...prev, message]);
+    setTimeout(() => {
+      const lastConversationNode = conversationRef.current?.lastChild as HTMLDivElement;
+      lastConversationNode?.scrollIntoView({ behavior: 'smooth' });
+    }, 1000);
+  };
 
   return (
     <div className={cn('w-full h-full flex flex-col gap-2 pb-8', props.className)}>
@@ -90,20 +117,25 @@ export const CaseGrapherGround = (props: CaseGrapherGroundProps) => {
                   paddingBottom: `${bottomPadding ?? 0}px`,
                 }}
               >
-                {conversations.map(con => {
-                  return (
-                    <CaseGrapher
-                      data={con}
-                      key={con.id}
-                      onActionEmit={handleMessageAction}
-                    />
-                  );
-                })}
+                <div className="flex flex-col gap-4" ref={conversationRef}>
+                  {conversations.map(con => {
+                    return (
+                      <CaseGrapher
+                        data={con}
+                        key={con.id}
+                        onActionEmit={handleMessageAction}
+                      />
+                    );
+                  })}
+                </div>
                 {loading && (
                   <>
-                    <Skeleton className="h-[120px] bg-gray-300 dark:bg-gray-600 w-full rounded-xl" />
-                    <Skeleton className="h-[120px] bg-gray-300 dark:bg-gray-600 w-full rounded-xl" />
-                    <Skeleton className="h-[120px] bg-gray-300 dark:bg-gray-600 w-full rounded-xl" />
+                    {Array.from({ length: 3 }).map((_, i) => (
+                      <Skeleton
+                        className="h-[120px] bg-gray-300 dark:bg-gray-600 w-full rounded-xl"
+                        key={i}
+                      />
+                    ))}
                   </>
                 )}
                 <div>{props.children}</div>

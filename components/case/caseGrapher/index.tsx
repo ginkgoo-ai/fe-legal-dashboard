@@ -1,17 +1,20 @@
 import { FileBlock } from '@/components/common/itemFile';
 import { IconLogo } from '@/components/ui/icon';
-import { useCaseStore } from '@/store';
 import { ICaseConversationAction, ICaseConversationItem } from '@/types/case';
 import { cn } from '@/utils';
 import { ChevronRight } from 'lucide-react';
 import { HTMLAttributes, memo, useRef } from 'react';
+import Markdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 const CaseActionLogWrapper = ({
   children,
   type,
+  className,
 }: {
   children: React.ReactNode;
   type: 'server' | 'client';
+  className?: string;
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const isServerType = type === 'server';
@@ -20,10 +23,11 @@ const CaseActionLogWrapper = ({
     <div
       ref={containerRef}
       className={cn(
-        'relative w-full rounded-lg py-4 px-4 pr-10 transition-[min-height] flex-none',
+        'relative w-full rounded-lg py-4 px-4 transition-[min-height] flex-none',
         isServerType
           ? ' border bg-panel-background'
-          : 'bg-[#EFEFEF] dark:bg-primary-gray self-end w-11/12'
+          : 'bg-[#EFEFEF] dark:bg-primary-gray self-end max-w-[95%]',
+        className
       )}
     >
       <div className={cn('w-full gap-2 flex-col')}>{children}</div>
@@ -51,7 +55,9 @@ const ServerCaseLogger = (
       <div className="mb-2">
         <IconLogo size={24} className="text-primary-dark" />
       </div>
-      <div className="dark:text-foreground text-[#1B2559]">{props.content}</div>
+      <div className="dark:text-foreground text-[#1B2559]">
+        <Markdown remarkPlugins={[remarkGfm]}>{props.content}</Markdown>
+      </div>
       {props.actions?.length > 0 && (
         <>
           <div className="h-[1px] w-full border-t my-4"></div>
@@ -71,13 +77,19 @@ const ServerCaseLogger = (
 };
 
 const ClientCaseLogger = (props: ICaseConversationItem) => {
-  const { caseInfo } = useCaseStore();
+  const { metadata } = props;
   return (
-    <CaseActionLogWrapper type="client">
-      <div className="mb-4 text-[#1B2559]">{props.content}</div>
+    <CaseActionLogWrapper type="client" className="w-fit">
+      {props.content && (
+        <div className="mb-4 text-[#1B2559]">
+          <Markdown remarkPlugins={[remarkGfm]}>{props.content}</Markdown>
+        </div>
+      )}
       <div className="w-full overflow-y-auto">
         <div className="flex items-center gap-4">
-          {caseInfo?.documents?.map(doc => <FileBlock key={doc.id} file={doc} />)}
+          {((metadata?.attachments?.files as Array<string>) ?? [])?.map((doc, index) => (
+            <FileBlock key={index} file={{ title: doc }} />
+          ))}
         </div>
       </div>
     </CaseActionLogWrapper>

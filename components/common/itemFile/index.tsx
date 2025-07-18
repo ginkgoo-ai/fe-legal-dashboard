@@ -13,7 +13,7 @@ import {
   IconSuccess,
 } from '@/components/ui/icon';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { FileStatus, FileTypeEnum, IFileItemType, IOcrFileType } from '@/types/file';
+import { FileStatus, FileTypeEnum, IFileItemType } from '@/types/file';
 import { cn } from '@/utils';
 import { Button } from 'antd';
 import dayjs from 'dayjs';
@@ -382,9 +382,14 @@ function PureItemFile(props: ItemFileProps) {
 }
 
 function PureFileBlock(
-  props: { file: IOcrFileType } & React.HTMLAttributes<HTMLDivElement>
+  props: {
+    file: { title: string; fileType?: FileTypeEnum };
+  } & React.HTMLAttributes<HTMLDivElement>
 ) {
   const { file } = props;
+  const extension = file.title.split('.')[1];
+  const fileType =
+    file.fileType ?? ((extension && extMap[extension]) || FileTypeEnum.UNKNOW);
   return (
     <div
       className={cn(
@@ -392,7 +397,7 @@ function PureFileBlock(
         props.className
       )}
     >
-      <div>{getFileTypeMap({ size: 24, type: file.fileType as FileTypeEnum })}</div>
+      <div>{getFileTypeMap({ size: 24, type: fileType })}</div>
       <Tooltip delayDuration={1500}>
         <TooltipTrigger>
           <div className="max-w-80 truncate">{file.title}</div>
