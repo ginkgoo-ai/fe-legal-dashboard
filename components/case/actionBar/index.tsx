@@ -1,8 +1,9 @@
 'use client';
 
 import { ActionBarContainer } from '@/components/case/actionBarContainer';
+import { InputMultimodal } from '@/components/case/inputMultimodal';
 import { FileUploadSimple } from '@/components/common/form/upload/fileUploadSimple';
-import { ItemFile } from '@/components/common/itemFile';
+import { ItemFile, ItemFileModeEnum } from '@/components/common/itemFile';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent } from '@/components/ui/dropdown-menu';
@@ -13,20 +14,14 @@ import {
   IconActionBarStartExtensions,
   IconActionBarUpload,
 } from '@/components/ui/icon';
-import { Input } from '@/components/ui/input';
 import { MESSAGE } from '@/config/message';
-import LockManager from '@/customManager/LockManager';
-import { useEventManager } from '@/hooks/useEventManager';
-import { useStateCallback } from '@/hooks/useStateCallback';
 import { cn } from '@/lib/utils';
-import { processDocument, uploadDocumentOnlyUpload } from '@/service/api/case';
+import { processDocument } from '@/service/api/case';
 import { ICaseItemType } from '@/types/case';
 import { FileStatus, FileTypeEnum, IFileItemType } from '@/types/file';
 import { DropdownMenuTrigger } from '@radix-ui/react-dropdown-menu';
-import { Checkbox as AntdCheckbox, message as messageAntd } from 'antd';
+import { Checkbox as CheckboxAntd, message as messageAntd } from 'antd';
 import { motion } from 'framer-motion';
-import { produce } from 'immer';
-import { cloneDeep } from 'lodash';
 import { ChevronDown } from 'lucide-react';
 import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import { v4 as uuid } from 'uuid';
@@ -74,9 +69,11 @@ function PureActionBar(props: ActionBarProps) {
   const [isShowDropdownMenuDraftEmailMissInfo, setShowDropdownMenuDraftEmailMissInfo] =
     useState<boolean>(false); // custom
   const [isLoadingBtnSend, setLoadingBtnSend] = useState<boolean>(false);
-  const [actionBarDesc, setActionBarDesc] = useState<string>('');
 
-  const [referenceFileList, setReferenceFileList] = useStateCallback<IFileItemType[]>([]);
+  const [
+    initFileListForActionUploadForReferenceFile,
+    setInitFileListForActionUploadForReferenceFile,
+  ] = useState<File[]>([]);
 
   const [draftEmailMissInfo] = useState<IFileItemType | null>({
     localId: uuid(),
@@ -97,21 +94,6 @@ function PureActionBar(props: ActionBarProps) {
   });
   const [draftEmailMissInfoList, setDraftEmailMissInfoList] = useState<any[]>([]);
   const [draftEmailPDF, setDraftEmailPDF] = useState<IFileItemType | null>(null);
-
-  const isDisabledBtnSend = useMemo(() => {
-    if (typeActionBar === TypeActionBarEnum.ADD_REFERENCE) {
-      if (
-        referenceFileList.length > 0 &&
-        !referenceFileList.some(file => {
-          return file.status === FileStatus.UPLOADING;
-        })
-      ) {
-        return false;
-      }
-      return true;
-    }
-    return false;
-  }, [typeActionBar, referenceFileList]);
 
   const currentDraftEmail = useMemo(() => {
     return (
@@ -150,53 +132,6 @@ function PureActionBar(props: ActionBarProps) {
     ];
   }, [caseInfo]);
 
-  useEventManager('ginkgoo-sse', async message => {
-    const { type: typeMsg } = message;
-
-    switch (typeMsg) {
-      // case 'event:documentStatusUpdate': {
-      case 'event:documentUploadCompleted': {
-        const { data: dataMsg } = message || {};
-
-        const { status, documentId } = dataMsg || {};
-
-        if (!!documentId) {
-          const lockId = 'panel-reference-file-list';
-          await LockManager.acquireLock(lockId);
-
-          setReferenceFileList(
-            prev =>
-              cloneDeep(
-                produce(prev, draft => {
-                  const indexFile = draft.findIndex(file => {
-                    return (
-                      file.documentFile?.documentId === documentId // for add
-                    );
-                  });
-                  if (indexFile >= 0) {
-                    draft[indexFile].status = status;
-                  }
-                  // else
-                  // draft.push({
-                  //   localId: uuid(),
-                  //   status: status,
-                  //   documentFile: dataMsg,
-                  // });
-                })
-              ),
-            () => {
-              LockManager.releaseLock(lockId);
-            }
-          );
-        }
-        break;
-      }
-      default: {
-        break;
-      }
-    }
-  });
-
   useEffect(() => {
     setShowDropdownMenuDraftEmail(false);
     setShowDropdownMenuDraftEmailChild(false);
@@ -206,8 +141,7 @@ function PureActionBar(props: ActionBarProps) {
 
     switch (typeActionBar) {
       case TypeActionBarEnum.INIT: {
-        setReferenceFileList([]);
-        setActionBarDesc('');
+        setInitFileListForActionUploadForReferenceFile([]);
         break;
       }
       case TypeActionBarEnum.DRAFT_EMAIL_MISS_INFO: {
@@ -298,51 +232,6 @@ function PureActionBar(props: ActionBarProps) {
     };
   }, [isShowDropdownMenuDraftEmailMissInfo]);
 
-  const actionUploadFile = async (newFiles: IFileItemType[]) => {
-    const resUploadDocument = await uploadDocumentOnlyUpload({
-      caseId: caseInfo?.id || '',
-      files: newFiles.map(file => file.localFile!),
-    });
-
-    // console.log('actionUploadFile', newFiles, resUploadDocument);
-
-    if (resUploadDocument?.acceptedDocuments) {
-      setReferenceFileList(prev =>
-        produce(prev, draft => {
-          draft.forEach(file => {
-            const indexNewFile = newFiles.findIndex(
-              newFile => newFile?.localId === file?.localId
-            );
-
-            if (indexNewFile >= 0) {
-              file.status = FileStatus.UPLOADING;
-              file.documentFile = resUploadDocument?.acceptedDocuments?.[indexNewFile];
-            }
-          });
-        })
-      );
-      // await actionOcrFile(data.cloudFiles);
-    } else {
-      messageAntd.open({
-        type: 'error',
-        content: MESSAGE.TOAST_UPLOAD_FILE_FAILED,
-      });
-      setReferenceFileList(prev =>
-        produce(prev, draft => {
-          draft.forEach(file => {
-            const indexNewFile = newFiles.findIndex(
-              newFile => newFile?.localId === file?.localId
-            );
-
-            if (indexNewFile >= 0) {
-              file.status = FileStatus.FAILED;
-            }
-          });
-        })
-      );
-    }
-  };
-
   const handleFileChange = async (files: File[]) => {
     if (files?.length > 10) {
       messageAntd.open({
@@ -353,20 +242,7 @@ function PureActionBar(props: ActionBarProps) {
     }
 
     setTypeActionBar(TypeActionBarEnum.ADD_REFERENCE);
-
-    const newFiles = files.map(file => ({
-      localId: uuid(),
-      status: FileStatus.UPLOADING,
-      localFile: file,
-    }));
-
-    setReferenceFileList(prev =>
-      produce(prev, draft => {
-        draft.push(...newFiles);
-      })
-    );
-
-    await actionUploadFile(newFiles);
+    setInitFileListForActionUploadForReferenceFile(files);
   };
 
   const handleFileError = (error: string) => {
@@ -376,51 +252,37 @@ function PureActionBar(props: ActionBarProps) {
     });
   };
 
-  const handleReferenceFileBtnDeleteClick = (index: number) => {
-    setReferenceFileList(prev =>
-      produce(prev, draft => {
-        draft.splice(index, 1);
-      })
-    );
-  };
+  const handleReferenceBtnSendClick = async (params: {
+    fileList: IFileItemType[];
+    description: string;
+  }) => {
+    const { fileList, description } = params || {};
 
-  const handleReferenceFileBtnReuploadClick = (index: number) => {
-    setReferenceFileList(prev =>
-      produce(prev, draft => {
-        const file = draft[index];
-        if (file) {
-          file.status = FileStatus.UPLOADING;
-        }
-      })
-    );
-
-    actionUploadFile([referenceFileList[index]]);
-  };
-
-  const handleActionBarDescChange = (e: any) => {
-    setActionBarDesc(e?.target?.value?.trim() || '');
-  };
-
-  const handleReferenceBtnSendClick = async () => {
     setLoadingBtnSend(true);
     // 根据 referenceFileList 提取所有有效的 documentId
-    const documentIds = referenceFileList
-      .filter(file => {
-        return [FileStatus.UPLOAD_COMPLETED, FileStatus.COMPLETED].includes(file.status);
-      })
+    const documentIds = fileList
+      // .filter(file => {
+      //   return [FileStatus.UPLOAD_COMPLETED, FileStatus.COMPLETED].includes(file.status);
+      // })
       .map(file => file.documentFile?.documentId || '');
 
     const resProcessDocument = await processDocument({
       caseId: caseInfo?.id || '',
       documentIds,
-      description: actionBarDesc,
+      description,
     });
 
     setLoadingBtnSend(false);
 
     if (resProcessDocument?.acceptedDocuments) {
       setTypeActionBar(TypeActionBarEnum.INIT);
+      return;
     }
+
+    messageAntd.open({
+      type: 'error',
+      content: MESSAGE.TOAST_PROBLEM,
+    });
   };
 
   const handleBtnDraftEmailClick = () => {
@@ -493,64 +355,21 @@ function PureActionBar(props: ActionBarProps) {
     return (
       <ActionBarContainer
         title="Add reference"
-        isLoadingBtnSend={isLoadingBtnSend}
-        isDisabledBtnSend={isDisabledBtnSend}
         onBtnBackClick={() => {
           setTypeActionBar(TypeActionBarEnum.INIT);
         }}
-        onBtnSendClick={handleReferenceBtnSendClick}
         renderContent={() => {
           return (
-            <div className="flex flex-col gap-1 bg-[#F0F0F0] dark:bg-primary-gray box-border p-3 rounded-xl">
-              {referenceFileList?.length > 0 ? (
-                <div className="grid grid-cols-3 gap-2 w-full">
-                  {referenceFileList.map((itemReferenceFile, indexReferenceFile) => {
-                    return (
-                      <ItemFile
-                        key={`action-bar-reference-${indexReferenceFile}`}
-                        mode="ActionBarReference"
-                        file={itemReferenceFile}
-                        onBtnDeleteClick={() =>
-                          handleReferenceFileBtnDeleteClick(indexReferenceFile)
-                        }
-                        onBtnReuploadClick={() =>
-                          handleReferenceFileBtnReuploadClick(indexReferenceFile)
-                        }
-                      />
-                    );
-                  })}
-                </div>
-              ) : null}
-              <Input
-                name="add-reference-desc-input"
-                className="px-2"
-                type="text"
-                placeholder="Give your files a brief description."
-                isBorder={false}
-                onChange={handleActionBarDescChange}
-              />
-            </div>
-          );
-        }}
-        renderFooter={() => {
-          return (
-            <div className="flex flex-row gap-1">
-              <Button
-                variant="ghost"
-                className="border border-solid border-[rgba(225, 225, 226, 1)] h-11 p-0"
-              >
-                <FileUploadSimple
-                  accept="application/pdf,image/jpeg,image/png,image/gif,image/webp,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/plain"
-                  maxSize={50}
-                  onChange={handleFileChange}
-                  onError={handleFileError}
-                >
-                  <div className="w-full h-full flex flex-row items-center gap-2 px-4 py-2 has-[>svg]:px-3 cursor-pointer">
-                    <IconActionBarUpload />
-                  </div>
-                </FileUploadSimple>
-              </Button>
-            </div>
+            <InputMultimodal
+              caseId={caseInfo?.id || ''}
+              name="add-reference"
+              placeholderDescription="Give your files a brief description."
+              isShowBtnUpload
+              isLoadingBtnSend={isLoadingBtnSend}
+              verifyList={['fileList']}
+              initFileListForActionUpload={initFileListForActionUploadForReferenceFile}
+              onBtnSendClick={handleReferenceBtnSendClick}
+            />
           );
         }}
       />
@@ -561,48 +380,50 @@ function PureActionBar(props: ActionBarProps) {
     return (
       <ActionBarContainer
         title="Draft email"
-        isLoadingBtnSend={isLoadingBtnSend}
-        isDisabledBtnSend={isDisabledBtnSend}
         onBtnBackClick={() => {
           setTypeActionBar(TypeActionBarEnum.INIT);
         }}
-        onBtnSendClick={() => {
-          console.log('renderActionbarDraftEmailMissInfo onBtnSendClick');
-        }}
         renderContent={() => {
           return (
-            <div className="flex flex-col items-start gap-1 bg-[#F0F0F0] dark:bg-primary-gray box-border p-3 rounded-xl">
-              {!!draftEmailMissInfo ? (
-                <ItemFile
-                  mode="ActionBarDraftEmail"
-                  file={draftEmailMissInfo}
-                  renderExtend={() => {
-                    return (
-                      <Badge
-                        className="flex justify-center items-center bg-transparent border border-solid border-[#E1E1E2] text-[#1559EA]"
-                        variant="small"
-                      >
-                        {draftEmailMissInfoList.length}
-                      </Badge>
-                    );
-                  }}
-                  onItemClick={() => {
-                    setShowDropdownMenuDraftEmailMissInfo(true);
-                  }}
-                />
-              ) : null}
-              <Input
-                name="draft-email-miss-info-desc-input"
-                className="px-2 w-full"
-                type="text"
-                placeholder="Give your files a brief description."
-                isBorder={false}
-                onChange={handleActionBarDescChange}
-              />
-            </div>
+            <InputMultimodal
+              caseId={caseInfo?.id || ''}
+              name="draft-email-miss-info"
+              placeholderDescription="Give your files a brief description."
+              isShowBtnUpload={false}
+              isLoadingBtnSend={isLoadingBtnSend}
+              verifyList={[draftEmailMissInfoList.length > 0]}
+              renderFileListBefore={() => {
+                return (
+                  <div className="grid grid-cols-3 gap-2 w-full">
+                    {!!draftEmailMissInfo ? (
+                      <ItemFile
+                        mode={ItemFileModeEnum.ActionBarDraftEmail}
+                        file={draftEmailMissInfo}
+                        renderExtend={() => {
+                          return (
+                            <Badge
+                              className="flex justify-center items-center bg-transparent border border-solid border-[#E1E1E2] text-[#1559EA]"
+                              variant="small"
+                            >
+                              {draftEmailMissInfoList.length}
+                            </Badge>
+                          );
+                        }}
+                        onItemClick={() => {
+                          setShowDropdownMenuDraftEmailMissInfo(true);
+                        }}
+                      />
+                    ) : null}
+                  </div>
+                );
+              }}
+              renderFooter={renderActionbarDraftEmailFooter}
+              onBtnSendClick={() => {
+                console.log('renderActionbarDraftEmailMissInfo onBtnSendClick');
+              }}
+            />
           );
         }}
-        renderFooter={renderActionbarDraftEmailFooter}
       />
     );
   };
@@ -611,32 +432,37 @@ function PureActionBar(props: ActionBarProps) {
     return (
       <ActionBarContainer
         title="Draft email"
-        isLoadingBtnSend={isLoadingBtnSend}
-        isDisabledBtnSend={isDisabledBtnSend}
         onBtnBackClick={() => {
           setTypeActionBar(TypeActionBarEnum.INIT);
         }}
-        onBtnSendClick={() => {
-          console.log('renderactionbarDraftEmailPDF onBtnSendClick');
-        }}
         renderContent={() => {
           return (
-            <div className="flex flex-col items-start gap-1 bg-[#F0F0F0] dark:bg-primary-gray box-border p-3 rounded-xl">
-              {!!draftEmailPDF ? (
-                <ItemFile mode="ActionBarDraftEmail" file={draftEmailPDF} />
-              ) : null}
-              <Input
-                name="draft-email-miss-info-desc-input"
-                className="px-2 w-full"
-                type="text"
-                placeholder="Give your files a brief description."
-                isBorder={false}
-                onChange={handleActionBarDescChange}
-              />
-            </div>
+            <InputMultimodal
+              caseId={caseInfo?.id || ''}
+              name="draft-email-miss-info"
+              placeholderDescription="Give your files a brief description."
+              isShowBtnUpload={false}
+              isLoadingBtnSend={isLoadingBtnSend}
+              verifyList={[]}
+              renderFileListBefore={() => {
+                return (
+                  <div className="grid grid-cols-3 gap-2 w-full">
+                    {!!draftEmailPDF ? (
+                      <ItemFile
+                        mode={ItemFileModeEnum.ActionBarDraftEmail}
+                        file={draftEmailPDF}
+                      />
+                    ) : null}
+                  </div>
+                );
+              }}
+              renderFooter={renderActionbarDraftEmailFooter}
+              onBtnSendClick={() => {
+                console.log('renderactionbarDraftEmailPDF onBtnSendClick');
+              }}
+            />
           );
         }}
-        renderFooter={renderActionbarDraftEmailFooter}
       />
     );
   };
@@ -779,8 +605,6 @@ function PureActionBar(props: ActionBarProps) {
                     </Badge>
                   </div>
                 }
-                isLoadingBtnSend={isLoadingBtnSend}
-                isDisabledBtnSend={isDisabledBtnSend}
                 onBtnBackClick={() => {
                   setShowDropdownMenuDraftEmailMissInfo(false);
                 }}
@@ -797,7 +621,7 @@ function PureActionBar(props: ActionBarProps) {
                               key={`dropdown-menu-draft-email-miss-info-checkbox-${indexOption}`}
                               className="scale-125 origin-left"
                             >
-                              <AntdCheckbox
+                              <CheckboxAntd
                                 className="w-full"
                                 checked={checked}
                                 onChange={e => {
@@ -811,7 +635,7 @@ function PureActionBar(props: ActionBarProps) {
                                 }}
                               >
                                 <span className="text-xs">{itemOption.label}</span>
-                              </AntdCheckbox>
+                              </CheckboxAntd>
                             </div>
                           );
                         })}

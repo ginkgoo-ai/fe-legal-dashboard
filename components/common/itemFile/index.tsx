@@ -40,6 +40,13 @@ import { memo, ReactElement, useEffect, useState } from 'react';
 
 dayjs.extend(utc);
 
+export enum ItemFileModeEnum {
+  ActionBarDraftEmail = 'ActionBarDraftEmail',
+  CreateCase = 'CreateCase',
+  Reference = 'Reference',
+  Upload = 'Upload',
+}
+
 const getFileTypeMap = (params: { size: number; type: FileTypeEnum }): ReactElement => {
   const { size = 40, type } = params || {};
 
@@ -114,7 +121,7 @@ const extMap: Record<string, FileTypeEnum> = {
 };
 
 interface ItemFileProps {
-  mode: 'ActionBarReference' | 'ActionBarDraftEmail' | 'CreateCase' | 'Reference';
+  mode: ItemFileModeEnum;
   file: IFileItemType;
   isFold?: boolean;
   customWrapStyle?: Record<string, string>;
@@ -242,56 +249,6 @@ function PureItemFile(props: ItemFileProps) {
     return fileStatusIconMap[file?.status] || null;
   };
 
-  const renderModeActionBarReference = () => {
-    return (
-      <div
-        className="flex-1 flex flex-row justify-start items-center pl-3 pr-0.5 box-border gap-2"
-        style={customWrapStyle}
-      >
-        {/* Name */}
-        <div className="flex flex-row items-center flex-1 w-0 gap-2 h-9">
-          <div className="font-normal text-xs truncate">{fileName}</div>
-          <div className="flex-[0_0_auto]">{renderIconFileStatusIcon()}</div>
-        </div>
-        {/* Status */}
-        <div className="flex justify-center items-center">
-          {/* Loading */}
-          {[FileStatus.UPLOADING].includes(file?.status) ? (
-            <div className="flex justify-center items-center p-1">
-              <IconLoading size={20} className="animate-spin" />
-            </div>
-          ) : null}
-          {/* Success */}
-          {[FileStatus.UPLOAD_COMPLETED, FileStatus.COMPLETED].includes(file?.status) ? (
-            <Button
-              type="text"
-              icon={
-                <div className="flex justify-center items-center">
-                  <X size={20} color="#A1A1AA" />
-                </div>
-              }
-              onClick={handleBtnDeleteClick}
-            />
-          ) : null}
-          {/* Failed */}
-          {[FileStatus.UPLOAD_FAILED, FileStatus.FAILED, FileStatus.REJECTED].includes(
-            file?.status
-          ) ? (
-            <Button
-              type="text"
-              icon={
-                <div className="flex justify-center items-center">
-                  <IconReupload size={20} />
-                </div>
-              }
-              onClick={handleBtnReuploadClick}
-            />
-          ) : null}
-        </div>
-      </div>
-    );
-  };
-
   const renderModeActionBarDraftEmail = () => {
     return (
       <div
@@ -361,6 +318,59 @@ function PureItemFile(props: ItemFileProps) {
     );
   };
 
+  const renderModeUpload = () => {
+    return (
+      <div
+        className="flex-1 flex flex-row justify-start items-center pl-3 pr-0.5 box-border gap-2"
+        style={customWrapStyle}
+      >
+        {/* Name */}
+        <div className="flex flex-row items-center flex-1 w-0 gap-2 h-9">
+          <div className="font-normal text-xs truncate">{fileName}</div>
+          <div className="flex-[0_0_auto]">{renderIconFileStatusIcon()}</div>
+        </div>
+        {/* Status */}
+        <div className="flex justify-center items-center">
+          {/* Loading */}
+          {[FileStatus.UPLOADING].includes(file?.status) ? (
+            <div className="flex justify-center items-center p-1">
+              <IconLoading size={20} className="animate-spin" />
+            </div>
+          ) : null}
+
+          {/* Failed */}
+          {!!onBtnReuploadClick &&
+          [FileStatus.UPLOAD_FAILED, FileStatus.FAILED, FileStatus.REJECTED].includes(
+            file?.status
+          ) ? (
+            <Button
+              type="text"
+              icon={
+                <div className="flex justify-center items-center">
+                  <IconReupload size={20} />
+                </div>
+              }
+              onClick={handleBtnReuploadClick}
+            />
+          ) : null}
+
+          {/* Delete */}
+          {!!onBtnDeleteClick && ![FileStatus.UPLOADING].includes(file?.status) ? (
+            <Button
+              type="text"
+              icon={
+                <div className="flex justify-center items-center">
+                  <X size={20} color="#A1A1AA" />
+                </div>
+              }
+              onClick={handleBtnDeleteClick}
+            />
+          ) : null}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div
       className={cn('rounded-lg overflow-hidden box-border', {
@@ -372,10 +382,10 @@ function PureItemFile(props: ItemFileProps) {
       onClick={onItemClick}
     >
       {{
-        ActionBarReference: renderModeActionBarReference(),
-        ActionBarDraftEmail: renderModeActionBarDraftEmail(),
-        CreateCase: renderModeCreateCase(),
-        Reference: renderModeReference(),
+        [ItemFileModeEnum.ActionBarDraftEmail]: renderModeActionBarDraftEmail(),
+        [ItemFileModeEnum.CreateCase]: renderModeCreateCase(),
+        [ItemFileModeEnum.Reference]: renderModeReference(),
+        [ItemFileModeEnum.Upload]: renderModeUpload(),
       }[mode] || null}
     </div>
   );
