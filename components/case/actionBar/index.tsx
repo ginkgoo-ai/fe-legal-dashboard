@@ -34,6 +34,12 @@ export enum TypeActionBarEnum {
   DRAFT_EMAIL_PDF = 'DRAFT_EMAIL_PDF',
 }
 
+export enum TypeCustomDropdownMenuEnum {
+  NONE = 'NONE',
+  DRAFT_EMAIL_SELECT = 'DRAFT_EMAIL_SELECT',
+  DRAFT_EMAIL_MISS_INFO = 'DRAFT_EMAIL_MISS_INFO',
+}
+
 interface ActionBarProps {
   caseInfo: ICaseItemType | null;
   onSizeChange?: (size: DOMRectReadOnly) => void;
@@ -56,18 +62,16 @@ function PureActionBar(props: ActionBarProps) {
   const { caseInfo, onSizeChange } = props || {};
 
   const actionBarRef = useRef<HTMLDivElement>(null);
-  const dropdownDraftEmailRef = useRef<HTMLDivElement>(null); // 新增ref
-  const dropdownDraftEmailMissInfoRef = useRef<HTMLDivElement>(null); // 新增ref
+  const customDropdownRef = useRef<HTMLDivElement>(null);
 
   const [typeActionBar, setTypeActionBar] = useState<TypeActionBarEnum>(
     TypeActionBarEnum.INIT
   );
-  const [isShowDropdownMenuDraftEmail, setShowDropdownMenuDraftEmail] =
-    useState<boolean>(false); // custom
+
+  const [typeCustomDropdownMenu, setTypeCustomDropdownMenu] =
+    useState<TypeCustomDropdownMenuEnum>(TypeCustomDropdownMenuEnum.NONE);
   const [isShowDropdownMenuDraftEmailChild, setShowDropdownMenuDraftEmailChild] =
     useState<boolean>(false);
-  const [isShowDropdownMenuDraftEmailMissInfo, setShowDropdownMenuDraftEmailMissInfo] =
-    useState<boolean>(false); // custom
   const [isLoadingBtnSend, setLoadingBtnSend] = useState<boolean>(false);
 
   const [
@@ -133,9 +137,10 @@ function PureActionBar(props: ActionBarProps) {
   }, [caseInfo]);
 
   useEffect(() => {
-    setShowDropdownMenuDraftEmail(false);
+    setTypeCustomDropdownMenu(TypeCustomDropdownMenuEnum.NONE);
     setShowDropdownMenuDraftEmailChild(false);
-    setShowDropdownMenuDraftEmailMissInfo(false);
+    // setShowDropdownMenuDraftEmail(false);
+    // setShowDropdownMenuDraftEmailMissInfo(false);
     setDraftEmailPDF(null);
     setDraftEmailMissInfoList([]);
 
@@ -197,14 +202,14 @@ function PureActionBar(props: ActionBarProps) {
   }, [onSizeChange]);
 
   useEffect(() => {
-    if (!isShowDropdownMenuDraftEmail) return;
+    if (typeCustomDropdownMenu === TypeCustomDropdownMenuEnum.NONE) return;
 
     const handleClickOutside = (event: MouseEvent) => {
       if (
-        dropdownDraftEmailRef.current &&
-        !dropdownDraftEmailRef.current.contains(event.target as Node)
+        customDropdownRef.current &&
+        !customDropdownRef.current.contains(event.target as Node)
       ) {
-        setShowDropdownMenuDraftEmail(false);
+        setTypeCustomDropdownMenu(TypeCustomDropdownMenuEnum.NONE);
       }
     };
 
@@ -212,25 +217,7 @@ function PureActionBar(props: ActionBarProps) {
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [isShowDropdownMenuDraftEmail]);
-
-  useEffect(() => {
-    if (!isShowDropdownMenuDraftEmailMissInfo) return;
-
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        dropdownDraftEmailMissInfoRef.current &&
-        !dropdownDraftEmailMissInfoRef.current.contains(event.target as Node)
-      ) {
-        setShowDropdownMenuDraftEmail(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [isShowDropdownMenuDraftEmailMissInfo]);
+  }, [typeCustomDropdownMenu]);
 
   const handleFileChange = async (files: File[]) => {
     if (files?.length > 10) {
@@ -286,8 +273,8 @@ function PureActionBar(props: ActionBarProps) {
   };
 
   const handleBtnDraftEmailClick = () => {
-    if (!isShowDropdownMenuDraftEmail) {
-      setShowDropdownMenuDraftEmail(true);
+    if (typeCustomDropdownMenu !== TypeCustomDropdownMenuEnum.DRAFT_EMAIL_SELECT) {
+      setTypeCustomDropdownMenu(TypeCustomDropdownMenuEnum.DRAFT_EMAIL_SELECT);
     }
   };
 
@@ -319,7 +306,8 @@ function PureActionBar(props: ActionBarProps) {
           <Button
             variant="ghost"
             className={cn('border border-solid border-[rgba(225, 225, 226, 1)] h-11', {
-              'pointer-events-none': isShowDropdownMenuDraftEmail,
+              'pointer-events-none':
+                typeCustomDropdownMenu === TypeCustomDropdownMenuEnum.DRAFT_EMAIL_SELECT,
             })}
             onClick={handleBtnDraftEmailClick}
           >
@@ -410,7 +398,9 @@ function PureActionBar(props: ActionBarProps) {
                           );
                         }}
                         onItemClick={() => {
-                          setShowDropdownMenuDraftEmailMissInfo(true);
+                          setTypeCustomDropdownMenu(
+                            TypeCustomDropdownMenuEnum.DRAFT_EMAIL_MISS_INFO
+                          );
                         }}
                       />
                     ) : null}
@@ -428,7 +418,7 @@ function PureActionBar(props: ActionBarProps) {
     );
   };
 
-  const renderactionbarDraftEmailPDF = () => {
+  const renderActionbarDraftEmailPDF = () => {
     return (
       <ActionBarContainer
         title="Draft email"
@@ -458,7 +448,7 @@ function PureActionBar(props: ActionBarProps) {
               }}
               renderFooter={renderActionbarDraftEmailFooter}
               onBtnSendClick={() => {
-                console.log('renderactionbarDraftEmailPDF onBtnSendClick');
+                console.log('renderActionbarDraftEmailPDF onBtnSendClick');
               }}
             />
           );
@@ -515,139 +505,157 @@ function PureActionBar(props: ActionBarProps) {
     );
   };
 
+  const renderCustomDropdownMenuSelect = (params: { customClassName?: string }) => {
+    const { customClassName } = params || {};
+
+    return (
+      <motion.div
+        ref={customDropdownRef}
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: 10 }}
+        transition={{ duration: 0.2 }}
+        className={customClassName}
+      >
+        {optionDraftEmailList.map((itemOption, indexOption) => {
+          return (
+            <Button
+              key={`dropdown-menu-draft-email-btn-${indexOption}`}
+              variant="ghost"
+              asChild
+              className="h-11"
+              onClick={() => {
+                setTypeActionBar(itemOption.value);
+              }}
+            >
+              <div className="flex flex-row justify-start items-center text-[#5F5F5F] dark:text-[#FFFFFF]">
+                {itemOption.icon}
+                <span>{itemOption.label}</span>
+              </div>
+            </Button>
+          );
+        })}
+      </motion.div>
+    );
+  };
+
+  const renderCustomDropdownMenuDraftEmailMissInfo = (params: {
+    customClassName?: string;
+  }) => {
+    const { customClassName } = params || {};
+
+    return (
+      <motion.div
+        ref={customDropdownRef}
+        initial={{ opacity: 0, y: 0 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: 0 }}
+        transition={{ duration: 0.2 }}
+        className={customClassName}
+      >
+        <ActionBarContainer
+          title={
+            <div className="flex flex-row gap-1">
+              <div>Missing information</div>
+              <Badge
+                className="flex justify-center items-center bg-transparent border border-solid border-[#E1E1E2] text-[#1559EA]"
+                variant="small"
+              >
+                {draftEmailMissInfoList.length}
+              </Badge>
+            </div>
+          }
+          onBtnBackClick={() => {
+            setTypeCustomDropdownMenu(TypeCustomDropdownMenuEnum.NONE);
+          }}
+          renderContent={() => {
+            return (
+              <div className="w-full h-56 overflow-x-hidden overflow-y-auto">
+                <div className="flex flex-col gap-3 box-border px-5">
+                  {draftEmailMissInfoOption.map((itemOption, indexOption) => {
+                    const checked = draftEmailMissInfoList.some(
+                      (item: any) => item.value === itemOption.value
+                    );
+                    return (
+                      <div
+                        key={`dropdown-menu-draft-email-miss-info-checkbox-${indexOption}`}
+                        className="scale-125 origin-left"
+                      >
+                        <CheckboxAntd
+                          className="w-full"
+                          checked={checked}
+                          onChange={e => {
+                            setDraftEmailMissInfoList((prev: any[]) => {
+                              return !!e?.target?.checked
+                                ? [...prev, itemOption]
+                                : prev.filter(
+                                    (item: any) => item.value !== itemOption.value
+                                  );
+                            });
+                          }}
+                        >
+                          <span className="text-xs">{itemOption.label}</span>
+                        </CheckboxAntd>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          }}
+        />
+      </motion.div>
+    );
+  };
+
   const customStyle = {
     'w-[43rem]': typeActionBar === TypeActionBarEnum.INIT,
     'w-[80%]': typeActionBar !== TypeActionBarEnum.INIT,
   };
 
   return (
-    <>
-      <div
-        ref={actionBarRef}
-        className="absolute bottom-10 left-[50%] -translate-x-1/2 flex flex-col items-center gap-3 w-full"
-      >
-        {/* Custom DropdownMenu for DraftEmail */}
-        {typeActionBar === TypeActionBarEnum.INIT && isShowDropdownMenuDraftEmail && (
-          <motion.div
-            ref={dropdownDraftEmailRef}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 10 }}
-            transition={{ duration: 0.2 }}
-            className={cn(
+    <div
+      ref={actionBarRef}
+      className="absolute bottom-10 left-[50%] -translate-x-1/2 flex flex-col items-center gap-3 w-full"
+    >
+      {typeCustomDropdownMenu === TypeCustomDropdownMenuEnum.DRAFT_EMAIL_SELECT
+        ? renderCustomDropdownMenuSelect({
+            customClassName: cn(
               'bg-background box-border rounded-[12px] border border-solid border-[rgba(225, 225, 226, 1)] gap-0.5 p-1 w-full flex flex-col',
               customStyle
-            )}
-          >
-            {optionDraftEmailList.map((itemOption, indexOption) => {
-              return (
-                <Button
-                  key={`dropdown-menu-draft-email-btn-${indexOption}`}
-                  variant="ghost"
-                  asChild
-                  className="h-11"
-                  onClick={() => {
-                    setTypeActionBar(itemOption.value);
-                  }}
-                >
-                  <div className="flex flex-row justify-start items-center text-[#5F5F5F] dark:text-[#FFFFFF]">
-                    {itemOption.icon}
-                    <span>{itemOption.label}</span>
-                  </div>
-                </Button>
-              );
-            })}
-          </motion.div>
+            ),
+          })
+        : null}
+
+      {/* Custom DropdownMenu for DraftEmail Miss Info */}
+      {typeCustomDropdownMenu === TypeCustomDropdownMenuEnum.DRAFT_EMAIL_MISS_INFO
+        ? renderCustomDropdownMenuDraftEmailMissInfo({
+            customClassName: cn(
+              'absolute bottom-0 left-[50%] z-30 -translate-x-1/2 action-bar-content bg-background box-border rounded-[12px] border border-solid border-[rgba(225, 225, 226, 1)] transition-all',
+              customStyle
+            ),
+          })
+        : null}
+
+      {/* Base */}
+      <div
+        className={cn(
+          'action-bar-content bg-background box-border rounded-[12px] border border-solid border-[rgba(225, 225, 226, 1)] transition-all',
+          customStyle
         )}
-
-        {/* Base */}
-        <div
-          className={cn(
-            'action-bar-content bg-background box-border rounded-[12px] border border-solid border-[rgba(225, 225, 226, 1)] transition-all',
-            customStyle
-          )}
-        >
-          {typeActionBar === TypeActionBarEnum.INIT ? renderActionBarInit() : null}
-          {typeActionBar === TypeActionBarEnum.ADD_REFERENCE
-            ? renderActionBarAddReference()
-            : null}
-          {typeActionBar === TypeActionBarEnum.DRAFT_EMAIL_MISS_INFO
-            ? renderActionbarDraftEmailMissInfo()
-            : null}
-          {typeActionBar === TypeActionBarEnum.DRAFT_EMAIL_PDF
-            ? renderactionbarDraftEmailPDF()
-            : null}
-        </div>
-
-        {/* Custom DropdownMenu for DraftEmail Miss Info */}
-        {typeActionBar === TypeActionBarEnum.DRAFT_EMAIL_MISS_INFO &&
-          isShowDropdownMenuDraftEmailMissInfo && (
-            <motion.div
-              ref={dropdownDraftEmailMissInfoRef}
-              initial={{ opacity: 0, y: 0 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 0 }}
-              transition={{ duration: 0.2 }}
-              className={cn(
-                'absolute bottom-0 left-[50%] -translate-x-1/2 action-bar-content bg-background box-border rounded-[12px] border border-solid border-[rgba(225, 225, 226, 1)] transition-all',
-                customStyle
-              )}
-            >
-              <ActionBarContainer
-                title={
-                  <div className="flex flex-row gap-1">
-                    <div>Missing information</div>
-                    <Badge
-                      className="flex justify-center items-center bg-transparent border border-solid border-[#E1E1E2] text-[#1559EA]"
-                      variant="small"
-                    >
-                      {draftEmailMissInfoList.length}
-                    </Badge>
-                  </div>
-                }
-                onBtnBackClick={() => {
-                  setShowDropdownMenuDraftEmailMissInfo(false);
-                }}
-                renderContent={() => {
-                  return (
-                    <div className="w-full h-80 overflow-y-auto">
-                      <div className="flex flex-col gap-3 box-border px-5">
-                        {draftEmailMissInfoOption.map((itemOption, indexOption) => {
-                          const checked = draftEmailMissInfoList.some(
-                            (item: any) => item.value === itemOption.value
-                          );
-                          return (
-                            <div
-                              key={`dropdown-menu-draft-email-miss-info-checkbox-${indexOption}`}
-                              className="scale-125 origin-left"
-                            >
-                              <CheckboxAntd
-                                className="w-full"
-                                checked={checked}
-                                onChange={e => {
-                                  setDraftEmailMissInfoList((prev: any[]) => {
-                                    return !!e?.target?.checked
-                                      ? [...prev, itemOption]
-                                      : prev.filter(
-                                          (item: any) => item.value !== itemOption.value
-                                        );
-                                  });
-                                }}
-                              >
-                                <span className="text-xs">{itemOption.label}</span>
-                              </CheckboxAntd>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  );
-                }}
-              />
-            </motion.div>
-          )}
+      >
+        {typeActionBar === TypeActionBarEnum.INIT ? renderActionBarInit() : null}
+        {typeActionBar === TypeActionBarEnum.ADD_REFERENCE
+          ? renderActionBarAddReference()
+          : null}
+        {typeActionBar === TypeActionBarEnum.DRAFT_EMAIL_MISS_INFO
+          ? renderActionbarDraftEmailMissInfo()
+          : null}
+        {typeActionBar === TypeActionBarEnum.DRAFT_EMAIL_PDF
+          ? renderActionbarDraftEmailPDF()
+          : null}
       </div>
-    </>
+    </div>
   );
 }
 
