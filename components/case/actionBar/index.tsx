@@ -15,6 +15,7 @@ import {
   IconActionBarUpload,
   IconExtensionInstall,
   IconExtensionStart,
+  IconExtensionStop,
   IconInfo,
 } from '@/components/ui/icon';
 import { MESSAGE } from '@/config/message';
@@ -24,6 +25,7 @@ import { cn } from '@/lib/utils';
 import { processDocument } from '@/service/api/case';
 import { useExtensionsStore } from '@/store/extensionsStore';
 import { ICaseItemType } from '@/types/case';
+import { IPilotType } from '@/types/casePilot';
 import { FileStatus, FileTypeEnum, IFileItemType } from '@/types/file';
 import { DropdownMenuTrigger } from '@radix-ui/react-dropdown-menu';
 import { Checkbox as CheckboxAntd, message as messageAntd } from 'antd';
@@ -49,6 +51,7 @@ export enum TypeCustomDropdownMenuEnum {
 
 interface ActionBarProps {
   caseInfo: ICaseItemType | null;
+  pilotInfoCurrent: IPilotType | null;
   onSizeChange?: (size: DOMRectReadOnly) => void;
   onShowNewWorkflow: () => void;
 }
@@ -67,7 +70,7 @@ const optionDraftEmailList = [
 ];
 
 function PureActionBar(props: ActionBarProps) {
-  const { caseInfo, onSizeChange, onShowNewWorkflow } = props || {};
+  const { caseInfo, pilotInfoCurrent, onSizeChange, onShowNewWorkflow } = props || {};
 
   const actionBarRef = useRef<HTMLDivElement>(null);
   const customDropdownRef = useRef<HTMLDivElement>(null);
@@ -109,6 +112,10 @@ function PureActionBar(props: ActionBarProps) {
   const [draftEmailPDF, setDraftEmailPDF] = useState<IFileItemType | null>(null);
 
   const { extensionsInfo } = useExtensionsStore();
+
+  const isRunningExtension = useMemo(() => {
+    return !!pilotInfoCurrent;
+  }, [pilotInfoCurrent]);
 
   const currentDraftEmail = useMemo(() => {
     return (
@@ -297,6 +304,13 @@ function PureActionBar(props: ActionBarProps) {
     }
   };
 
+  const handleBtnExtensionStopClick = () => {
+    window.postMessage({
+      type: 'ginkgoo-page-all-pilot-stop',
+      workflowId: pilotInfoCurrent?.pilotWorkflowInfo?.workflow_instance_id,
+    });
+  };
+
   const handleBtnExtensionInstallClick = async () => {
     setLoadingInstall(true);
 
@@ -315,7 +329,13 @@ function PureActionBar(props: ActionBarProps) {
         <div className="flex flex-row items-center gap-[18px] py-[11px] pl-[18px] pr-[14px] border-r border-solid border-[rgba(225, 225, 226, 1)] ">
           <Button
             variant="ghost"
-            className="border border-solid border-[rgba(225, 225, 226, 1)] h-11 p-0"
+            className={cn(
+              'border border-solid border-[rgba(225, 225, 226, 1)] h-11 p-0',
+              {
+                'pointer-events-none': isRunningExtension,
+              }
+            )}
+            disabled={isRunningExtension}
           >
             <FileUploadSimple
               accept="application/pdf,image/jpeg,image/png,image/gif,image/webp,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/plain"
@@ -334,8 +354,10 @@ function PureActionBar(props: ActionBarProps) {
             variant="ghost"
             className={cn('border border-solid border-[rgba(225, 225, 226, 1)] h-11', {
               'pointer-events-none':
+                isRunningExtension ||
                 typeCustomDropdownMenu === TypeCustomDropdownMenuEnum.DRAFT_EMAIL_SELECT,
             })}
+            disabled={isRunningExtension}
             onClick={handleBtnDraftEmailClick}
           >
             <IconActionBarDraftEmail />
@@ -346,24 +368,55 @@ function PureActionBar(props: ActionBarProps) {
         <div className="flex flex-row items-center gap-[18px] py-[11px] pl-[14px] pr-[18px]">
           <Button
             variant="ghost"
-            className="border border-solid border-[rgba(225, 225, 226, 1)] h-11"
+            className={cn('border border-solid border-[rgba(225, 225, 226, 1)] h-11', {
+              'pointer-events-none': isRunningExtension,
+            })}
+            disabled={isRunningExtension}
             onClick={handleBtnSummarizeClick}
           >
             <IconActionBarSummarize />
             <span>Summarize</span>
           </Button>
 
-          <Button
-            variant="ghost"
-            className={cn('border border-solid border-[rgba(225, 225, 226, 1)] h-11', {
-              'pointer-events-none':
-                typeCustomDropdownMenu === TypeCustomDropdownMenuEnum.INSTALL_EXTENSION,
-            })}
-            onClick={handleBtnExtensionStartClick}
-          >
-            <IconExtensionStart size={20} />
-            <span>Start auto-fill</span>
-          </Button>
+          {isRunningExtension ? (
+            <>
+              <Button
+                variant="ghost"
+                className={cn(
+                  'border border-solid border-[rgba(225, 225, 226, 1)] h-11',
+                  {
+                    'pointer-events-none': isRunningExtension,
+                  }
+                )}
+                disabled={isRunningExtension}
+              >
+                <LoaderCircle className="animate-spin" />
+                <span>Running...</span>
+              </Button>
+
+              <Button
+                variant="ghost"
+                className={cn('border border-solid border-[rgba(225, 225, 226, 1)] h-11')}
+                onClick={handleBtnExtensionStopClick}
+              >
+                <IconExtensionStop />
+              </Button>
+            </>
+          ) : (
+            <Button
+              variant="ghost"
+              className={cn('border border-solid border-[rgba(225, 225, 226, 1)] h-11', {
+                'pointer-events-none':
+                  isRunningExtension ||
+                  typeCustomDropdownMenu === TypeCustomDropdownMenuEnum.INSTALL_EXTENSION,
+              })}
+              disabled={isRunningExtension}
+              onClick={handleBtnExtensionStartClick}
+            >
+              <IconExtensionStart size={20} />
+              <span>Start auto-fill</span>
+            </Button>
+          )}
         </div>
       </div>
     );
@@ -686,7 +739,8 @@ function PureActionBar(props: ActionBarProps) {
   };
 
   const customStyle = {
-    'w-[43rem]': typeActionBar === TypeActionBarEnum.INIT,
+    'w-[45.5rem]': typeActionBar === TypeActionBarEnum.INIT && isRunningExtension,
+    'w-[43rem]': typeActionBar === TypeActionBarEnum.INIT && !isRunningExtension,
     'w-[80%]': typeActionBar !== TypeActionBarEnum.INIT,
   };
 

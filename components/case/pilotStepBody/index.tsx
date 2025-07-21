@@ -74,6 +74,7 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
         type: 'ginkgoo-page-all-pilot-start',
         workflowId: pilotInfo?.pilotWorkflowInfo?.workflow_instance_id,
         caseId,
+        tabIdForPage: pageTabInfo?.id,
         actionlistPre,
       });
     },

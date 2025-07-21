@@ -180,12 +180,13 @@ function CaseDetailContent() {
                 pilotInfoMsg
               );
 
+              setPilotInfoCurrent(null);
+
               if (indexPilot >= 0) {
                 // window.document
                 //   .getElementById(`workflow-item-btn-download-${indexPilot}`)
                 //   ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
-                setPilotInfoCurrent(pilotInfoMsg);
                 draft[indexPilot] = pilotInfoMsg;
               }
             }),
@@ -560,6 +561,7 @@ function CaseDetailContent() {
         type: 'ginkgoo-page-all-pilot-start',
         isNewWorkflow: true,
         caseId,
+        tabIdForPage: pageTabInfo?.id,
         workflowDefinitionId,
       });
     } catch (error) {
@@ -575,6 +577,7 @@ function CaseDetailContent() {
         type: 'ginkgoo-page-all-pilot-start',
         workflowId,
         caseId,
+        tabIdForPage: pageTabInfo?.id,
       });
     } catch (error) {
       console.error('[Ginkgoo] Sidepanel handleCardClick error', error);
@@ -724,6 +727,7 @@ function CaseDetailContent() {
             <CaseGrapherGround caseInfo={caseInfo!} bottomPadding={pbSummary}>
               <ActionBar
                 caseInfo={caseInfo}
+                pilotInfoCurrent={pilotInfoCurrent}
                 onSizeChange={handleActionBarSizeChange}
                 onShowNewWorkflow={handleShowNewWorkflow}
               />
