@@ -13,16 +13,21 @@ import {
   IconActionBarDraftEmailPDF,
   IconActionBarStartExtensions,
   IconActionBarUpload,
+  IconExtensionInstall,
+  IconInfo,
 } from '@/components/ui/icon';
 import { MESSAGE } from '@/config/message';
+import GlobalManager from '@/customManager/GlobalManager';
+import UtilsManager from '@/customManager/UtilsManager';
 import { cn } from '@/lib/utils';
 import { processDocument } from '@/service/api/case';
+import { useExtensionsStore } from '@/store/extensionsStore';
 import { ICaseItemType } from '@/types/case';
 import { FileStatus, FileTypeEnum, IFileItemType } from '@/types/file';
 import { DropdownMenuTrigger } from '@radix-ui/react-dropdown-menu';
 import { Checkbox as CheckboxAntd, message as messageAntd } from 'antd';
 import { motion } from 'framer-motion';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, LoaderCircle } from 'lucide-react';
 import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import { v4 as uuid } from 'uuid';
 import './index.css';
@@ -38,11 +43,13 @@ export enum TypeCustomDropdownMenuEnum {
   NONE = 'NONE',
   DRAFT_EMAIL_SELECT = 'DRAFT_EMAIL_SELECT',
   DRAFT_EMAIL_MISS_INFO = 'DRAFT_EMAIL_MISS_INFO',
+  INSTALL_EXTENSION = 'INSTALL_EXTENSION',
 }
 
 interface ActionBarProps {
   caseInfo: ICaseItemType | null;
   onSizeChange?: (size: DOMRectReadOnly) => void;
+  onShowNewWorkflow: () => void;
 }
 
 const optionDraftEmailList = [
@@ -59,7 +66,7 @@ const optionDraftEmailList = [
 ];
 
 function PureActionBar(props: ActionBarProps) {
-  const { caseInfo, onSizeChange } = props || {};
+  const { caseInfo, onSizeChange, onShowNewWorkflow } = props || {};
 
   const actionBarRef = useRef<HTMLDivElement>(null);
   const customDropdownRef = useRef<HTMLDivElement>(null);
@@ -72,6 +79,7 @@ function PureActionBar(props: ActionBarProps) {
     useState<TypeCustomDropdownMenuEnum>(TypeCustomDropdownMenuEnum.NONE);
   const [isShowDropdownMenuDraftEmailChild, setShowDropdownMenuDraftEmailChild] =
     useState<boolean>(false);
+  const [isLoadingInstall, setLoadingInstall] = useState<boolean>(false);
   const [isLoadingBtnSend, setLoadingBtnSend] = useState<boolean>(false);
 
   const [
@@ -98,6 +106,8 @@ function PureActionBar(props: ActionBarProps) {
   });
   const [draftEmailMissInfoList, setDraftEmailMissInfoList] = useState<any[]>([]);
   const [draftEmailPDF, setDraftEmailPDF] = useState<IFileItemType | null>(null);
+
+  const { extensionsInfo } = useExtensionsStore();
 
   const currentDraftEmail = useMemo(() => {
     return (
@@ -273,14 +283,30 @@ function PureActionBar(props: ActionBarProps) {
   };
 
   const handleBtnDraftEmailClick = () => {
-    if (typeCustomDropdownMenu !== TypeCustomDropdownMenuEnum.DRAFT_EMAIL_SELECT) {
-      setTypeCustomDropdownMenu(TypeCustomDropdownMenuEnum.DRAFT_EMAIL_SELECT);
-    }
+    setTypeCustomDropdownMenu(TypeCustomDropdownMenuEnum.DRAFT_EMAIL_SELECT);
   };
 
   const handleBtnSummarizeClick = () => {};
 
-  const handleBtnStartClick = () => {};
+  const handleBtnExtensionStartClick = () => {
+    if (!!extensionsInfo?.version) {
+      onShowNewWorkflow?.();
+    } else {
+      setTypeCustomDropdownMenu(TypeCustomDropdownMenuEnum.INSTALL_EXTENSION);
+    }
+  };
+
+  const handleBtnExtensionInstallClick = async () => {
+    setLoadingInstall(true);
+
+    UtilsManager.clickTagA({
+      url: GlobalManager.urlInstallExtension,
+    });
+
+    setTimeout(() => {
+      setLoadingInstall(false);
+    }, 2000);
+  };
 
   const renderActionBarInit = () => {
     return (
@@ -328,8 +354,11 @@ function PureActionBar(props: ActionBarProps) {
 
           <Button
             variant="ghost"
-            className="border border-solid border-[rgba(225, 225, 226, 1)] h-11"
-            onClick={handleBtnStartClick}
+            className={cn('border border-solid border-[rgba(225, 225, 226, 1)] h-11', {
+              'pointer-events-none':
+                typeCustomDropdownMenu === TypeCustomDropdownMenuEnum.INSTALL_EXTENSION,
+            })}
+            onClick={handleBtnExtensionStartClick}
           >
             <IconActionBarStartExtensions />
             <span>Start auto-fill</span>
@@ -608,6 +637,53 @@ function PureActionBar(props: ActionBarProps) {
     );
   };
 
+  const renderCustomDropdownMenuInstallExtension = (params: {
+    customClassName?: string;
+  }) => {
+    const { customClassName } = params || {};
+
+    return (
+      <motion.div
+        ref={customDropdownRef}
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: 10 }}
+        transition={{ duration: 0.2 }}
+        className={customClassName}
+      >
+        <div className="box-border flex flex-row items-center gap-2.5 p-2">
+          <Button
+            variant="ghost"
+            className={cn(
+              'w-9 h-9 flex-shrink-0 border border-solid border-[rgba(225, 225, 226, 1)] pointer-events-none'
+            )}
+          >
+            <IconInfo color="#E4570C" size={20} />
+          </Button>
+          <div className="text-[#1A1A1A] text-lg font-bold">Install extension</div>
+        </div>
+        <div className="box-border text-[#1A1A1AB2] text-sm px-2 pb-3">
+          Install our Chrome browser extension to enable seamless automation.
+        </div>
+        <div className="flex flex-row justify-end items-center border-t border-solid border-[rgba(225, 225, 226, 1)] p-2">
+          <Button
+            variant="default"
+            color="primary"
+            className="h-9"
+            onClick={handleBtnExtensionInstallClick}
+          >
+            {isLoadingInstall ? (
+              <LoaderCircle className="animate-spin" />
+            ) : (
+              <IconExtensionInstall />
+            )}
+            <span className="font-bold">Install extension</span>
+          </Button>
+        </div>
+      </motion.div>
+    );
+  };
+
   const customStyle = {
     'w-[43rem]': typeActionBar === TypeActionBarEnum.INIT,
     'w-[80%]': typeActionBar !== TypeActionBarEnum.INIT,
@@ -618,6 +694,7 @@ function PureActionBar(props: ActionBarProps) {
       ref={actionBarRef}
       className="absolute bottom-10 left-[50%] -translate-x-1/2 flex flex-col items-center gap-3 w-full"
     >
+      {/* Custom DropdownMenu for DraftEmail Select */}
       {typeCustomDropdownMenu === TypeCustomDropdownMenuEnum.DRAFT_EMAIL_SELECT
         ? renderCustomDropdownMenuSelect({
             customClassName: cn(
@@ -631,7 +708,18 @@ function PureActionBar(props: ActionBarProps) {
       {typeCustomDropdownMenu === TypeCustomDropdownMenuEnum.DRAFT_EMAIL_MISS_INFO
         ? renderCustomDropdownMenuDraftEmailMissInfo({
             customClassName: cn(
-              'absolute bottom-0 left-[50%] z-30 -translate-x-1/2 action-bar-content bg-background box-border rounded-[12px] border border-solid border-[rgba(225, 225, 226, 1)] transition-all',
+              'bg-background box-border rounded-[12px] border border-solid border-[rgba(225, 225, 226, 1)] gap-0.5 p-1 w-full flex flex-col',
+              'absolute bottom-0 left-[50%] z-30 -translate-x-1/2 action-bar-content',
+              customStyle
+            ),
+          })
+        : null}
+
+      {/* Custom DropdownMenu for Install extension */}
+      {typeCustomDropdownMenu === TypeCustomDropdownMenuEnum.INSTALL_EXTENSION
+        ? renderCustomDropdownMenuInstallExtension({
+            customClassName: cn(
+              'bg-background box-border rounded-[12px] border border-solid border-[rgba(225, 225, 226, 1)] gap-0 p-0 w-full flex flex-col',
               customStyle
             ),
           })

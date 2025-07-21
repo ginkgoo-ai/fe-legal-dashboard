@@ -6,14 +6,11 @@ import { PilotReady } from '@/components/case/pilotReady';
 import { PilotWorkflow } from '@/components/case/pilotWorkflow';
 import { Button } from '@/components/ui/button';
 import { IconExtensionStart, IconExtensionStop } from '@/components/ui/icon';
-import { MESSAGE } from '@/config/message';
-import GlobalManager from '@/customManager/GlobalManager';
-import UtilsManager from '@/customManager/UtilsManager';
 import { cn } from '@/lib/utils';
 import { useExtensionsStore } from '@/store/extensionsStore';
 import { ICaseItemType } from '@/types/case';
 import { IPilotType, PilotStatusEnum } from '@/types/casePilot';
-import { Alert, message as messageAntd } from 'antd';
+import { Alert } from 'antd';
 import { Loader2Icon, X } from 'lucide-react';
 import { memo, useEffect, useState } from 'react';
 import { SiteLogo } from '../siteLogo';
@@ -59,20 +56,6 @@ function PurePanelPilot(props: PanelPanelPilotProps) {
   ]);
 
   const handleBtnExtensionStartClick = () => {
-    if (
-      extensionsInfo?.version !== '999.998.997' &&
-      extensionsInfo?.version !== GlobalManager.versionExtension
-    ) {
-      messageAntd.open({
-        type: 'warning',
-        content: MESSAGE.TOAST_VERSION_MISMATCH,
-      });
-      UtilsManager.clickTagA({
-        url: GlobalManager.urlInstallExtension,
-      });
-      return;
-    }
-
     onShowNewWorkflow?.();
   };
 

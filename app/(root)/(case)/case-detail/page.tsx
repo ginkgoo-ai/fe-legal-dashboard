@@ -15,6 +15,7 @@ import {
   IconBreadcrumbReference,
 } from '@/components/ui/icon';
 import { MESSAGE } from '@/config/message';
+import GlobalManager from '@/customManager/GlobalManager';
 import LockManager from '@/customManager/LockManager';
 import UtilsManager from '@/customManager/UtilsManager';
 import { useEffectStrictMode } from '@/hooks/useEffectStrictMode';
@@ -30,6 +31,7 @@ import {
   queryCaseDetail,
 } from '@/service/api/case';
 import { useCaseStore } from '@/store';
+import { useExtensionsStore } from '@/store/extensionsStore';
 import { useProfileStore } from '@/store/profileStore';
 import { useUserStore } from '@/store/userStore';
 import { IPilotType, PilotStatusEnum, WorkflowTypeEnum } from '@/types/casePilot';
@@ -82,6 +84,8 @@ function CaseDetailContent() {
   const [isModalNewWorkflowOpen, setModalNewWorkflowOpen] = useState<boolean>(false);
   const [isLoadingQueryWorkflowList, setLoadingQueryWorkflowList] =
     useState<boolean>(true);
+
+  const { extensionsInfo } = useExtensionsStore();
 
   const { setCaseInfo, caseInfo } = useCaseStore();
   const { userInfo } = useUserStore();
@@ -516,6 +520,20 @@ function CaseDetailContent() {
   }, 100);
 
   const handleShowNewWorkflow = () => {
+    if (
+      extensionsInfo?.version !== '999.998.997' &&
+      extensionsInfo?.version !== GlobalManager.versionExtension
+    ) {
+      messageAntd.open({
+        type: 'warning',
+        content: MESSAGE.TOAST_VERSION_MISMATCH,
+      });
+      UtilsManager.clickTagA({
+        url: GlobalManager.urlInstallExtension,
+      });
+      return;
+    }
+
     if (workflowDefinitionId) {
       setModalNewWorkflowOpen(true);
     } else {
@@ -704,7 +722,11 @@ function CaseDetailContent() {
             })}
           >
             <CaseGrapherGround caseInfo={caseInfo!} bottomPadding={pbSummary}>
-              <ActionBar caseInfo={caseInfo} onSizeChange={handleActionBarSizeChange} />
+              <ActionBar
+                caseInfo={caseInfo}
+                onSizeChange={handleActionBarSizeChange}
+                onShowNewWorkflow={handleShowNewWorkflow}
+              />
             </CaseGrapherGround>
           </Splitter.Panel>
           {/* RightPanel */}
