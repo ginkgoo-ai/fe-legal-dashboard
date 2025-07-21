@@ -112,7 +112,7 @@ function PurePanelProfileVault(props: PanelProfileVaultProps) {
                   )} */}
                   {Number(caseInfo?.profileChecklist.missingFieldsCount) > 0 ? (
                     <Badge
-                      className="flex justify-center items-center bg-[#E1E1E2] text-[#565656]"
+                      className="flex justify-center items-center bg-[#E1E1E2] text-[#565656] leading-[14px]"
                       variant="small"
                     >
                       {caseInfo?.profileChecklist.missingFieldsCount}

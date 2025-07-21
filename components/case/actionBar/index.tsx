@@ -11,9 +11,10 @@ import {
   IconActionBarDraftEmail,
   IconActionBarDraftEmailMissInfo,
   IconActionBarDraftEmailPDF,
-  IconActionBarStartExtensions,
+  IconActionBarSummarize,
   IconActionBarUpload,
   IconExtensionInstall,
+  IconExtensionStart,
   IconInfo,
 } from '@/components/ui/icon';
 import { MESSAGE } from '@/config/message';
@@ -348,7 +349,7 @@ function PureActionBar(props: ActionBarProps) {
             className="border border-solid border-[rgba(225, 225, 226, 1)] h-11"
             onClick={handleBtnSummarizeClick}
           >
-            <IconActionBarDraftEmail />
+            <IconActionBarSummarize />
             <span>Summarize</span>
           </Button>
 
@@ -360,7 +361,7 @@ function PureActionBar(props: ActionBarProps) {
             })}
             onClick={handleBtnExtensionStartClick}
           >
-            <IconActionBarStartExtensions />
+            <IconExtensionStart size={20} />
             <span>Start auto-fill</span>
           </Button>
         </div>
@@ -651,7 +652,7 @@ function PureActionBar(props: ActionBarProps) {
         transition={{ duration: 0.2 }}
         className={customClassName}
       >
-        <div className="box-border flex flex-row items-center gap-2.5 p-2">
+        <div className="box-border flex flex-row items-center gap-2.5 p-3">
           <Button
             variant="ghost"
             className={cn(
@@ -662,10 +663,10 @@ function PureActionBar(props: ActionBarProps) {
           </Button>
           <div className="text-[#1A1A1A] text-lg font-bold">Install extension</div>
         </div>
-        <div className="box-border text-[#1A1A1AB2] text-sm px-2 pb-3">
+        <div className="box-border text-[#1A1A1AB2] text-sm px-3 pb-3">
           Install our Chrome browser extension to enable seamless automation.
         </div>
-        <div className="flex flex-row justify-end items-center border-t border-solid border-[rgba(225, 225, 226, 1)] p-2">
+        <div className="flex flex-row justify-end items-center border-t border-solid border-[rgba(225, 225, 226, 1)] p-3">
           <Button
             variant="default"
             color="primary"

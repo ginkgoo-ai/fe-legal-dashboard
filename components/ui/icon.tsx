@@ -1,14 +1,8 @@
 import { cn } from '@/lib/utils';
 
-type IconProps = Partial<{ size: number; className: string; color?: string }>;
+type IconProps = Partial<{ size: number; className?: string; color?: string }>;
 
-export const IconGoogle = ({
-  size = 16,
-  className = '',
-}: {
-  size?: number;
-  className?: string;
-}) => {
+export const IconGoogle = ({ size = 16, className = '' }: IconProps) => {
   return (
     <svg
       width={size}
@@ -38,13 +32,7 @@ export const IconGoogle = ({
   );
 };
 
-export const IconCardEdit = ({
-  size = 16,
-  className = '',
-}: {
-  size?: number;
-  className?: string;
-}) => {
+export const IconCardEdit = ({ size = 16, className = '' }: IconProps) => {
   return (
     <svg
       width={size}
@@ -67,13 +55,7 @@ export const IconCardEdit = ({
   );
 };
 
-export const IconLoading = ({
-  size = 16,
-  className = '',
-}: {
-  size?: number;
-  className?: string;
-}) => {
+export const IconLoading = ({ size = 16, className = '' }: IconProps) => {
   return (
     <svg
       width={size}
@@ -146,9 +128,7 @@ export const IconStepDown = ({
   size = 16,
   color = '#98A1B7',
   className = '',
-}: IconProps & {
-  color?: string;
-}) => {
+}: IconProps) => {
   return (
     <svg
       width={size}
@@ -440,13 +420,7 @@ export const IconFormItemPassword = ({ size = 16, className = '' }: IconProps) =
   );
 };
 
-export const IconFormItemLink = ({
-  size = 16,
-  className = '',
-}: {
-  size?: number;
-  className?: string;
-}) => {
+export const IconFormItemLink = ({ size = 16, className = '' }: IconProps) => {
   return (
     <svg
       width={size}
@@ -472,7 +446,7 @@ export const IconFormItemLink = ({
   );
 };
 
-export const IconFileStatusError = ({ size = 16 }: { size?: number }) => {
+export const IconFileStatusError = ({ size = 16 }: IconProps) => {
   return (
     <svg
       width={size}
@@ -1347,24 +1321,29 @@ export const IconExtensionInstall = ({
   );
 };
 
-export const IconExtensionStart = ({ size = 16 }: { size?: number }) => {
+export const IconExtensionStart = ({
+  size = 24,
+  className = '',
+  color = 'currentColor',
+}: IconProps) => {
   return (
     <svg
       width={size}
       height={size}
-      viewBox="0 0 20 20"
+      className={cn(className)}
+      viewBox="0 0 11 14"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >
       <path
-        d="M5 3.54039C5 2.83424 5.83305 2.46453 6.374 2.88714C6.42642 2.92809 6.4775 2.97138 6.53332 3.00755L16.334 9.35829C16.3899 9.39447 16.4435 9.43492 16.4853 9.48672C16.7271 9.787 16.7271 10.2128 16.4853 10.5131C16.4435 10.5649 16.3899 10.6054 16.334 10.6415L6.53332 16.9923C6.4775 17.0285 6.42642 17.0718 6.374 17.1127C5.83305 17.5353 5 17.1656 5 16.4595V3.54039Z"
-        fill="currentColor"
+        d="M7.66199 7.0001L2.33366 3.4476V10.5526L7.66199 7.0001ZM10.147 7.34676L1.31449 13.2351C1.25175 13.2769 1.17885 13.3008 1.10357 13.3044C1.02829 13.308 0.953436 13.2911 0.886991 13.2555C0.820547 13.22 0.764995 13.167 0.726254 13.1024C0.687512 13.0377 0.667031 12.9638 0.666992 12.8884V1.11176C0.667031 1.0364 0.687512 0.962449 0.726254 0.8978C0.764995 0.833151 0.820547 0.780221 0.886991 0.744647C0.953436 0.709073 1.02829 0.692187 1.10357 0.695789C1.17885 0.69939 1.25175 0.723343 1.31449 0.765098L10.147 6.65343C10.2041 6.69148 10.2508 6.74303 10.2832 6.80351C10.3156 6.86398 10.3325 6.93151 10.3325 7.0001C10.3325 7.06869 10.3156 7.13621 10.2832 7.19669C10.2508 7.25716 10.2041 7.30871 10.147 7.34676Z"
+        fill={color}
       />
     </svg>
   );
 };
 
-export const IconExtensionStop = ({ size = 16 }: { size?: number }) => {
+export const IconExtensionStop = ({ size = 16 }: IconProps) => {
   return (
     <svg
       width={size}

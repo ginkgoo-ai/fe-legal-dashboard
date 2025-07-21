@@ -694,7 +694,7 @@ function CaseDetailContent() {
 
             {Number(caseInfo?.profileChecklist.missingFieldsCount) > 0 ? (
               <Badge
-                className="absolute top-0 right-0 flex justify-center items-center -translate-y-1/2 translate-x-1/2 bg-[#EF4444]"
+                className="absolute top-0 right-0 flex justify-center items-center -translate-y-1/2 translate-x-1/2 bg-[#EF4444] leading-[14px]"
                 variant="small"
               >
                 {caseInfo?.profileChecklist.missingFieldsCount}
