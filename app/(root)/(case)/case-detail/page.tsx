@@ -642,7 +642,7 @@ function CaseDetailContent() {
                   pageTabInfo={pageTabInfo}
                   caseInfo={caseInfo}
                   workflowInfo={workflowInfoForTest}
-                  indexKey={`panel-pilot-workflow-${0}`}
+                  indexKey={`panel-summary-workflow-${0}`}
                   pilotInfoCurrent={pilotInfoCurrent}
                 />
               ) : null}
