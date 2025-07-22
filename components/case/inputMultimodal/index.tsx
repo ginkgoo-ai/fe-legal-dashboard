@@ -4,7 +4,6 @@ import { FileUploadSimple } from '@/components/common/form/upload/fileUploadSimp
 import { ItemFile, ItemFileModeEnum } from '@/components/common/itemFile';
 import { Button } from '@/components/ui/button';
 import { IconActionBarSend, IconActionBarUpload } from '@/components/ui/icon';
-import { Input } from '@/components/ui/input';
 import { MESSAGE } from '@/config/message';
 import LockManager from '@/customManager/LockManager';
 import { useEffectStrictMode } from '@/hooks/useEffectStrictMode';
@@ -16,7 +15,7 @@ import { FileStatus, IFileItemType } from '@/types/file';
 import { message as messageAntd } from 'antd';
 import { produce } from 'immer';
 import { LoaderCircle } from 'lucide-react';
-import { memo, useMemo, useState } from 'react';
+import { memo, useMemo, useRef, useState } from 'react';
 import { v4 as uuid } from 'uuid';
 
 interface InputMultimodalProps {
@@ -48,6 +47,7 @@ function PureInputMultimodal(props: InputMultimodalProps) {
 
   const [fileList, setFileList] = useStateCallback<IFileItemType[]>([]);
   const [description, setDescription] = useState<string>('');
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const isDisabledBtnSend = useMemo(() => {
     let result = !fileList.every(file => {
@@ -217,7 +217,13 @@ function PureInputMultimodal(props: InputMultimodalProps) {
   };
 
   const handleDescriptionChange = (e: any) => {
-    setDescription(e?.target?.value?.trim() || '');
+    setDescription(e?.target?.value || '');
+    // 自适应高度
+    const textarea = textareaRef.current;
+    if (textarea) {
+      textarea.style.height = 'auto';
+      textarea.style.height = textarea.scrollHeight + 'px';
+    }
   };
 
   const handleBtnSendClick = () => {
@@ -246,13 +252,15 @@ function PureInputMultimodal(props: InputMultimodalProps) {
             })}
           </div>
         ) : null}
-        <Input
+        <textarea
+          ref={textareaRef}
           name={`input-multimodal-input-${name}`}
-          className="px-2"
-          type="text"
+          className="box-border pl-1 pr-3 rounded border-none resize-none outline-none min-h-[40px] max-h-[200px] w-full transition-all"
           placeholder={placeholderDescription}
-          isBorder={false}
+          value={description}
           onChange={handleDescriptionChange}
+          rows={1}
+          style={{ overflow: 'auto' }}
         />
       </div>
 
