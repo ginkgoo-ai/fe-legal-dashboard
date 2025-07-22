@@ -9,7 +9,7 @@ import { IconExtensionStart, IconExtensionStop } from '@/components/ui/icon';
 import { cn } from '@/lib/utils';
 import { useExtensionsStore } from '@/store/extensionsStore';
 import { ICaseItemType } from '@/types/case';
-import { IPilotType, PilotStatusEnum } from '@/types/casePilot';
+import { IPilotType, IWorkflowType, PilotStatusEnum } from '@/types/casePilot';
 import { Alert } from 'antd';
 import { Loader2Icon, X } from 'lucide-react';
 import { memo, useEffect, useState } from 'react';
@@ -20,9 +20,7 @@ interface PanelPanelPilotProps {
   pageTabInfo: Record<string, unknown>;
   caseInfo: ICaseItemType | null;
   pilotInfoCurrent: IPilotType | null;
-  pilotList: IPilotType[];
-  onQueryWorkflowDetail: (params: { workflowId: string }) => void;
-  onBtnContinueClick: (params: { workflowId: string }) => void;
+  workflowList: IWorkflowType[];
   onShowNewWorkflow: () => void;
   oBtnCloseClick: () => void;
 }
@@ -33,9 +31,7 @@ function PurePanelPilot(props: PanelPanelPilotProps) {
     pageTabInfo,
     caseInfo,
     pilotInfoCurrent,
-    pilotList,
-    onQueryWorkflowDetail,
-    onBtnContinueClick,
+    workflowList,
     onShowNewWorkflow,
     oBtnCloseClick,
   } = props;
@@ -126,7 +122,7 @@ function PurePanelPilot(props: PanelPanelPilotProps) {
             </div>
           ) : (
             <>
-              {pilotList?.length === 0 ? (
+              {workflowList?.length === 0 ? (
                 <PilotReady />
               ) : (
                 <div
@@ -142,17 +138,15 @@ function PurePanelPilot(props: PanelPanelPilotProps) {
                       closable
                     />
                   ) : null}
-                  {pilotList.map((itemPilot, indexPilot) => {
+                  {workflowList.map((itemWorkflow, indexWorkflow) => {
                     return (
                       <PilotWorkflow
-                        key={`pilot-item-${indexPilot}`}
+                        key={`workflow-item-${indexWorkflow}`}
                         pageTabInfo={pageTabInfo}
                         caseInfo={caseInfo}
-                        pilotInfo={itemPilot}
-                        indexPilot={indexPilot}
+                        workflowInfo={itemWorkflow}
+                        indexKey={`panel-pilot-workflow-${indexWorkflow}`}
                         pilotInfoCurrent={pilotInfoCurrent}
-                        onQueryWorkflowDetail={onQueryWorkflowDetail}
-                        onBtnContinueClick={onBtnContinueClick}
                       />
                     );
                   })}

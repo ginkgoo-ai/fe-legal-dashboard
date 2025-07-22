@@ -38,7 +38,7 @@ export enum WorkflowTypeEnum {
 export interface IPilotType {
   pilotId: string;
   pilotTimer: NodeJS.Timeout | null;
-  pilotTabInfo: Record<string, unknown>;
+  pilotTabInfo: Record<string, unknown> | null;
   pilotStatus: PilotStatusEnum;
   pilotLastMessage: string;
   pilotRepeatHash: string;
@@ -172,6 +172,6 @@ export interface IWorkflowType {
   progress_file_id?: string;
   progress_percentage?: number;
   workflow_definition_id?: string;
+  unique_application_number?: string | null;
   steps?: IWorkflowStepType[];
-  pilotInfo?: IPilotType;
 }

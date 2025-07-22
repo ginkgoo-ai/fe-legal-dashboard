@@ -25,7 +25,7 @@ import { cn } from '@/lib/utils';
 import { processDocument } from '@/service/api/case';
 import { useExtensionsStore } from '@/store/extensionsStore';
 import { ICaseItemType } from '@/types/case';
-import { IPilotType } from '@/types/casePilot';
+import { IPilotType, PilotStatusEnum } from '@/types/casePilot';
 import { FileStatus, FileTypeEnum, IFileItemType } from '@/types/file';
 import { DropdownMenuTrigger } from '@radix-ui/react-dropdown-menu';
 import { Checkbox as CheckboxAntd, message as messageAntd } from 'antd';
@@ -114,7 +114,7 @@ function PureActionBar(props: ActionBarProps) {
   const { extensionsInfo } = useExtensionsStore();
 
   const isRunningExtension = useMemo(() => {
-    return !!pilotInfoCurrent;
+    return !(!pilotInfoCurrent || pilotInfoCurrent?.pilotStatus === PilotStatusEnum.HOLD);
   }, [pilotInfoCurrent]);
 
   const currentDraftEmail = useMemo(() => {
@@ -329,12 +329,7 @@ function PureActionBar(props: ActionBarProps) {
         <div className="flex flex-row items-center gap-[18px] py-[11px] pl-[18px] pr-[14px] border-r border-solid border-[rgba(225, 225, 226, 1)] ">
           <Button
             variant="ghost"
-            className={cn(
-              'border border-solid border-[rgba(225, 225, 226, 1)] h-11 p-0',
-              {
-                'pointer-events-none': isRunningExtension,
-              }
-            )}
+            className={cn('border border-solid border-[rgba(225, 225, 226, 1)] h-11 p-0')}
             disabled={isRunningExtension}
           >
             <FileUploadSimple

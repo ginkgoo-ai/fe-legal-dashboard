@@ -20,7 +20,7 @@ import './index.css';
 interface PilotStepBodyProps {
   caseId: string;
   pageTabInfo: Record<string, unknown>;
-  pilotInfo: IPilotType;
+  pilotInfo: IPilotType | null;
   onCollapseChange?: (key: string) => void;
 }
 
