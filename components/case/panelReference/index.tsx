@@ -1,7 +1,7 @@
 'use client';
 
 import { PanelContainer } from '@/components/case/panelContainer';
-import { ItemFile } from '@/components/common/itemFile';
+import { ItemFile, ItemFileModeEnum } from '@/components/common/itemFile';
 import { cn } from '@/lib/utils';
 // import { uploadFiles } from '@/service/api/file';
 import { Button } from '@/components/ui/button';
@@ -75,7 +75,7 @@ function PurePanelReference(props: PanelReferenceProps) {
             {fileList?.map((itemFile, indexFile) => (
               <ItemFile
                 key={`reference-item-${indexFile}`}
-                mode="Reference"
+                mode={ItemFileModeEnum.Reference}
                 file={itemFile}
                 isFold={isFold}
               />

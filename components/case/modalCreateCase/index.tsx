@@ -1,7 +1,7 @@
 'use client';
 
 // import { FileUpload } from '@/components/common/form/upload/fileUpload';
-import { ItemFile } from '@/components/common/itemFile';
+import { ItemFile, ItemFileModeEnum } from '@/components/common/itemFile';
 import {
   IconFormItemClientName,
   IconFormItemLawyer,
@@ -263,7 +263,7 @@ function PureModalCreateCase(props: ModalCreateCaseProps) {
                 return (
                   <ItemFile
                     key={`create-case-item-${indexFile}`}
-                    mode="CreateCase"
+                    mode={ItemFileModeEnum.CreateCase}
                     file={itemFile}
                     isFold={false}
                     onBtnDeleteClick={() => handleBtnFileDeleteClick(indexFile)}
