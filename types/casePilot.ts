@@ -47,6 +47,7 @@ export interface IPilotType {
   pilotThirdPartUrl: string;
   pilotCookie: string;
   pilotCsrfToken: string;
+  pilotUniqueApplicationNumber: string;
   pilotCaseInfo: ICaseItemType | null;
   pilotWorkflowInfo: IWorkflowType | null;
   pilotRefreshTS?: number;

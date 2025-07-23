@@ -80,7 +80,7 @@ function PurePanelPilot(props: PanelPanelPilotProps) {
                     className="h-9 flex-1"
                     onClick={handleBtnExtensionStartClick}
                   >
-                    <IconExtensionStart />
+                    <IconExtensionStart size={20} />
                     <span className="font-bold">Start auto-fill</span>
                   </Button>
                 ) : (

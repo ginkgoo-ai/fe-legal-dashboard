@@ -1,21 +1,20 @@
 'use client';
 
-import { PilotStepBodyNormalInterrupt } from '@/components/case/pilotStepBodyNormalInterrupt';
-import { PilotStepBodyNormalStep } from '@/components/case/pilotStepBodyNormalStep';
-import { IActionItemType } from '@/types/case';
+import { Button } from '@/components/ui/button';
 import { IWorkflowStepDataFormDataType, IWorkflowStepType } from '@/types/casePilot';
-import { memo, useEffect, useState } from 'react';
+import { memo, MouseEventHandler, useEffect, useState } from 'react';
 
 interface PilotStepBodyNormalProps {
   itemStep: IWorkflowStepType;
-  indexStep: number;
-  onContinueFilling: (params: { actionlistPre: IActionItemType[] }) => void;
+  // indexStep: number;
+  // onContinueFilling: (params: { actionlistPre: IActionItemType[] }) => void;
+  onBtnProceedToFormClick: MouseEventHandler<HTMLButtonElement>;
 }
 
 function PurePilotStepBodyNormal(props: PilotStepBodyNormalProps) {
-  const { itemStep, indexStep, onContinueFilling } = props;
+  const { itemStep, onBtnProceedToFormClick } = props;
 
-  const [formDataNormalStep] = useState<IWorkflowStepDataFormDataType[]>([]);
+  // const [formDataNormalStep] = useState<IWorkflowStepDataFormDataType[]>([]);
   const [formDataNormalInterrupt, setFormDataNormalInterrupt] = useState<
     IWorkflowStepDataFormDataType[]
   >([]);
@@ -38,17 +37,24 @@ function PurePilotStepBodyNormal(props: PilotStepBodyNormalProps) {
 
   return (
     <div className="flex flex-col">
-      <PilotStepBodyNormalStep
+      {/* <PilotStepBodyNormalStep
         formDataNormal={formDataNormalStep}
         indexStep={indexStep}
-      />
+      /> */}
       {formDataNormalInterrupt.length > 0 ? (
-        <PilotStepBodyNormalInterrupt
-          formDataNormal={formDataNormalInterrupt}
-          stepKey={itemStep.step_key}
-          indexStep={indexStep}
-          onContinueFilling={onContinueFilling}
-        />
+        // <PilotStepBodyNormalInterrupt
+        //   formDataNormal={formDataNormalInterrupt}
+        //   stepKey={itemStep.step_key}
+        //   indexStep={indexStep}
+        //   onContinueFilling={onContinueFilling}
+        // />
+        <Button
+          variant="ghost"
+          className="border-primary -mt-4 h-9 w-full border border-solid"
+          onClick={onBtnProceedToFormClick}
+        >
+          <span className="text-primary truncate">Proceed to Form</span>
+        </Button>
       ) : null}
     </div>
   );

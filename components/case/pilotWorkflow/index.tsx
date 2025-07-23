@@ -45,10 +45,11 @@ function PurePilotWorkflow(props: PilotWorkflowProps) {
     pilotInfoCurrent?.pilotWorkflowInfo?.workflow_instance_id,
   ]);
 
-  // TODO: isShowBtnContinue
   const isShowBtnContinue = useMemo(() => {
     return (
-      !!pilotInfo?.pilotTabInfo?.id && pilotInfo?.pilotStatus === PilotStatusEnum.HOLD
+      pilotInfo?.pilotStatus === PilotStatusEnum.HOLD &&
+      (!!pilotInfo?.pilotWorkflowInfo?.unique_application_number ||
+        !!pilotInfo?.pilotTabInfo?.id)
     );
   }, [pilotInfo]);
 
@@ -56,14 +57,14 @@ function PurePilotWorkflow(props: PilotWorkflowProps) {
     return !pilotInfo?.pilotWorkflowInfo?.progress_file_id;
   }, [pilotInfo?.pilotWorkflowInfo?.progress_file_id]);
 
-  const workflowUpdateTime = useMemo(() => {
-    return pilotInfo?.pilotWorkflowInfo?.updated_at
+  const workflowCreateTime = useMemo(() => {
+    return pilotInfo?.pilotWorkflowInfo?.created_at
       ? dayjs
-          .utc(pilotInfo?.pilotWorkflowInfo?.updated_at)
+          .utc(pilotInfo?.pilotWorkflowInfo?.created_at)
           .local()
           .format('MMM DD, YYYY HH: mm')
       : '';
-  }, [pilotInfo?.pilotWorkflowInfo?.updated_at]);
+  }, [pilotInfo?.pilotWorkflowInfo?.created_at]);
 
   useEffect(() => {
     if (isCurrentPilot) {
@@ -90,6 +91,7 @@ function PurePilotWorkflow(props: PilotWorkflowProps) {
             pilotThirdPartMethod: '',
             pilotCookie: '',
             pilotCsrfToken: '',
+            pilotUniqueApplicationNumber: '',
             pilotCaseInfo: caseInfo,
             pilotWorkflowInfo: workflowInfo,
           };
@@ -165,6 +167,7 @@ function PurePilotWorkflow(props: PilotWorkflowProps) {
           pilotThirdPartMethod: '',
           pilotCookie: '',
           pilotCsrfToken: '',
+          pilotUniqueApplicationNumber: '',
           pilotCaseInfo: caseInfo,
           pilotWorkflowInfo: resWorkflowDetail,
         };
@@ -263,7 +266,7 @@ function PurePilotWorkflow(props: PilotWorkflowProps) {
                   </span>
                 </div>
                 <div className="w-full truncate text-sm font-bold text-[#2665FF]">
-                  {workflowUpdateTime}
+                  {workflowCreateTime}
                 </div>
               </div>
               <div className="flex-[0_0_auto]">

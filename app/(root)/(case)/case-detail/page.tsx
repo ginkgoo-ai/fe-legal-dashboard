@@ -470,7 +470,6 @@ function CaseDetailContent() {
     try {
       window.postMessage({
         type: 'ginkgoo-page-all-pilot-start',
-        isNewWorkflow: true,
         caseId,
         tabIdForPage: pageTabInfo?.id,
         workflowDefinitionId,
