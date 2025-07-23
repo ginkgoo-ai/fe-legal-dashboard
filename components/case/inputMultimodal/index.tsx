@@ -113,7 +113,7 @@ function PureInputMultimodal(props: InputMultimodalProps) {
   };
 
   const actionUploadFiles = async (newFiles: IFileItemType[] = []) => {
-    for (let newFile of newFiles) {
+    for (const newFile of newFiles) {
       actionUploadFileOnly(newFile);
     }
   };
