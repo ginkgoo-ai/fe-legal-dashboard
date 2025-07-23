@@ -6,51 +6,28 @@ import {
   IconStepDeclaration,
   IconStepDot,
 } from '@/components/ui/icon';
-import { useEventManager } from '@/hooks/useEventManager';
 import { cn } from '@/lib/utils';
 import { IPilotType, IWorkflowStepType, PilotStatusEnum } from '@/types/casePilot';
 import type { CollapseProps } from 'antd';
 import { Alert, Button, Collapse, Spin } from 'antd';
 import { Check } from 'lucide-react';
-import { memo, useEffect, useState } from 'react';
+import { memo, useCallback, useEffect, useState } from 'react';
 import { PilotStepBodyNormal } from '../pilotStepBodyNormal';
 import './index.css';
 
 interface PilotStepBodyProps {
-  caseId: string;
-  pageTabInfo: Record<string, unknown>;
   pilotInfo: IPilotType | null;
-  onCollapseChange?: (key: string) => void;
 }
 
 function PurePilotStepBody(props: PilotStepBodyProps) {
   const {
-    caseId,
-    pageTabInfo,
     pilotInfo,
     // onCollapseChange,
   } = props;
 
-  const [isShowLoginTip, setShowLoginTip] = useState<boolean>(false);
   const [stepListActiveKeyBody, setStepListActiveKeyBody] = useState<string>('');
   const [stepListItemsBody, setStepListItemsBody] = useState<CollapseProps['items']>([]);
   // const [percent, setPercent] = useState(0);
-
-  useEventManager('ginkgoo-extensions', message => {
-    const { type: typeMsg } = message;
-
-    switch (typeMsg) {
-      case 'ginkgoo-background-all-auth-check': {
-        const { value: valueMsg } = message;
-
-        setShowLoginTip(!valueMsg);
-        break;
-      }
-      default: {
-        break;
-      }
-    }
-  });
 
   // const handleContinueFilling = useCallback(
   //   (params: { actionlistPre: IActionItemType[] }) => {
@@ -85,7 +62,7 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
   //   ]
   // );
 
-  const handleBtnProceedToFormClick = () => {
+  const handleBtnProceedToFormClick = useCallback(() => {
     if (!!pilotInfo?.pilotTabInfo?.id) {
       const messageJump = {
         type: 'ginkgoo-page-background-tab-update',
@@ -102,7 +79,7 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
       };
       window.postMessage(messageOpenSidepanel, window.location.origin);
     }
-  };
+  }, [pilotInfo?.pilotTabInfo?.id]);
 
   // update collapse
   useEffect(() => {
@@ -161,7 +138,7 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
       );
     };
 
-    const renderStepChildren = (itemStep: IWorkflowStepType, indexStep: number) => {
+    const renderStepChildren = (itemStep: IWorkflowStepType) => {
       return (
         <div className="border-bottom">
           <PilotStepBodyNormal
@@ -178,7 +155,7 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
           key: itemStep.step_key,
           label: renderStepLabel(itemStep, indexStep),
           showArrow: false,
-          children: renderStepChildren(itemStep, indexStep),
+          children: renderStepChildren(itemStep),
         };
       })
     );

@@ -286,13 +286,7 @@ function PurePilotWorkflow(props: PilotWorkflowProps) {
               />
             ) : null}
 
-            {!isFold ? (
-              <PilotStepBody
-                caseId={caseInfo?.id || ''}
-                pageTabInfo={pageTabInfo}
-                pilotInfo={pilotInfo}
-              />
-            ) : null}
+            {!isFold ? <PilotStepBody pilotInfo={pilotInfo} /> : null}
 
             <div className="flex flex-row justify-between items-center gap-2 w-full">
               <Button
