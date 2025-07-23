@@ -15,7 +15,7 @@ import {
   IWorkflowType,
 } from '@/types/casePilot';
 import { IMarkDocumentValid } from '@/types/document';
-import { IFilesPDFHighlightParamsType } from '@/types/file';
+import { ICaseDocumentType, IFilesPDFHighlightParamsType } from '@/types/file';
 import ApiRequest from '../axios';
 import {
   mockCaseCreate,
@@ -308,13 +308,15 @@ export const uploadDocument = async (params: {
 
 export const uploadDocumentOnlyUpload = async (params: {
   caseId: string;
-  files: File[];
-}): Promise<ICaseDocumentResultType> => {
-  const { caseId, files } = params || {};
+  file: File;
+}): Promise<ICaseDocumentType> => {
+  const { caseId, file } = params || {};
   const formData = new FormData();
-  files.forEach(file => {
-    formData.append('files', file);
-  });
+  // files.forEach(file => {
+  //   formData.append('files', file);
+  // });
+
+  formData.append('file', file);
 
   return ApiRequest.post(
     `${baseUrl}${DocumentsApi.uploadOnly}`.replace(':caseId', caseId),

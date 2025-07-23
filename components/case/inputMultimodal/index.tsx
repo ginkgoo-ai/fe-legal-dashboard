@@ -5,9 +5,7 @@ import { ItemFile, ItemFileModeEnum } from '@/components/common/itemFile';
 import { Button } from '@/components/ui/button';
 import { IconActionBarSend, IconActionBarUpload } from '@/components/ui/icon';
 import { MESSAGE } from '@/config/message';
-import LockManager from '@/customManager/LockManager';
 import { useEffectStrictMode } from '@/hooks/useEffectStrictMode';
-import { useEventManager } from '@/hooks/useEventManager';
 import { useStateCallback } from '@/hooks/useStateCallback';
 import { cn } from '@/lib/utils';
 import { uploadDocumentOnlyUpload } from '@/service/api/case';
@@ -67,51 +65,6 @@ function PureInputMultimodal(props: InputMultimodalProps) {
     return result;
   }, [verifyList, fileList, description]);
 
-  useEventManager('ginkgoo-sse', async message => {
-    const { type: typeMsg } = message;
-
-    switch (typeMsg) {
-      // case 'event:documentStatusUpdate': {
-      case 'event:documentUploadCompleted': {
-        const { data: dataMsg } = message || {};
-
-        const { status, documentId } = dataMsg || {};
-
-        if (!!documentId) {
-          const lockId = `lock-input-multimodal-file-list-${name}`;
-          await LockManager.acquireLock(lockId);
-
-          setFileList(
-            prev =>
-              produce(prev, draft => {
-                const indexFile = draft.findIndex(file => {
-                  return (
-                    file.documentFile?.documentId === documentId // for add
-                  );
-                });
-                if (indexFile >= 0) {
-                  draft[indexFile].status = status;
-                }
-                // else
-                // draft.push({
-                //   localId: uuid(),
-                //   status: status,
-                //   documentFile: dataMsg,
-                // });
-              }),
-            () => {
-              LockManager.releaseLock(lockId);
-            }
-          );
-        }
-        break;
-      }
-      default: {
-        break;
-      }
-    }
-  });
-
   useEffectStrictMode(() => {
     if (Number(initFileListForActionUpload?.length) > 0) {
       // console.log('===initFileListForActionUpload', initFileListForActionUpload);
@@ -119,30 +72,27 @@ function PureInputMultimodal(props: InputMultimodalProps) {
     }
   }, [initFileListForActionUpload]);
 
-  const actionUploadFile = async (newFiles: IFileItemType[]) => {
+  const actionUploadFileOnly = async (file: IFileItemType) => {
     const resUploadDocument = await uploadDocumentOnlyUpload({
       caseId,
-      files: newFiles.map(file => file.localFile!),
+      file: file.localFile!,
     });
 
-    // console.log('actionUploadFile', newFiles, resUploadDocument);
+    // console.log('actionUploadFiles', newFiles, resUploadDocument);
 
-    if (resUploadDocument?.acceptedDocuments) {
+    if (resUploadDocument?.documentId) {
       setFileList(prev =>
         produce(prev, draft => {
-          draft.forEach(file => {
-            const indexNewFile = newFiles.findIndex(
-              newFile => newFile?.localId === file?.localId
-            );
-
-            if (indexNewFile >= 0) {
-              file.status = FileStatus.UPLOADING;
-              file.documentFile = resUploadDocument?.acceptedDocuments?.[indexNewFile];
-            }
+          const currentIndex = draft.findIndex(itemPrev => {
+            return itemPrev.localId === file.localId;
           });
+
+          if (currentIndex >= 0) {
+            draft[currentIndex].status = FileStatus.UPLOAD_COMPLETED;
+            draft[currentIndex].documentFile = resUploadDocument;
+          }
         })
       );
-      // await actionOcrFile(data.cloudFiles);
     } else {
       messageAntd.open({
         type: 'error',
@@ -150,17 +100,21 @@ function PureInputMultimodal(props: InputMultimodalProps) {
       });
       setFileList(prev =>
         produce(prev, draft => {
-          draft.forEach(file => {
-            const indexNewFile = newFiles.findIndex(
-              newFile => newFile?.localId === file?.localId
-            );
-
-            if (indexNewFile >= 0) {
-              file.status = FileStatus.FAILED;
-            }
+          const currentIndex = draft.findIndex(itemPrev => {
+            return itemPrev.localId === file.localId;
           });
+
+          if (currentIndex >= 0) {
+            draft[currentIndex].status = FileStatus.UPLOAD_FAILED;
+          }
         })
       );
+    }
+  };
+
+  const actionUploadFiles = async (newFiles: IFileItemType[] = []) => {
+    for (let newFile of newFiles) {
+      actionUploadFileOnly(newFile);
     }
   };
 
@@ -182,7 +136,7 @@ function PureInputMultimodal(props: InputMultimodalProps) {
       })
     );
 
-    actionUploadFile([fileList[index]]);
+    actionUploadFiles([fileList[index]]);
   };
 
   const handleFileChange = async (files: File[]) => {
@@ -206,7 +160,7 @@ function PureInputMultimodal(props: InputMultimodalProps) {
       })
     );
 
-    await actionUploadFile(newFiles);
+    await actionUploadFiles(newFiles);
   };
 
   const handleFileError = (error: string) => {
