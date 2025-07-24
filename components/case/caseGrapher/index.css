@@ -1,0 +1,13 @@
+.conversation-message {
+  &.warning {
+    background-color: #fff4de;
+    color: #e4570c;
+  }
+  &.warning:hover {
+    background-color: #f6ebd5;
+  }
+  .message-label {
+    background-color: #e4570c;
+    color: white;
+  }
+}

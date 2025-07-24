@@ -3,15 +3,18 @@ import { Skeleton } from '@/components/ui/skeleton';
 import {
   ICaseConversationAction,
   ICaseConversationItem,
+  ICaseDocumentIssue,
+  ICaseDocumentIssueItem,
   ICaseMessageType,
 } from '@/types/case';
 import { cn } from '@/utils';
 import { isArray } from 'lodash';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, MessageCircleQuestionIcon } from 'lucide-react';
 import { HTMLAttributes, memo, useRef } from 'react';
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { SiteLogo } from '../siteLogo';
+import './index.css';
 
 const CaseActionLogWrapper = ({
   children,
@@ -50,8 +53,8 @@ const ServerLoadingLogger = () => {
       </div>
       <div className="flex flex-col gap-2 items-center justify-center">
         <Skeleton className="w-full h-6" />
-        <Skeleton className="w-full h-6 " />
-        <Skeleton className="w-full h-6 " />
+        <Skeleton className="w-full h-6" />
+        <Skeleton className="w-full h-6" />
       </div>
     </CaseActionLogWrapper>
   );
@@ -85,12 +88,15 @@ const ServerCaseLogger = (
         <>
           <div className="h-[1px] w-full border-t my-4"></div>
           <div className="w-full flex flex-col gap-2">
-            {props.documentIssues.map(({ issues, threadId }) => {
+            {props.documentIssues.map(documentIssues => {
+              const { issues, threadId } = documentIssues;
               return issues.map(issue => {
                 return issue.actions.map((action, index) => {
                   return (
                     <CaseLoggerAction
-                      {...action}
+                      action={action}
+                      issue={issue}
+                      documentIssues={documentIssues}
                       key={`${threadId}_${issue.id}_${index}`}
                       onClick={() => onActionClick(props, action)}
                     />
@@ -131,20 +137,31 @@ const ClientCaseLogger = (props: ICaseConversationItem) => {
 };
 
 const CaseLoggerAction = (
-  props: ICaseConversationAction & HTMLAttributes<HTMLDivElement>
+  props: {
+    action: ICaseConversationAction;
+    issue: ICaseDocumentIssue;
+    documentIssues: ICaseDocumentIssueItem;
+  } & HTMLAttributes<HTMLDivElement>
 ) => {
-  const { action, label, parameters, onClick } = props;
+  const { style } = props.action;
+  const { onClick, issue, documentIssues } = props;
   return (
     <div
-      className="w-full bg-orange-100 rounded-[6px] h-11 p-2 hover:bg-orange-200 hover:cursor-pointer hover:inset-shadow-2xs transition-all flex items-center gap-4"
+      className={cn(
+        'w-full conversation-message rounded-[6px] h-11 p-2 hover:cursor-pointer hover:inset-shadow-2xs transition-all flex items-center gap-4',
+        style
+      )}
       onClick={onClick}
     >
-      <div className="min-w-[113px] bg-orange-500 w-fit px-2 rounded h-full flex items-center justify-center text-white">
-        {'default'}
+      <div className="min-w-[113px] message-label w-fit px-2 rounded h-full flex items-center justify-center gap-1">
+        <MessageCircleQuestionIcon size={16} />
+        Critical
       </div>
-      <div className="text-orange-500 line-clamp-1">{label}</div>
+      <div className="line-clamp-1">
+        {documentIssues.documentName}: {documentIssues.description}
+      </div>
       <span className="flex-1"></span>
-      <ChevronRight className="text-orange-500" size={20} />
+      <ChevronRight size={20} />
     </div>
   );
 };

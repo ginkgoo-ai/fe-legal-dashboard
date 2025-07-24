@@ -258,6 +258,9 @@ export enum ICaseMessageType {
 export interface ICaseDocumentIssueItem {
   issues: ICaseDocumentIssue[];
   threadId: string;
+  documentName: string;
+  documentType: string;
+  description: string;
 }
 
 export interface ICaseDocumentIssue {
