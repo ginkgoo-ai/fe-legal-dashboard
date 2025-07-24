@@ -4,10 +4,16 @@ import { PilotStepBody } from '@/components/case/pilotStepBody';
 import { IconCompleted, IconIncompleted, IconLoading } from '@/components/ui/icon';
 import { MESSAGE } from '@/config/message';
 import UtilsManager from '@/customManager/UtilsManager';
+import { useEventManager } from '@/hooks/useEventManager';
 import { cn } from '@/lib/utils';
 import { getWorkflowDetail, postFilesPDFHighlight } from '@/service/api/case';
 import { ICaseItemType } from '@/types/case';
-import { IPilotType, IWorkflowType, PilotStatusEnum } from '@/types/casePilot';
+import {
+  IPilotType,
+  IWorkflowType,
+  PilotStatusEnum,
+  PilotThirdPartTypeEnum,
+} from '@/types/casePilot';
 import { Button, Card, message as messageAntd, Progress } from 'antd';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
@@ -66,6 +72,27 @@ function PurePilotWorkflow(props: PilotWorkflowProps) {
       : '';
   }, [pilotInfo?.pilotWorkflowInfo?.created_at]);
 
+  useEventManager('ginkgoo-extensions', message => {
+    const { type: typeMsg } = message;
+
+    switch (typeMsg) {
+      case 'ginkgoo-background-all-pilot-query': {
+        const { pilotInfo: pilotInfoMsg } = message;
+
+        if (
+          pilotInfoMsg?.pilotWorkflowInfo?.workflow_instance_id ===
+          workflowInfo?.workflow_instance_id
+        ) {
+          setPilotInfo(pilotInfoMsg);
+        }
+        break;
+      }
+      default: {
+        break;
+      }
+    }
+  });
+
   useEffect(() => {
     if (isCurrentPilot) {
       setPilotInfo(pilotInfoCurrent);
@@ -87,8 +114,9 @@ function PurePilotWorkflow(props: PilotWorkflowProps) {
             pilotLastMessage: '',
             pilotRepeatHash: '',
             pilotRepeatCurrent: 0,
-            pilotThirdPartUrl: '',
+            pilotThirdPartType: PilotThirdPartTypeEnum.NONE,
             pilotThirdPartMethod: '',
+            pilotThirdPartUrl: '',
             pilotCookie: '',
             pilotCsrfToken: '',
             pilotUniqueApplicationNumber: '',
@@ -136,6 +164,15 @@ function PurePilotWorkflow(props: PilotWorkflowProps) {
     }
   }, [pilotInfo, isCurrentPilot, indexKey]);
 
+  useEffect(() => {
+    if (workflowInfo?.workflow_instance_id) {
+      window.postMessage({
+        type: 'ginkgoo-page-background-pilot-query',
+        workflowId: workflowInfo?.workflow_instance_id,
+      });
+    }
+  }, [workflowInfo?.workflow_instance_id]);
+
   const handleQueryWorkflowDetail = async () => {
     const resWorkflowDetail = await getWorkflowDetail({
       workflowId: workflowInfo.workflow_instance_id,
@@ -163,8 +200,9 @@ function PurePilotWorkflow(props: PilotWorkflowProps) {
           pilotLastMessage: '',
           pilotRepeatHash: '',
           pilotRepeatCurrent: 0,
-          pilotThirdPartUrl: '',
+          pilotThirdPartType: PilotThirdPartTypeEnum.NONE,
           pilotThirdPartMethod: '',
+          pilotThirdPartUrl: '',
           pilotCookie: '',
           pilotCsrfToken: '',
           pilotUniqueApplicationNumber: '',

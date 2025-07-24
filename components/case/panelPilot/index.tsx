@@ -141,11 +141,11 @@ function PurePanelPilot(props: PanelPanelPilotProps) {
                   {workflowList.map((itemWorkflow, indexWorkflow) => {
                     return (
                       <PilotWorkflow
-                        key={`workflow-item-${indexWorkflow}`}
+                        key={`workflow-item-${indexWorkflow}-${itemWorkflow?.workflow_instance_id}`}
                         pageTabInfo={pageTabInfo}
                         caseInfo={caseInfo}
                         workflowInfo={itemWorkflow}
-                        indexKey={`panel-pilot-workflow-${indexWorkflow}`}
+                        indexKey={`panel-pilot-workflow-${indexWorkflow}-${itemWorkflow?.workflow_instance_id}`}
                         pilotInfoCurrent={pilotInfoCurrent}
                       />
                     );

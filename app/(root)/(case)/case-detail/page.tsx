@@ -127,15 +127,8 @@ function CaseDetailContent() {
           break;
         }
 
-        if (pilotStatusMsg === PilotStatusEnum.START) {
-          refreshWorkflowList({
-            // cb: () => {
-            //   window.postMessage({
-            //     type: 'ginkgoo-page-background-pilot-query',
-            //     workflowId: workflowIdMsg,
-            //   });
-            // },
-          });
+        if (pilotStatusMsg === PilotStatusEnum.OPEN) {
+          refreshWorkflowList();
           break;
         }
 
@@ -263,13 +256,7 @@ function CaseDetailContent() {
     await refreshCaseDetail();
     getProfileVaultSchema();
     refreshWorkflowDefinitions();
-    refreshWorkflowList({
-      cb: () => {
-        window.postMessage({
-          type: 'ginkgoo-page-background-pilot-query',
-        });
-      },
-    });
+    refreshWorkflowList();
 
     const regCaseStream = async () => {
       try {
