@@ -410,7 +410,7 @@ function CaseDetailContent() {
   const handleActionBarSizeChange = debounce((size: DOMRectReadOnly) => {
     const { height } = size || {};
     // 只在高度变化时才 setPBSummary
-    console.log('handleActionBarSizeChange', size, height);
+    // console.log('handleActionBarSizeChange', size, height);
     if (lastActionBarHeight.current !== height) {
       setPBSummary(height + 100);
       lastActionBarHeight.current = height;

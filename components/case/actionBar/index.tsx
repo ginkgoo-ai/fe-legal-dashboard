@@ -21,6 +21,7 @@ import {
 import { MESSAGE } from '@/config/message';
 import GlobalManager from '@/customManager/GlobalManager';
 import UtilsManager from '@/customManager/UtilsManager';
+import { useEventManager } from '@/hooks/useEventManager';
 import { cn } from '@/lib/utils';
 import { processDocument } from '@/service/api/case';
 import { useExtensionsStore } from '@/store/extensionsStore';
@@ -154,6 +155,8 @@ function PureActionBar(props: ActionBarProps) {
     ];
   }, [caseInfo]);
 
+  const { emit: emitCase } = useEventManager('ginkgoo-case', () => {});
+
   useEffect(() => {
     setTypeCustomDropdownMenu(TypeCustomDropdownMenuEnum.NONE);
     setShowDropdownMenuDraftEmailChild(false);
@@ -281,6 +284,11 @@ function PureActionBar(props: ActionBarProps) {
 
     if (resProcessDocument?.acceptedDocuments) {
       setTypeActionBar(TypeActionBarEnum.INIT);
+      emitCase({
+        type: 'update-case-reference-change',
+        description,
+        acceptedDocuments: resProcessDocument?.acceptedDocuments,
+      });
       return;
     }
 
