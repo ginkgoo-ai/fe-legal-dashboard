@@ -1,19 +1,15 @@
 import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
-import { useEventManager } from '@/hooks/useEventManager';
-import { getHistoryConversation } from '@/service/api';
 import {
   ICaseConversationAction,
   ICaseConversationItem,
   ICaseItemType,
-  ICasePagination,
 } from '@/types/case';
 import { cn } from '@/utils';
 import { Splitter } from 'antd';
 import { X } from 'lucide-react';
-import { HTMLAttributes, useCallback, useEffect, useRef, useState } from 'react';
-import { CaseGrapher } from '../caseGrapher';
+import { HTMLAttributes, useEffect, useState } from 'react';
 import { PanelProfileVaultDashboard } from '../panelProfileVaultDashboard';
+import { MainGrapherGround } from './mainGrapherGround';
 
 type CaseGrapherGroundProps = {
   caseInfo: ICaseItemType;
@@ -22,61 +18,27 @@ type CaseGrapherGroundProps = {
 
 export const CaseGrapherGround = (props: CaseGrapherGroundProps) => {
   const { caseInfo, bottomPadding } = props;
+
+  // 右侧面板状态
   const [sizeRightPanel, setSizeRightPanel] = useState<string | number>('0%');
   const [sizeLeftPanel, setSizeLeftPanel] = useState<string | number>('100%');
   const [pandelGap, setPanelGap] = useState('0px');
-  const [conversations, setConversations] = useState<ICaseConversationItem[]>([]);
-  const [conversationPagination, setConversationPagination] =
-    useState<ICasePagination | null>();
+
+  // 当前选中的对话
   const [currentConversation, setCurrentConversation] = useState<{
     message: ICaseConversationItem;
     action: ICaseConversationAction;
   } | null>(null);
-  const [loading, setLoading] = useState(true);
-  const conversationRef = useRef<HTMLDivElement>(null);
-  const loadMoreRef = useRef<HTMLDivElement>(null);
 
-  useEventManager('ginkgoo-sse', message => {
-    const { type, data } = message;
-
-    switch (type) {
-      case 'event:conversationMessage':
-        pushMessage(data);
-        break;
-    }
-  });
-
-  const getConversations = useCallback(async () => {
-    setLoading(true);
-    const res = await getHistoryConversation(caseInfo!.id, { page: 0, size: 50 });
-    if (res?.messages) {
-      setConversations(res.messages);
-    }
-    if (res?.pagination) {
-      setConversationPagination(res.pagination);
-    }
-    setLoading(false);
-  }, [caseInfo]);
-
-  useEffect(() => {
-    if (caseInfo?.id) {
-      getConversations();
-      setTimeout(() => {
-        const lastConversationNode = conversationRef.current?.lastChild as HTMLDivElement;
-        lastConversationNode?.scrollIntoView({ behavior: 'smooth' });
-      }, 1000);
-    }
-  }, [caseInfo, getConversations]);
-
+  // 处理消息操作
   const handleMessageAction = (params: {
     message: ICaseConversationItem;
     action: ICaseConversationAction;
   }) => {
-    if (params) {
-      setCurrentConversation(params);
-    }
+    setCurrentConversation(params);
   };
 
+  // 处理右侧面板显示/隐藏
   useEffect(() => {
     if (currentConversation) {
       setSizeLeftPanel('50%');
@@ -89,20 +51,10 @@ export const CaseGrapherGround = (props: CaseGrapherGroundProps) => {
     }
   }, [currentConversation]);
 
-  const pushMessage = (message: ICaseConversationItem) => {
-    if (!message) {
-      return;
-    }
-    setConversations(prev => [...prev, message]);
-    setTimeout(() => {
-      const lastConversationNode = conversationRef.current?.lastChild as HTMLDivElement;
-      lastConversationNode?.scrollIntoView({ behavior: 'smooth' });
-    }, 1000);
-  };
-
   return (
     <div className={cn('w-full h-full flex flex-col gap-4 pb-8', props.className)}>
       <PanelProfileVaultDashboard caseInfo={props.caseInfo} />
+
       <div className="h-[calc(100%_-_98px)]">
         <Splitter
           lazy={false}
@@ -110,53 +62,23 @@ export const CaseGrapherGround = (props: CaseGrapherGroundProps) => {
             gap: pandelGap,
           }}
         >
+          {/* 左侧消息面板 */}
           <Splitter.Panel
             resizable={false}
             size={sizeLeftPanel}
-            className={cn(
-              'relative rounded flex-col flex h-full transition-all duration-200'
-            )}
+            className={cn('relative rounded flex-col flex h-full transition-all')}
           >
-            <div className="h-full overflow-auto scroll-smooth">
-              <div
-                className="flex flex-col gap-4"
-                style={{
-                  paddingBottom: `${bottomPadding ?? 0}px`,
-                }}
-              >
-                <div className="flex flex-col gap-4" ref={conversationRef}>
-                  {!conversationPagination?.hasNext && (
-                    <div
-                      ref={loadMoreRef}
-                      className="w-full text-gray-300 text-center text-sm"
-                    >
-                      -- load more messages --
-                    </div>
-                  )}
-                  {conversations.map(con => {
-                    return (
-                      <CaseGrapher
-                        data={con}
-                        key={con.id}
-                        onActionEmit={handleMessageAction}
-                      />
-                    );
-                  })}
-                </div>
-                {loading && (
-                  <>
-                    {Array.from({ length: 3 }).map((_, i) => (
-                      <Skeleton
-                        className="h-[120px] bg-gray-300 dark:bg-gray-600 w-full rounded-xl"
-                        key={i}
-                      />
-                    ))}
-                  </>
-                )}
-                <div>{props.children}</div>
-              </div>
-            </div>
+            {caseInfo?.id && (
+              <MainGrapherGround
+                caseId={caseInfo.id}
+                paddingBottom={bottomPadding}
+                emitMessageAction={handleMessageAction}
+              />
+            )}
+            {props.children}
           </Splitter.Panel>
+
+          {/* 右侧详情面板 */}
           {currentConversation && (
             <Splitter.Panel
               resizable={false}
@@ -173,7 +95,9 @@ export const CaseGrapherGround = (props: CaseGrapherGroundProps) => {
                 )}
                 onCloseEmit={() => setCurrentConversation(null)}
               >
-                <div>TODO content: {currentConversation.message.content}</div>
+                <div className="whitespace-pre-wrap text-sm leading-relaxed">
+                  {currentConversation.message.content}
+                </div>
               </SecondaryGrapherContainer>
             </Splitter.Panel>
           )}
@@ -183,6 +107,7 @@ export const CaseGrapherGround = (props: CaseGrapherGroundProps) => {
   );
 };
 
+// 右侧面板容器组件
 const SecondaryGrapherContainer = ({
   title,
   onCloseEmit,
@@ -205,7 +130,7 @@ const SecondaryGrapherContainer = ({
           <X />
         </Button>
       </div>
-      <div className="p-4">{children}</div>
+      <div className="p-4 h-[calc(100%-73px)] overflow-auto">{children}</div>
     </div>
   );
 };

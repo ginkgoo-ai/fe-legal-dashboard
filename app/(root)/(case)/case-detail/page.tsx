@@ -6,7 +6,6 @@ import { ModalNewWorkflow } from '@/components/case/modalNewWorkflow';
 import { PanelPilot } from '@/components/case/panelPilot';
 import { PanelProfileVault } from '@/components/case/panelProfileVault';
 import { PanelReference } from '@/components/case/panelReference';
-import { PilotWorkflow } from '@/components/case/pilotWorkflow';
 import { TagStatus } from '@/components/case/tagStatus';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -636,7 +635,7 @@ function CaseDetailContent() {
           >
             <CaseGrapherGround caseInfo={caseInfo!} bottomPadding={pbSummary}>
               {/* Test */}
-              {workflowInfoForTest ? (
+              {/* {workflowInfoForTest ? (
                 <PilotWorkflow
                   pageTabInfo={pageTabInfo}
                   caseInfo={caseInfo}
@@ -644,7 +643,7 @@ function CaseDetailContent() {
                   indexKey={`panel-summary-workflow-${0}`}
                   pilotInfoCurrent={pilotInfoCurrent}
                 />
-              ) : null}
+              ) : null} */}
 
               <ActionBar
                 caseInfo={caseInfo}

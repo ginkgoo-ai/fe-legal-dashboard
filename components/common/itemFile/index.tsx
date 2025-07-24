@@ -393,11 +393,11 @@ function PureItemFile(props: ItemFileProps) {
 
 function PureFileBlock(
   props: {
-    file: { title: string; fileType?: FileTypeEnum };
+    file: { filename: string; fileType?: FileTypeEnum };
   } & React.HTMLAttributes<HTMLDivElement>
 ) {
   const { file } = props;
-  const extension = file.title.split('.')[1];
+  const extension = file.filename?.split('.')[1];
   const fileType =
     file.fileType ?? ((extension && extMap[extension]) || FileTypeEnum.UNKNOW);
   return (
@@ -410,10 +410,10 @@ function PureFileBlock(
       <div>{getFileTypeMap({ size: 24, type: fileType })}</div>
       <Tooltip delayDuration={1500}>
         <TooltipTrigger>
-          <div className="max-w-80 truncate">{file.title}</div>
+          <div className="max-w-80 truncate">{file.filename}</div>
         </TooltipTrigger>
         <TooltipContent className="max-w-80">
-          <p className="mb-0">{file.title}</p>
+          <p className="mb-0">{file.filename}</p>
         </TooltipContent>
       </Tooltip>
     </div>

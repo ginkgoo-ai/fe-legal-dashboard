@@ -1,6 +1,7 @@
 import { FileBlock } from '@/components/common/itemFile';
 import { ICaseConversationAction, ICaseConversationItem } from '@/types/case';
 import { cn } from '@/utils';
+import { isArray } from 'lodash';
 import { ChevronRight } from 'lucide-react';
 import { HTMLAttributes, memo, useRef } from 'react';
 import Markdown from 'react-markdown';
@@ -11,11 +12,11 @@ const CaseActionLogWrapper = ({
   children,
   type,
   className,
+  ...props
 }: {
   children: React.ReactNode;
   type: 'server' | 'client';
-  className?: string;
-}) => {
+} & HTMLAttributes<HTMLDivElement>) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const isServerType = type === 'server';
 
@@ -29,6 +30,7 @@ const CaseActionLogWrapper = ({
           : 'bg-[#EFEFEF] dark:bg-primary-gray self-end max-w-[95%]',
         className
       )}
+      {...props}
     >
       <div className={cn('w-full gap-2 flex-col')}>{children}</div>
     </div>
@@ -51,7 +53,7 @@ const ServerCaseLogger = (
   };
 
   return (
-    <CaseActionLogWrapper type="server">
+    <CaseActionLogWrapper type="server" data-message-id={props.id}>
       <div className="mb-2">
         <SiteLogo size={24} className="text-primary-dark" />
       </div>
@@ -78,8 +80,13 @@ const ServerCaseLogger = (
 
 const ClientCaseLogger = (props: ICaseConversationItem) => {
   const { metadata } = props;
+  const list: any[] = isArray(metadata?.attachments)
+    ? metadata?.attachments
+    : isArray(metadata?.attachments?.files)
+      ? metadata?.attachments?.files
+      : [];
   return (
-    <CaseActionLogWrapper type="client" className="w-fit">
+    <CaseActionLogWrapper type="client" className="w-fit" data-message-id={props.id}>
       {props.content && (
         <div className="mb-4 text-[#1B2559]">
           <Markdown remarkPlugins={[remarkGfm]}>{props.content}</Markdown>
@@ -87,8 +94,8 @@ const ClientCaseLogger = (props: ICaseConversationItem) => {
       )}
       <div className="w-full overflow-y-auto">
         <div className="flex items-center gap-4">
-          {((metadata?.attachments?.files as Array<string>) ?? [])?.map((doc, index) => (
-            <FileBlock key={index} file={{ title: doc }} />
+          {list.map((attachment, index) => (
+            <FileBlock key={index} file={attachment} />
           ))}
         </div>
       </div>
@@ -102,15 +109,15 @@ const CaseLoggerAction = (
   const { action, label, parameters, onClick } = props;
   return (
     <div
-      className="w-full bg-slate-100 dark:bg-slate-700 dark:hover:bg-slate-500 rounded-[6px] h-11 p-2 hover:bg-slate-200 hover:cursor-pointer transition-all flex items-center gap-4"
+      className="w-full bg-orange-100 rounded-[6px] h-11 p-2 hover:bg-orange-200 hover:cursor-pointer hover:inset-shadow-2xs transition-all flex items-center gap-4"
       onClick={onClick}
     >
-      <div className="min-w-[113px] bg-slate-300 dark:bg-slate-500 w-fit px-2 rounded h-full flex items-center justify-center">
+      <div className="min-w-[113px] bg-orange-500 w-fit px-2 rounded h-full flex items-center justify-center text-white">
         {'default'}
       </div>
-      <div className="text-slate-500 line-clamp-1">{label}</div>
+      <div className="text-orange-500 line-clamp-1">{label}</div>
       <span className="flex-1"></span>
-      <ChevronRight className="text-slate-500" size={20} />
+      <ChevronRight className="text-orange-500" size={20} />
     </div>
   );
 };
