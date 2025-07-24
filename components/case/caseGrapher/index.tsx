@@ -148,7 +148,7 @@ const CaseLoggerAction = (
   return (
     <div
       className={cn(
-        'w-full conversation-message rounded-[6px] h-11 p-2 hover:cursor-pointer hover:inset-shadow-2xs transition-all flex items-center gap-4',
+        'w-full conversation-message rounded-[6px] h-11 p-2 hover:cursor-pointer transition-all flex items-center gap-4',
         style
       )}
       onClick={onClick}
