@@ -238,7 +238,7 @@ export interface ICaseConversationItem {
   icon: string;
   id: string;
   isRead: boolean;
-  messageType: 'ASSISTANT' | 'USER';
+  messageType: ICaseMessageType; // CLIENT_WAITING_SERVER, defined by client.
   metadata: Record<string, any>;
   progress: unknown;
   requiresUserInteraction: boolean;
@@ -246,6 +246,24 @@ export interface ICaseConversationItem {
   threadId: string;
   title: string;
   updatedAt: string;
+  documentIssues: ICaseDocumentIssueItem[];
+}
+
+export enum ICaseMessageType {
+  ASSISTANT = 'ASSISTANT',
+  USER = 'USER',
+  CLIENT_WAITING_SERVER = 'CLIENT_WAITING_SERVER',
+}
+
+export interface ICaseDocumentIssueItem {
+  issues: ICaseDocumentIssue[];
+  threadId: string;
+}
+
+export interface ICaseDocumentIssue {
+  actions: ICaseConversationAction[];
+  context: string;
+  id: string;
 }
 
 export interface ICaseConversationAction {

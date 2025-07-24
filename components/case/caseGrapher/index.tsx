@@ -1,5 +1,10 @@
 import { FileBlock } from '@/components/common/itemFile';
-import { ICaseConversationAction, ICaseConversationItem } from '@/types/case';
+import { Skeleton } from '@/components/ui/skeleton';
+import {
+  ICaseConversationAction,
+  ICaseConversationItem,
+  ICaseMessageType,
+} from '@/types/case';
 import { cn } from '@/utils';
 import { isArray } from 'lodash';
 import { ChevronRight } from 'lucide-react';
@@ -37,6 +42,21 @@ const CaseActionLogWrapper = ({
   );
 };
 
+const ServerLoadingLogger = () => {
+  return (
+    <CaseActionLogWrapper type="server">
+      <div className="mb-2">
+        <SiteLogo size={24} className="text-primary-dark" />
+      </div>
+      <div className="flex flex-col gap-2 items-center justify-center">
+        <Skeleton className="w-full h-6" />
+        <Skeleton className="w-full h-6 " />
+        <Skeleton className="w-full h-6 " />
+      </div>
+    </CaseActionLogWrapper>
+  );
+};
+
 const ServerCaseLogger = (
   props: ICaseConversationItem & {
     onActionEmit?: (params: {
@@ -58,19 +78,26 @@ const ServerCaseLogger = (
         <SiteLogo size={24} className="text-primary-dark" />
       </div>
       <div className="dark:text-foreground text-[#1B2559]">
+        <Markdown remarkPlugins={[remarkGfm]}>{props.title}</Markdown>
         <Markdown remarkPlugins={[remarkGfm]}>{props.content}</Markdown>
       </div>
-      {props.actions?.length > 0 && (
+      {props.documentIssues?.length > 0 && (
         <>
           <div className="h-[1px] w-full border-t my-4"></div>
           <div className="w-full flex flex-col gap-2">
-            {props.actions.map((action, index) => (
-              <CaseLoggerAction
-                {...action}
-                key={index}
-                onClick={() => onActionClick(props, action)}
-              />
-            ))}
+            {props.documentIssues.map(({ issues, threadId }) => {
+              return issues.map(issue => {
+                return issue.actions.map((action, index) => {
+                  return (
+                    <CaseLoggerAction
+                      {...action}
+                      key={`${threadId}_${issue.id}_${index}`}
+                      onClick={() => onActionClick(props, action)}
+                    />
+                  );
+                });
+              });
+            })}
           </div>
         </>
       )}
@@ -133,8 +160,11 @@ const PureCaseGrapher = ({
   }) => void;
 }) => {
   const { messageType } = data;
-  if (messageType === 'ASSISTANT') {
+  if (messageType === ICaseMessageType.ASSISTANT) {
     return <ServerCaseLogger {...data} onActionEmit={onActionEmit} />;
+  }
+  if (messageType === ICaseMessageType.CLIENT_WAITING_SERVER) {
+    return <ServerLoadingLogger />;
   }
   return <ClientCaseLogger {...data} />;
 };

@@ -1,8 +1,10 @@
 import { useEventManager } from '@/hooks/useEventManager';
 import { getHistoryConversation } from '@/service/api';
-import { ICaseConversationItem, ICasePagination } from '@/types/case';
+import { ICaseConversationItem, ICaseMessageType, ICasePagination } from '@/types/case';
+import { ICaseDocumentType } from '@/types/file';
 import { Loader2 } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { v4 as uuidv4 } from 'uuid';
 import { CaseGrapher } from '../caseGrapher';
 
 type MainGrapherGroundProps = {
@@ -46,6 +48,19 @@ export const MainGrapherGround = ({
     }
   });
 
+  useEventManager('ginkgoo-case', async message => {
+    const { type: typeMsg } = message || {};
+
+    switch (typeMsg) {
+      case 'update-case-reference-change':
+        addClientMessage(message);
+        setTimeout(() => {
+          bottomLineRef.current?.scrollIntoView();
+        }, 200);
+        break;
+    }
+  });
+
   const handleMessageAction = (event: any) => {
     if (emitMessageAction) {
       emitMessageAction(event);
@@ -53,7 +68,45 @@ export const MainGrapherGround = ({
   };
 
   const addMessage = (message: ICaseConversationItem) => {
-    setMessages(prev => [...prev, message]);
+    setMessages(prev =>
+      [...prev, { ...message, id: message.id ?? uuidv4() }].filter(
+        item => item.messageType !== ICaseMessageType.CLIENT_WAITING_SERVER
+      )
+    );
+  };
+
+  const addClientMessage = (message: {
+    acceptedDocuments: ICaseDocumentType[];
+    description: string;
+    type: string;
+  }) => {
+    const { acceptedDocuments, description, type } = message;
+    if (type !== 'update-case-reference-change') {
+      return;
+    }
+    const newMessage = {
+      id: uuidv4(),
+      messageType: 'USER',
+      content: description,
+      metadata: {
+        attachments: acceptedDocuments,
+      },
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    } as unknown as ICaseConversationItem;
+    setMessages(prev => [...prev, newMessage]);
+    addLoadingMessage();
+  };
+
+  const addLoadingMessage = () => {
+    const loadingMessage = {
+      id: 'waitingMessage',
+      messageType: 'CLIENT_WAITING_SERVER',
+      content: '',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    } as unknown as ICaseConversationItem;
+    setMessages(prev => [...prev, loadingMessage]);
   };
 
   const fetchMessages = useCallback(
