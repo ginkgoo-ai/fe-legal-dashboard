@@ -144,7 +144,7 @@ const CaseLoggerAction = (
   } & HTMLAttributes<HTMLDivElement>
 ) => {
   const { style } = props.action;
-  const { onClick, issue, documentIssues } = props;
+  const { onClick, documentIssues } = props;
   return (
     <div
       className={cn(

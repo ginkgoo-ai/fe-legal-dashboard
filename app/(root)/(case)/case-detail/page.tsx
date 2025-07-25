@@ -43,7 +43,7 @@ import Breadcrumb, { ItemType } from 'antd/es/breadcrumb/Breadcrumb';
 import { debounce } from 'lodash';
 import { Dot } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
-import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
 import './index.css';
 
 enum TypeRightPanelEnum {
@@ -87,12 +87,12 @@ function CaseDetailContent() {
   const [isLoadingQueryWorkflowList, setLoadingQueryWorkflowList] =
     useState<boolean>(true);
 
-  const workflowInfoForTest = useMemo(() => {
-    const workflowId = workflowList[0]?.workflow_instance_id; // replace real workflow id
-    return workflowList.find(item => {
-      return item.workflow_instance_id === workflowId;
-    });
-  }, [workflowList]);
+  // const workflowInfoForTest = useMemo(() => {
+  //   const workflowId = workflowList[0]?.workflow_instance_id; // replace real workflow id
+  //   return workflowList.find(item => {
+  //     return item.workflow_instance_id === workflowId;
+  //   });
+  // }, [workflowList]);
 
   const { extensionsInfo } = useExtensionsStore();
 
