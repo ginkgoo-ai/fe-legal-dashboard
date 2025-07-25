@@ -3,10 +3,10 @@ class GlobalManager {
   static instance: null | GlobalManager = null;
 
   siteName = 'Xeni';
-  siteDescription = 'Ginkgoo.Legal';
-  versionExtension = '0.1.14';
+  siteDescription = 'Xeni.Legal';
+  versionExtension = '0.2.0';
   urlInstallExtension =
-    'https://github.com/ginkgoo-ai/fe-chrome-extensions/releases/download/v0.1.14/fe-chrome-extensions_20250715082359.zip';
+    'https://github.com/ginkgoo-ai/fe-chrome-extensions/releases/download/v0.2.0/fe-chrome-extensions_20250725023945.zip';
 
   static getInstance() {
     if (!this.instance) {

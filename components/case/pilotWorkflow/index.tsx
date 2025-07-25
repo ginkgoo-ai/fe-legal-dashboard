@@ -38,6 +38,7 @@ function PurePilotWorkflow(props: PilotWorkflowProps) {
   const isFoldInit = useRef<boolean>(true);
 
   const [isFold, setFold] = useState<boolean>(true);
+  const [isLoadingContinue, setLoadingContinue] = useState<boolean>(false);
   const [isLoadingDownload, setLoadingDownload] = useState<boolean>(false);
   const [pilotInfo, setPilotInfo] = useState<IPilotType | null>(null);
 
@@ -94,6 +95,10 @@ function PurePilotWorkflow(props: PilotWorkflowProps) {
   });
 
   useEffect(() => {
+    if (pilotInfoCurrent?.pilotStatus !== PilotStatusEnum.HOLD) {
+      setLoadingContinue(false);
+    }
+
     if (isCurrentPilot) {
       setPilotInfo(pilotInfoCurrent);
     } else {
@@ -252,6 +257,7 @@ function PurePilotWorkflow(props: PilotWorkflowProps) {
   };
 
   const handleBtnContinueClick = () => {
+    setLoadingContinue(true);
     window.postMessage({
       type: 'ginkgoo-page-all-pilot-start',
       workflowId: workflowInfo?.workflow_instance_id || '',
@@ -346,6 +352,7 @@ function PurePilotWorkflow(props: PilotWorkflowProps) {
                   id={`pilot-item-btn-continue-${indexKey}`}
                   type="default"
                   className="flex-1 w-0"
+                  loading={isLoadingContinue}
                   onClick={handleBtnContinueClick}
                 >
                   <Play size={20} />
