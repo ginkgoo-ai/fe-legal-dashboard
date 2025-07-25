@@ -135,8 +135,8 @@ const Header = (props: { className?: string }) => {
           <Image
             src={
               resolvedTheme === 'dark'
-                ? '/png/Logo_White_BLue_High.png'
-                : '/png/Logo_Black_BLue_High.png'
+                ? '/PNG/Logo_White_BLue_High.png'
+                : '/PNG/Logo_Black_BLue_High.png'
             }
             className="h-full w-auto"
             alt="Logo"
