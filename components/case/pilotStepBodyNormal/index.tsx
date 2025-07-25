@@ -50,7 +50,7 @@ function PurePilotStepBodyNormal(props: PilotStepBodyNormalProps) {
         // />
         <Button
           variant="ghost"
-          className="border-primary -mt-4 h-9 w-full border border-solid"
+          className="border-primary h-9 w-full border border-solid"
           onClick={onBtnProceedToFormClick}
         >
           <span className="text-primary truncate">Proceed to Form</span>
