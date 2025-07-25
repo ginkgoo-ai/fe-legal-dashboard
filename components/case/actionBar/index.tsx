@@ -23,7 +23,7 @@ import GlobalManager from '@/customManager/GlobalManager';
 import UtilsManager from '@/customManager/UtilsManager';
 import { useEventManager } from '@/hooks/useEventManager';
 import { cn } from '@/lib/utils';
-import { processDocument } from '@/service/api/case';
+import { createEmailDraft, processDocument } from '@/service/api/case';
 import { useExtensionsStore } from '@/store/extensionsStore';
 import { ICaseItemType } from '@/types/case';
 import { IPilotType, PilotStatusEnum } from '@/types/casePilot';
@@ -298,6 +298,45 @@ function PureActionBar(props: ActionBarProps) {
     });
   };
 
+  const handleDraftEmailMissInfoBtnSendClick = async () => {
+    console.log(
+      'handleDraftEmailMissInfoBtnSendClick draftEmailMissInfoList',
+      draftEmailMissInfoList
+    );
+
+    setLoadingBtnSend(true);
+
+    const resCreateEmailDrafts = await createEmailDraft({
+      caseId: caseInfo?.id || '',
+      emailType: 'missing_documents',
+    });
+
+    setLoadingBtnSend(false);
+
+    console.log(
+      'handleDraftEmailMissInfoBtnSendClick resCreateEmailDrafts',
+      resCreateEmailDrafts
+    );
+  };
+
+  const handleDraftEmailPDFBtnSendClick = async () => {
+    console.log('handleDraftEmailPDFBtnSendClick draftEmailPDF', draftEmailPDF);
+
+    setLoadingBtnSend(true);
+
+    const resCreateEmailDrafts = await createEmailDraft({
+      caseId: caseInfo?.id || '',
+      emailType: 'pdf', // TODO:
+    });
+
+    setLoadingBtnSend(false);
+
+    console.log(
+      'handleDraftEmailPDFBtnSendClick resCreateEmailDrafts',
+      resCreateEmailDrafts
+    );
+  };
+
   const handleBtnDraftEmailClick = () => {
     setTypeCustomDropdownMenu(TypeCustomDropdownMenuEnum.DRAFT_EMAIL_SELECT);
   };
@@ -494,9 +533,7 @@ function PureActionBar(props: ActionBarProps) {
                 );
               }}
               renderFooter={renderActionbarDraftEmailFooter}
-              onBtnSendClick={() => {
-                console.log('renderActionbarDraftEmailMissInfo onBtnSendClick');
-              }}
+              onBtnSendClick={handleDraftEmailMissInfoBtnSendClick}
             />
           );
         }}
@@ -533,9 +570,7 @@ function PureActionBar(props: ActionBarProps) {
                 );
               }}
               renderFooter={renderActionbarDraftEmailFooter}
-              onBtnSendClick={() => {
-                console.log('renderActionbarDraftEmailPDF onBtnSendClick');
-              }}
+              onBtnSendClick={handleDraftEmailPDFBtnSendClick}
             />
           );
         }}
