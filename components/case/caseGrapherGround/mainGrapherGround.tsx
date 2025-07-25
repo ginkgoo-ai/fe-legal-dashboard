@@ -206,7 +206,6 @@ export const MainGrapherGround = ({
             className="w-full items-center flex justify-center mb-4 text-primary-gray text-sm"
             ref={sentinelRef}
           >
-            {/* {pageInfo?.hasNext ? 'Load more messages' : 'There are no more messages'} */}
             {fetching ? (
               <div className="flex items-center justify-center animate-spin">
                 <Loader2 size={24} />
