@@ -1,7 +1,7 @@
 'use client';
 
-import { FileUpload } from '@/components/common/form/upload/fileUpload';
-import { ItemFile } from '@/components/common/itemFile';
+// import { FileUpload } from '@/components/common/form/upload/fileUpload';
+import { ItemFile, ItemFileModeEnum } from '@/components/common/itemFile';
 import {
   IconFormItemClientName,
   IconFormItemLawyer,
@@ -9,15 +9,14 @@ import {
 } from '@/components/ui/icon';
 import { MESSAGE } from '@/config/message';
 import UtilsManager from '@/customManager/UtilsManager';
-import { createCase, uploadDocument } from '@/service/api/case';
+import { createCase } from '@/service/api/case';
 import { useUserStore } from '@/store/userStore';
-import { FileStatus, IFileItemType } from '@/types/file';
+import { IFileItemType } from '@/types/file';
 import { Button, Form, Input, message as messageAntd, Modal, Select } from 'antd';
 import { produce } from 'immer';
 import { ChevronDown } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { memo, useEffect, useState } from 'react';
-import { v4 as uuid } from 'uuid';
 
 interface ModalCreateCaseProps {
   isOpen: boolean;
@@ -79,59 +78,59 @@ function PureModalCreateCase(props: ModalCreateCaseProps) {
 
     // console.log('handleFormFinish', resCreateCase, document);
 
-    const newFiles = fileList.map((file: IFileItemType) => ({
-      localId: uuid(),
-      status: FileStatus.UPLOADING,
-      localFile: file.localFile,
-    }));
-    const resUploadDocument = await uploadDocument({
-      caseId: resCreateCase.id,
-      files: newFiles.map((file: IFileItemType) => file.localFile!),
-    });
+    // const newFiles = fileList.map((file: IFileItemType) => ({
+    //   localId: uuid(),
+    //   status: FileStatus.UPLOADING,
+    //   localFile: file.localFile,
+    // }));
+    // const resUploadDocument = await uploadDocument({
+    //   caseId: resCreateCase.id,
+    //   files: newFiles.map((file: IFileItemType) => file.localFile!),
+    // });
 
     setLoadingSubmit(false);
 
-    if (resUploadDocument?.acceptedDocuments) {
-      router.push(
-        UtilsManager.router2url('/case-detail', {
-          caseId: resCreateCase.id,
-        })
-      );
-    } else {
-      messageAntd.open({
-        type: 'error',
-        content: MESSAGE.TOAST_UPLOAD_FILE_FAILED,
-      });
-    }
+    // if (resUploadDocument?.acceptedDocuments) {
+    router.push(
+      UtilsManager.router2url('/case-detail', {
+        caseId: resCreateCase.id,
+      })
+    );
+    // } else {
+    //   messageAntd.open({
+    //     type: 'error',
+    //     content: MESSAGE.TOAST_UPLOAD_FILE_FAILED,
+    //   });
+    // }
 
     // console.log('actionUploadFile', newFiles, resUploadDocument);
   };
 
-  const handleFileChange = (files: File[]) => {
-    if (fileList.length + files?.length > 10) {
-      messageAntd.open({
-        type: 'error',
-        content: MESSAGE.TOAST_UPLOAD_FILE_MAX,
-      });
-      return;
-    }
+  // const handleFileChange = (files: File[]) => {
+  //   if (fileList.length + files?.length > 10) {
+  //     messageAntd.open({
+  //       type: 'error',
+  //       content: MESSAGE.TOAST_UPLOAD_FILE_MAX,
+  //     });
+  //     return;
+  //   }
 
-    const newFiles = files.map(file => ({
-      localId: uuid(),
-      status: FileStatus.COMPLETED,
-      localFile: file,
-    }));
+  //   const newFiles = files.map(file => ({
+  //     localId: uuid(),
+  //     status: FileStatus.COMPLETED,
+  //     localFile: file,
+  //   }));
 
-    setFileList(prev =>
-      produce(prev, draft => {
-        draft.push(...newFiles);
-      })
-    );
-  };
+  //   setFileList(prev =>
+  //     produce(prev, draft => {
+  //       draft.push(...newFiles);
+  //     })
+  //   );
+  // };
 
-  const handleFileError = (e: any) => {
-    console.log('handleFileError', e);
-  };
+  // const handleFileError = (e: any) => {
+  //   console.log('handleFileError', e);
+  // };
 
   const handleBtnFileDeleteClick = (index: number) => {
     setFileList(prev =>
@@ -239,7 +238,7 @@ function PureModalCreateCase(props: ModalCreateCaseProps) {
           </Form.Item>
         </div> */}
 
-          <Form.Item
+          {/* <Form.Item
             className="flex-1 !mt-3"
             label=""
             name="document"
@@ -256,7 +255,7 @@ function PureModalCreateCase(props: ModalCreateCaseProps) {
               triggerText=""
               hideUploadIcon
             />
-          </Form.Item>
+          </Form.Item> */}
 
           {fileList.length > 0 ? (
             <div className="flex flex-col gap-4">
@@ -264,7 +263,7 @@ function PureModalCreateCase(props: ModalCreateCaseProps) {
                 return (
                   <ItemFile
                     key={`create-case-item-${indexFile}`}
-                    mode="CreateCase"
+                    mode={ItemFileModeEnum.CreateCase}
                     file={itemFile}
                     isFold={false}
                     onBtnDeleteClick={() => handleBtnFileDeleteClick(indexFile)}

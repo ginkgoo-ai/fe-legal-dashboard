@@ -12,6 +12,7 @@ export interface FileUploadSimpleProps {
   onError?: (error: string) => void;
   className?: string;
   id?: string;
+  children: React.ReactNode;
 }
 
 export function FileUploadSimple({
@@ -22,6 +23,7 @@ export function FileUploadSimple({
   onError,
   className,
   id,
+  children,
 }: FileUploadSimpleProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -82,15 +84,19 @@ export function FileUploadSimple({
         id={id ?? 'file-upload'}
       />
       <label htmlFor={id ?? 'file-upload'}>
-        <div
-          className={cn(
-            buttonVariants({ variant: 'outline', size: 'lg' }),
-            'w-full border-dashed text-primary'
-          )}
-        >
-          <IconFileUpload size={24} />
-          <span className="font-semibold">Add files</span>
-        </div>
+        {children ? (
+          children
+        ) : (
+          <div
+            className={cn(
+              buttonVariants({ variant: 'outline', size: 'lg' }),
+              'w-full border-dashed text-primary'
+            )}
+          >
+            <IconFileUpload size={24} />
+            <span className="font-semibold">Add files</span>
+          </div>
+        )}
       </label>
     </div>
   );

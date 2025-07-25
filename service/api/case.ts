@@ -1,6 +1,9 @@
 import {
+  ICaseConversationItem,
+  ICaseConversationStats,
   ICaseDocumentResultType,
   ICaseItemType,
+  ICasePagination,
   ICaseStreamParamsType,
   ICreateCaseParamsType,
   IOcrDocumentsParamsType,
@@ -12,7 +15,7 @@ import {
   IWorkflowType,
 } from '@/types/casePilot';
 import { IMarkDocumentValid } from '@/types/document';
-import { IFilesPDFHighlightParamsType } from '@/types/file';
+import { ICaseDocumentType, IFilesPDFHighlightParamsType } from '@/types/file';
 import ApiRequest from '../axios';
 import {
   mockCaseCreate,
@@ -67,7 +70,13 @@ const StorageApi = {
 export const DocumentsApi = {
   markValid: '/legalcase/cases/:caseId/documents/:documentId/mark-valid',
   uploadSingle: '/legalcase/cases/:caseId/documents/single',
+  uploadOnly: '/legalcase/cases/:caseId/documents/upload',
+  process: '/legalcase/cases/:caseId/documents/process',
   documents: '/legalcase/cases/:caseId/documents/:documentId',
+};
+
+export const ConversationApi = {
+  historyConversation: '/legalcase/cases/:caseId/conversation',
 };
 
 // const baseUrl = process.env.LOCAL_BASE_URL
@@ -282,7 +291,7 @@ export const uploadDocument = async (params: {
 
   if (IS_MOCK_LIST.includes('uploadDocument')) {
     return new Promise(resolve => {
-      resolve(mockUploadDocument);
+      resolve(mockUploadDocument as ICaseDocumentResultType);
     });
   }
 
@@ -295,6 +304,42 @@ export const uploadDocument = async (params: {
       },
     }
   );
+};
+
+export const uploadDocumentOnlyUpload = async (params: {
+  caseId: string;
+  file: File;
+}): Promise<ICaseDocumentType> => {
+  const { caseId, file } = params || {};
+  const formData = new FormData();
+  // files.forEach(file => {
+  //   formData.append('files', file);
+  // });
+
+  formData.append('file', file);
+
+  return ApiRequest.post(
+    `${baseUrl}${DocumentsApi.uploadOnly}`.replace(':caseId', caseId),
+    formData,
+    {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    }
+  );
+};
+
+export const processDocument = async (params: {
+  caseId: string;
+  documentIds: string[];
+  description: string;
+}): Promise<ICaseDocumentResultType> => {
+  const { caseId, documentIds, description } = params;
+
+  return ApiRequest.post(`${baseUrl}${DocumentsApi.process}`.replace(':caseId', caseId), {
+    documentIds,
+    description,
+  });
 };
 
 export const postFilesPDFHighlight = async (
@@ -405,5 +450,27 @@ export const applyDummyData = async (
   return ApiRequest.post(
     `${baseUrl}${CaseApi.applyDummyData.replace(':caseId', caseId).replace(':fieldPath', fieldPath)}`,
     {}
+  );
+};
+
+export const getHistoryConversation = async (
+  caseId: string,
+  queries: {
+    page: number;
+    size: number;
+    threadId?: string;
+    messageType?: 'ASSISTANT' | 'USER';
+  }
+): Promise<{
+  messages: ICaseConversationItem[];
+  availableThreads: string[];
+  pagination: ICasePagination;
+  stats: ICaseConversationStats;
+}> => {
+  return ApiRequest.get(
+    `${baseUrl}${ConversationApi.historyConversation.replace(':caseId', caseId)}`,
+    {
+      ...queries,
+    }
   );
 };

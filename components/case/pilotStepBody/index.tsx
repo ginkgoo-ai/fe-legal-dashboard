@@ -6,9 +6,7 @@ import {
   IconStepDeclaration,
   IconStepDot,
 } from '@/components/ui/icon';
-import { useEventManager } from '@/hooks/useEventManager';
 import { cn } from '@/lib/utils';
-import { IActionItemType } from '@/types/case';
 import { IPilotType, IWorkflowStepType, PilotStatusEnum } from '@/types/casePilot';
 import type { CollapseProps } from 'antd';
 import { Alert, Button, Collapse, Spin } from 'antd';
@@ -18,69 +16,53 @@ import { PilotStepBodyNormal } from '../pilotStepBodyNormal';
 import './index.css';
 
 interface PilotStepBodyProps {
-  caseId: string;
-  pageTabInfo: Record<string, unknown>;
-  pilotInfo: IPilotType;
-  onCollapseChange?: (key: string) => void;
+  pilotInfo: IPilotType | null;
 }
 
 function PurePilotStepBody(props: PilotStepBodyProps) {
   const {
-    caseId,
-    pageTabInfo,
     pilotInfo,
     // onCollapseChange,
   } = props;
 
-  const [isShowLoginTip, setShowLoginTip] = useState<boolean>(false);
   const [stepListActiveKeyBody, setStepListActiveKeyBody] = useState<string>('');
   const [stepListItemsBody, setStepListItemsBody] = useState<CollapseProps['items']>([]);
   // const [percent, setPercent] = useState(0);
 
-  useEventManager('ginkgoo-extensions', message => {
-    const { type: typeMsg } = message;
+  // const handleContinueFilling = useCallback(
+  //   (params: { actionlistPre: IActionItemType[] }) => {
+  //     const { actionlistPre } = params || {};
 
-    switch (typeMsg) {
-      case 'ginkgoo-background-all-auth-check': {
-        const { value: valueMsg } = message;
+  //     if (isShowLoginTip) {
+  //       window.postMessage(
+  //         {
+  //           type: 'ginkgoo-page-background-sidepanel-open',
+  //           options: {
+  //             tabId: pageTabInfo?.id,
+  //           },
+  //         },
+  //         window.location.origin
+  //       );
+  //       return;
+  //     }
 
-        setShowLoginTip(!valueMsg);
-        break;
-      }
-      default: {
-        break;
-      }
-    }
-  });
+  //     window.postMessage({
+  //       type: 'ginkgoo-page-all-pilot-start',
+  //       workflowId: pilotInfo?.pilotWorkflowInfo?.workflow_instance_id,
+  //       caseId,
+  //       tabIdForPage: pageTabInfo?.id,
+  //       actionlistPre,
+  //     });
+  //   },
+  //   [
+  //     isShowLoginTip,
+  //     caseId,
+  //     pageTabInfo?.id,
+  //     pilotInfo?.pilotWorkflowInfo?.workflow_instance_id,
+  //   ]
+  // );
 
-  const handleContinueFilling = useCallback(
-    (params: { actionlistPre: IActionItemType[] }) => {
-      const { actionlistPre } = params || {};
-
-      if (isShowLoginTip) {
-        window.postMessage(
-          {
-            type: 'ginkgoo-page-background-sidepanel-open',
-            options: {
-              tabId: pageTabInfo?.id,
-            },
-          },
-          window.location.origin
-        );
-        return;
-      }
-
-      window.postMessage({
-        type: 'ginkgoo-page-all-pilot-start',
-        workflowId: pilotInfo?.pilotWorkflowInfo?.workflow_instance_id,
-        caseId,
-        actionlistPre,
-      });
-    },
-    [isShowLoginTip, pageTabInfo?.id, pilotInfo?.pilotWorkflowInfo?.workflow_instance_id]
-  );
-
-  const handleBtnProceedToFormClick = () => {
+  const handleBtnProceedToFormClick = useCallback(() => {
     if (!!pilotInfo?.pilotTabInfo?.id) {
       const messageJump = {
         type: 'ginkgoo-page-background-tab-update',
@@ -97,7 +79,7 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
       };
       window.postMessage(messageOpenSidepanel, window.location.origin);
     }
-  };
+  }, [pilotInfo?.pilotTabInfo?.id]);
 
   // update collapse
   useEffect(() => {
@@ -156,13 +138,12 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
       );
     };
 
-    const renderStepChildren = (itemStep: IWorkflowStepType, indexStep: number) => {
+    const renderStepChildren = (itemStep: IWorkflowStepType) => {
       return (
         <div className="border-bottom">
           <PilotStepBodyNormal
             itemStep={itemStep}
-            indexStep={indexStep}
-            onContinueFilling={handleContinueFilling}
+            onBtnProceedToFormClick={handleBtnProceedToFormClick}
           />
         </div>
       );
@@ -174,11 +155,11 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
           key: itemStep.step_key,
           label: renderStepLabel(itemStep, indexStep),
           showArrow: false,
-          children: renderStepChildren(itemStep, indexStep),
+          children: renderStepChildren(itemStep),
         };
       })
     );
-  }, [pilotInfo, handleContinueFilling]);
+  }, [pilotInfo, handleBtnProceedToFormClick]);
 
   useEffect(() => {
     if (Number(pilotInfo?.pilotWorkflowInfo?.steps?.length) > 0) {

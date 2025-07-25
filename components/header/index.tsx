@@ -1,10 +1,10 @@
 'use client';
 
-import GlobalManager from '@/customManager/GlobalManager';
 import { cn } from '@/lib/utils';
 import { useUserStore } from '@/store';
 import { ChevronDown, LogOut, Palette } from 'lucide-react';
 import { useTheme } from 'next-themes';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import LogoutTrigger from '../logoutTigger';
@@ -23,7 +23,6 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu';
-import { IconLogo } from '../ui/icon';
 
 const defaultAvatar = '/default.png';
 
@@ -119,6 +118,8 @@ const User = () => {
 
 const Header = (props: { className?: string }) => {
   const { userInfo } = useUserStore();
+  const { resolvedTheme } = useTheme();
+
   return (
     <header
       className={cn(
@@ -131,10 +132,17 @@ const Header = (props: { className?: string }) => {
           href="/case-portal"
           className="flex flex-[0_0_auto] flex-row items-center space-x-[1rem]"
         >
-          <IconLogo size={24} className="text-primary-dark" />
-          <span className="hidden text-lg font-semibold lg:inline">
-            {GlobalManager.siteName}
-          </span>
+          <Image
+            src={
+              resolvedTheme === 'dark'
+                ? '/png/Logo_White_BLue_High.png'
+                : '/png/Logo_Black_BLue_High.png'
+            }
+            className="h-full w-auto"
+            alt="Logo"
+            width={72.48}
+            height={24}
+          />
         </Link>
       </div>
       <div className="flex items-center gap-4">

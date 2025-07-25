@@ -1,4 +1,6 @@
 import {
+  IconActionBarDraftEmail,
+  IconFailed,
   IconFile,
   IconFileTypeDoc,
   IconFileTypeExcel,
@@ -6,8 +8,13 @@ import {
   IconFileTypePDF,
   IconFileTypePPT,
   IconFileTypeTXT,
+  IconLoading,
+  IconReupload,
+  IconSuccess,
 } from '@/components/ui/icon';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { FileStatus, FileTypeEnum, IFileItemType } from '@/types/file';
+import { cn } from '@/utils';
 import { Button } from 'antd';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
@@ -33,6 +40,13 @@ import { memo, ReactElement, useEffect, useState } from 'react';
 
 dayjs.extend(utc);
 
+export enum ItemFileModeEnum {
+  ActionBarDraftEmail = 'ActionBarDraftEmail',
+  CreateCase = 'CreateCase',
+  Reference = 'Reference',
+  Upload = 'Upload',
+}
+
 const getFileTypeMap = (params: { size: number; type: FileTypeEnum }): ReactElement => {
   const { size = 40, type } = params || {};
 
@@ -52,25 +66,36 @@ const getFileTypeMap = (params: { size: number; type: FileTypeEnum }): ReactElem
     [FileTypeEnum.BMP]: <IconFileTypeImage size={size} />,
     [FileTypeEnum.ICO]: <IconFileTypeImage size={size} />,
     [FileTypeEnum.TXT]: <IconFileTypeTXT size={size} />,
+    [FileTypeEnum.MISS_INFO]: <IconActionBarDraftEmail size={size} />,
     [FileTypeEnum.UNKNOW]: <IconFile size={size} />,
   };
 
   return typeMap[type] || typeMap[FileTypeEnum.UNKNOW];
 };
 
-const fileStatusMap: Record<FileStatus, ReactElement> = {
-  [FileStatus.UPLOADING]: <div className="text-sm text-[#0061FD]">Uploading...</div>,
-  [FileStatus.UPLOAD_COMPLETED]: (
-    <div className="text-sm text-[#0061FD]">Analyzing...</div>
-  ),
-  [FileStatus.COMPLETED]: <div className="text-sm text-[#27CA40]">Analyzed</div>,
-  [FileStatus.FAILED]: <div className="text-sm text-[#FF0C00]">Failed</div>,
-  [FileStatus.REJECTED]: <div className="text-sm text-[#FF0C00]">Failed</div>,
+// const fileStatusMap: Record<FileStatus, ReactElement> = {
+//   [FileStatus.UPLOADING]: <div className="text-sm text-[#0061FD]">Uploading...</div>,
+//   [FileStatus.UPLOAD_COMPLETED]: (
+//     <div className="text-sm text-[#0061FD]">Analyzing...</div>
+//   ),
+//   [FileStatus.COMPLETED]: <div className="text-sm text-[#27CA40]">Analyzed</div>,
+//   [FileStatus.FAILED]: <div className="text-sm text-[#FF0C00]">Failed</div>,
+//   [FileStatus.REJECTED]: <div className="text-sm text-[#FF0C00]">Failed</div>,
+// };
+
+const fileStatusIconMap: Record<FileStatus, ReactElement> = {
+  [FileStatus.UPLOADING]: <div></div>,
+  [FileStatus.UPLOAD_COMPLETED]: <IconSuccess size={16} />,
+  [FileStatus.UPLOAD_FAILED]: <IconFailed size={16} />,
+  [FileStatus.COMPLETED]: <IconSuccess size={16} />,
+  [FileStatus.FAILED]: <IconFailed size={16} />,
+  [FileStatus.REJECTED]: <IconFailed size={16} />,
 };
 
 const fileStatusColorMap: Record<FileStatus, string> = {
   [FileStatus.UPLOADING]: '#0061FD',
   [FileStatus.UPLOAD_COMPLETED]: '#0061FD',
+  [FileStatus.UPLOAD_FAILED]: '#FF0C00',
   [FileStatus.COMPLETED]: '#27CA40',
   [FileStatus.FAILED]: '#FF0C00',
   [FileStatus.REJECTED]: '#FF0C00',
@@ -96,30 +121,43 @@ const extMap: Record<string, FileTypeEnum> = {
 };
 
 interface ItemFileProps {
-  mode: 'CreateCase' | 'Reference';
+  mode: ItemFileModeEnum;
   file: IFileItemType;
   isFold?: boolean;
+  customWrapStyle?: Record<string, string>;
+  renderExtend?: () => React.ReactNode;
+  onItemClick?: () => void;
   onBtnDeleteClick?: () => void;
+  onBtnReuploadClick?: () => void;
 }
 
 function PureItemFile(props: ItemFileProps) {
-  const { mode, file, isFold, onBtnDeleteClick } = props;
+  const {
+    mode,
+    file,
+    isFold = false,
+    customWrapStyle,
+    renderExtend,
+    onItemClick,
+    onBtnDeleteClick,
+    onBtnReuploadClick,
+  } = props;
 
   const [fileName, setFileName] = useState<string>('');
   const [fileType, setFileType] = useState<FileTypeEnum>(FileTypeEnum.UNKNOW);
   const [fileUpdate, setFileUpdate] = useState<string>('');
 
   useEffect(() => {
-    const { localFile, documentFile, documentInitResultFile } = file || {};
+    const { localFile, documentFile, ocrFile } = file || {};
     let dayjsUpdate = dayjs();
     let fileNameTmp = '';
     let fileTypeTmp = FileTypeEnum.UNKNOW;
     let fileUpdateTmp = '';
 
-    if (documentInitResultFile) {
-      fileNameTmp = documentInitResultFile.filename;
-      fileTypeTmp = documentInitResultFile.fileType as FileTypeEnum;
-      dayjsUpdate = dayjs.utc(documentInitResultFile.updatedAt).local();
+    if (ocrFile) {
+      fileNameTmp = ocrFile.title;
+      fileTypeTmp = ocrFile.fileType as FileTypeEnum;
+      dayjsUpdate = dayjs.utc(ocrFile.updatedAt).local();
     } else if (documentFile) {
       fileNameTmp = documentFile.filename;
       fileTypeTmp = documentFile.fileType as FileTypeEnum;
@@ -178,6 +216,10 @@ function PureItemFile(props: ItemFileProps) {
     onBtnDeleteClick?.();
   };
 
+  const handleBtnReuploadClick = () => {
+    onBtnReuploadClick?.();
+  };
+
   const renderIconFileType = (params: {
     size: number;
     isDot?: boolean;
@@ -199,13 +241,35 @@ function PureItemFile(props: ItemFileProps) {
     );
   };
 
-  const renderIconFileStatus = () => {
-    return fileStatusMap[file?.status] || null;
+  // const renderIconFileStatus = () => {
+  //   return fileStatusMap[file?.status] || null;
+  // };
+
+  const renderIconFileStatusIcon = () => {
+    return fileStatusIconMap[file?.status] || null;
+  };
+
+  const renderModeActionBarDraftEmail = () => {
+    return (
+      <div
+        className="flex-1 flex flex-row justify-start items-center px-2.5 box-border gap-2"
+        style={customWrapStyle}
+      >
+        {/* Icon */}
+        {renderIconFileType({ size: 16, isDot: false })}
+        {/* Name */}
+        <div className="flex flex-row items-center flex-1 min-w-0 gap-2 h-9">
+          <div className="font-normal text-xs truncate">{fileName}</div>
+        </div>
+        {/* Extend */}
+        {renderExtend?.()}
+      </div>
+    );
   };
 
   const renderModeCreateCase = () => {
     return (
-      <div className="flex flex-row justify-start items-center h-14 rounded-lg border border-solid border-[#E1E1E2] bg-[#FCFCFC] pl-6 pr-2 box-border gap-2">
+      <div className="flex flex-row justify-start items-center h-14 pl-6 pr-2 box-border gap-2">
         {/* Icon */}
         {renderIconFileType({ size: 16, isDot: false })}
         {/* Name */}
@@ -247,19 +311,114 @@ function PureItemFile(props: ItemFileProps) {
           </div>
         </div>
         {/* Status */}
-        <div className="flex justify-center items-center">
+        {/* <div className="flex justify-center items-center">
           <div>{renderIconFileStatus()}</div>
+        </div> */}
+      </div>
+    );
+  };
+
+  const renderModeUpload = () => {
+    return (
+      <div
+        className="flex-1 flex flex-row justify-start items-center pl-3 pr-0.5 box-border gap-2"
+        style={customWrapStyle}
+      >
+        {/* Name */}
+        <div className="flex flex-row items-center flex-1 w-0 gap-2 h-9">
+          <div className="font-normal text-xs truncate">{fileName}</div>
+          <div className="flex-[0_0_auto]">{renderIconFileStatusIcon()}</div>
+        </div>
+        {/* Status */}
+        <div className="flex justify-center items-center">
+          {/* Loading */}
+          {[FileStatus.UPLOADING].includes(file?.status) ? (
+            <div className="flex justify-center items-center p-1">
+              <IconLoading size={20} className="animate-spin" />
+            </div>
+          ) : null}
+
+          {/* Failed */}
+          {!!onBtnReuploadClick &&
+          [FileStatus.UPLOAD_FAILED, FileStatus.FAILED, FileStatus.REJECTED].includes(
+            file?.status
+          ) ? (
+            <Button
+              type="text"
+              icon={
+                <div className="flex justify-center items-center">
+                  <IconReupload size={20} />
+                </div>
+              }
+              onClick={handleBtnReuploadClick}
+            />
+          ) : null}
+
+          {/* Delete */}
+          {!!onBtnDeleteClick && ![FileStatus.UPLOADING].includes(file?.status) ? (
+            <Button
+              type="text"
+              icon={
+                <div className="flex justify-center items-center">
+                  <X size={20} color="#A1A1AA" />
+                </div>
+              }
+              onClick={handleBtnDeleteClick}
+            />
+          ) : null}
         </div>
       </div>
     );
   };
 
   return (
-    {
-      CreateCase: renderModeCreateCase(),
-      Reference: renderModeReference(),
-    }[mode] || null
+    <div
+      className={cn('rounded-lg overflow-hidden box-border', {
+        'bg-[#F2F3F7] dark:bg-background border border-solid border-[#E1E1E2]':
+          mode !== 'Reference',
+        'cursor-pointer hover:bg-[#E5E7EB] hover:text-accent-foreground dark:hover:bg-accent/50':
+          !!onItemClick,
+      })}
+      onClick={onItemClick}
+    >
+      {{
+        [ItemFileModeEnum.ActionBarDraftEmail]: renderModeActionBarDraftEmail(),
+        [ItemFileModeEnum.CreateCase]: renderModeCreateCase(),
+        [ItemFileModeEnum.Reference]: renderModeReference(),
+        [ItemFileModeEnum.Upload]: renderModeUpload(),
+      }[mode] || null}
+    </div>
+  );
+}
+
+function PureFileBlock(
+  props: {
+    file: { filename: string; fileType?: FileTypeEnum };
+  } & React.HTMLAttributes<HTMLDivElement>
+) {
+  const { file } = props;
+  const extension = file.filename?.split('.')[1];
+  const fileType =
+    file.fileType ?? ((extension && extMap[extension]) || FileTypeEnum.UNKNOW);
+  return (
+    <div
+      className={cn(
+        'w-fit flex p-3 gap-1.5 bg-panel-background rounded-lg items-center',
+        props.className
+      )}
+    >
+      <div>{getFileTypeMap({ size: 24, type: fileType })}</div>
+      <Tooltip delayDuration={1500}>
+        <TooltipTrigger>
+          <div className="max-w-80 truncate">{file.filename}</div>
+        </TooltipTrigger>
+        <TooltipContent className="max-w-80">
+          <p className="mb-0">{file.filename}</p>
+        </TooltipContent>
+      </Tooltip>
+    </div>
   );
 }
 
 export const ItemFile = memo(PureItemFile);
+export const FileBlock = memo(PureFileBlock);

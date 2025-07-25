@@ -1,0 +1,17 @@
+.conversation-message {
+  background-color: var(--background);
+  .message-label {
+    background-color: var(--panel-background);
+  }
+  &.warning {
+    background-color: #fff4de;
+    color: #e4570c;
+    .message-label {
+      background-color: #e4570c;
+      color: white;
+    }
+  }
+  &.warning:hover {
+    background-color: #f6ebd5;
+  }
+}

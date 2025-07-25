@@ -4,13 +4,20 @@ import { PilotStepBody } from '@/components/case/pilotStepBody';
 import { IconCompleted, IconIncompleted, IconLoading } from '@/components/ui/icon';
 import { MESSAGE } from '@/config/message';
 import UtilsManager from '@/customManager/UtilsManager';
+import { useEventManager } from '@/hooks/useEventManager';
 import { cn } from '@/lib/utils';
-import { postFilesPDFHighlight } from '@/service/api/case';
+import { getWorkflowDetail, postFilesPDFHighlight } from '@/service/api/case';
 import { ICaseItemType } from '@/types/case';
-import { IPilotType, PilotStatusEnum } from '@/types/casePilot';
+import {
+  IPilotType,
+  IWorkflowType,
+  PilotStatusEnum,
+  PilotThirdPartTypeEnum,
+} from '@/types/casePilot';
 import { Button, Card, message as messageAntd, Progress } from 'antd';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
+import { produce } from 'immer';
 import { ChevronRight, Download, Play } from 'lucide-react';
 import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import './index.css';
@@ -18,60 +25,113 @@ import './index.css';
 interface PilotWorkflowProps {
   pageTabInfo: Record<string, unknown>;
   caseInfo: ICaseItemType | null;
-  pilotInfo: IPilotType;
-  indexPilot: number;
+  workflowInfo: IWorkflowType;
+  indexKey: string;
   pilotInfoCurrent: IPilotType | null;
-  onQueryWorkflowDetail: (params: { workflowId: string }) => void;
-  onBtnContinueClick: (params: { workflowId: string }) => void;
 }
 
 dayjs.extend(utc);
 
 function PurePilotWorkflow(props: PilotWorkflowProps) {
-  const {
-    pageTabInfo,
-    caseInfo,
-    pilotInfo,
-    indexPilot,
-    pilotInfoCurrent,
-    onQueryWorkflowDetail,
-    onBtnContinueClick,
-  } = props;
+  const { pageTabInfo, caseInfo, workflowInfo, indexKey, pilotInfoCurrent } = props;
 
   const isFoldInit = useRef<boolean>(true);
 
   const [isFold, setFold] = useState<boolean>(true);
-  const [isDisableBtnDownload, setDisableBtnDownload] = useState<boolean>(true);
+  const [isLoadingContinue, setLoadingContinue] = useState<boolean>(false);
   const [isLoadingDownload, setLoadingDownload] = useState<boolean>(false);
+  const [pilotInfo, setPilotInfo] = useState<IPilotType | null>(null);
 
   const isCurrentPilot = useMemo(() => {
     return (
-      pilotInfo?.pilotWorkflowInfo?.workflow_instance_id ===
+      workflowInfo?.workflow_instance_id ===
       pilotInfoCurrent?.pilotWorkflowInfo?.workflow_instance_id
     );
   }, [
-    pilotInfo?.pilotWorkflowInfo?.workflow_instance_id,
+    workflowInfo?.workflow_instance_id,
     pilotInfoCurrent?.pilotWorkflowInfo?.workflow_instance_id,
   ]);
 
   const isShowBtnContinue = useMemo(() => {
     return (
-      indexPilot === 0 &&
-      !!pilotInfo?.pilotTabInfo?.id &&
-      pilotInfo?.pilotStatus === PilotStatusEnum.HOLD
+      pilotInfo?.pilotStatus === PilotStatusEnum.HOLD &&
+      (!!pilotInfo?.pilotWorkflowInfo?.unique_application_number ||
+        !!pilotInfo?.pilotTabInfo?.id)
     );
-  }, [pilotInfo, indexPilot]);
+  }, [pilotInfo]);
 
-  const workflowUpdateTime = useMemo(() => {
-    return dayjs
-      .utc(pilotInfo.pilotWorkflowInfo?.updated_at)
-      .local()
-      .format('MMM DD, YYYY HH: mm');
-  }, [pilotInfo.pilotWorkflowInfo?.updated_at]);
+  const isDisableBtnDownload = useMemo(() => {
+    return !pilotInfo?.pilotWorkflowInfo?.progress_file_id;
+  }, [pilotInfo?.pilotWorkflowInfo?.progress_file_id]);
+
+  const workflowCreateTime = useMemo(() => {
+    return pilotInfo?.pilotWorkflowInfo?.created_at
+      ? dayjs
+          .utc(pilotInfo?.pilotWorkflowInfo?.created_at)
+          .local()
+          .format('MMM DD, YYYY HH: mm')
+      : '';
+  }, [pilotInfo?.pilotWorkflowInfo?.created_at]);
+
+  useEventManager('ginkgoo-extensions', message => {
+    const { type: typeMsg } = message;
+
+    switch (typeMsg) {
+      case 'ginkgoo-background-all-pilot-query': {
+        const { pilotInfo: pilotInfoMsg } = message;
+
+        if (
+          pilotInfoMsg?.pilotWorkflowInfo?.workflow_instance_id ===
+          workflowInfo?.workflow_instance_id
+        ) {
+          setPilotInfo(pilotInfoMsg);
+        }
+        break;
+      }
+      default: {
+        break;
+      }
+    }
+  });
 
   useEffect(() => {
-    setDisableBtnDownload(!pilotInfo.pilotWorkflowInfo?.progress_file_id);
-  }, [pilotInfo.pilotWorkflowInfo?.progress_file_id]);
+    if (pilotInfoCurrent?.pilotStatus !== PilotStatusEnum.HOLD) {
+      setLoadingContinue(false);
+    }
+
+    if (isCurrentPilot) {
+      setPilotInfo(pilotInfoCurrent);
+    } else {
+      setPilotInfo(prev => {
+        if (prev) {
+          return produce(prev, draft => {
+            draft.pilotWorkflowInfo = {
+              ...(workflowInfo || {}),
+              ...(draft.pilotWorkflowInfo || {}),
+            };
+          });
+        } else {
+          return {
+            pilotId: workflowInfo.workflow_instance_id,
+            pilotTimer: null,
+            pilotTabInfo: null,
+            pilotStatus: PilotStatusEnum.HOLD,
+            pilotLastMessage: '',
+            pilotRepeatHash: '',
+            pilotRepeatCurrent: 0,
+            pilotThirdPartType: PilotThirdPartTypeEnum.NONE,
+            pilotThirdPartMethod: '',
+            pilotThirdPartUrl: '',
+            pilotCookie: '',
+            pilotCsrfToken: '',
+            pilotUniqueApplicationNumber: '',
+            pilotCaseInfo: caseInfo,
+            pilotWorkflowInfo: workflowInfo,
+          };
+        }
+      });
+    }
+  }, [isCurrentPilot, caseInfo, workflowInfo, pilotInfoCurrent]);
 
   useEffect(() => {
     const getIsInterrupt = () => {
@@ -101,19 +161,66 @@ function PurePilotWorkflow(props: PilotWorkflowProps) {
         isFoldInit.current = false;
         setFold(false);
         window.document
-          .getElementById(`workflow-item-${indexPilot}`)
+          .getElementById(`workflow-item-${indexKey}`)
           ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
     } else {
       isFoldInit.current = true;
     }
-  }, [pilotInfo, isCurrentPilot, indexPilot]);
+  }, [pilotInfo, isCurrentPilot, indexKey]);
+
+  useEffect(() => {
+    if (workflowInfo?.workflow_instance_id) {
+      window.postMessage({
+        type: 'ginkgoo-page-background-pilot-query',
+        workflowId: workflowInfo?.workflow_instance_id,
+      });
+    }
+  }, [workflowInfo?.workflow_instance_id]);
+
+  const handleQueryWorkflowDetail = async () => {
+    const resWorkflowDetail = await getWorkflowDetail({
+      workflowId: workflowInfo.workflow_instance_id,
+    });
+
+    if (!resWorkflowDetail?.workflow_instance_id) {
+      messageAntd.open({
+        type: 'error',
+        content: MESSAGE.TOAST_REFRESH_WORKFLOW_DETAIL_FAILED,
+      });
+      return;
+    }
+
+    setPilotInfo(prev => {
+      if (prev) {
+        return produce(prev, draft => {
+          draft.pilotWorkflowInfo = resWorkflowDetail;
+        });
+      } else {
+        return {
+          pilotId: resWorkflowDetail.workflow_instance_id,
+          pilotTimer: null,
+          pilotTabInfo: null,
+          pilotStatus: PilotStatusEnum.HOLD,
+          pilotLastMessage: '',
+          pilotRepeatHash: '',
+          pilotRepeatCurrent: 0,
+          pilotThirdPartType: PilotThirdPartTypeEnum.NONE,
+          pilotThirdPartMethod: '',
+          pilotThirdPartUrl: '',
+          pilotCookie: '',
+          pilotCsrfToken: '',
+          pilotUniqueApplicationNumber: '',
+          pilotCaseInfo: caseInfo,
+          pilotWorkflowInfo: resWorkflowDetail,
+        };
+      }
+    });
+  };
 
   const handleHeaderClick = () => {
     if (isFold) {
-      onQueryWorkflowDetail?.({
-        workflowId: pilotInfo.pilotWorkflowInfo?.workflow_instance_id || '',
-      });
+      handleQueryWorkflowDetail();
     }
     setFold(prev => {
       return !prev;
@@ -127,15 +234,15 @@ function PurePilotWorkflow(props: PilotWorkflowProps) {
 
     // Step2: Get PDF blob
     const resFilesPDFHighlight = await postFilesPDFHighlight({
-      fileId: pilotInfo.pilotWorkflowInfo?.progress_file_id || '',
-      highlightData: pilotInfo.pilotWorkflowInfo?.dummy_data_usage || [],
+      fileId: pilotInfo?.pilotWorkflowInfo?.progress_file_id || '',
+      highlightData: pilotInfo?.pilotWorkflowInfo?.dummy_data_usage || [],
     });
     // Step3: Download PDF file
     console.log('handleBtnDownloadPdfClick', resFilesPDFHighlight);
     if (resFilesPDFHighlight) {
       UtilsManager.downloadBlob({
         blobPart: resFilesPDFHighlight,
-        fileName: `${caseInfo?.clientName || ''}-${caseInfo?.visaType || ''}-${dayjs.utc(pilotInfo.pilotWorkflowInfo?.updated_at).local().format('YYYYMMDDHHmmss')}.pdf`,
+        fileName: `${caseInfo?.clientName || ''}-${caseInfo?.visaType || ''}-${dayjs.utc(pilotInfo?.pilotWorkflowInfo?.updated_at).local().format('YYYYMMDDHHmmss')}.pdf`,
       });
     } else {
       messageAntd.open({
@@ -150,14 +257,18 @@ function PurePilotWorkflow(props: PilotWorkflowProps) {
   };
 
   const handleBtnContinueClick = () => {
-    onBtnContinueClick?.({
-      workflowId: pilotInfo.pilotWorkflowInfo?.workflow_instance_id || '',
+    setLoadingContinue(true);
+    window.postMessage({
+      type: 'ginkgoo-page-all-pilot-start',
+      workflowId: workflowInfo?.workflow_instance_id || '',
+      caseId: caseInfo?.id || '',
+      tabIdForPage: pageTabInfo?.id,
     });
   };
 
   return (
     <div
-      id={`workflow-item-${indexPilot}`}
+      id={`workflow-item-${indexKey}`}
       className="relative workflow-wrap w-full flex justify-center items-center overflow-hidden rounded-lg flex-[0_0_auto]"
     >
       <div
@@ -177,7 +288,8 @@ function PurePilotWorkflow(props: PilotWorkflowProps) {
               onClick={handleHeaderClick}
             >
               <div className="flex flex-[0_0_auto]">
-                {pilotInfo.pilotWorkflowInfo?.status === 'COMPLETED_SUCCESS' ? (
+                {isCurrentPilot &&
+                pilotInfo?.pilotWorkflowInfo?.status === 'COMPLETED_SUCCESS' ? (
                   <IconCompleted size={40} />
                 ) : (
                   <IconIncompleted size={40} />
@@ -198,7 +310,7 @@ function PurePilotWorkflow(props: PilotWorkflowProps) {
                   </span>
                 </div>
                 <div className="w-full truncate text-sm font-bold text-[#2665FF]">
-                  {workflowUpdateTime}
+                  {workflowCreateTime}
                 </div>
               </div>
               <div className="flex-[0_0_auto]">
@@ -211,24 +323,18 @@ function PurePilotWorkflow(props: PilotWorkflowProps) {
               </div>
             </div>
 
-            {Number(pilotInfo.pilotWorkflowInfo?.progress_percentage) >= 0 ? (
+            {Number(pilotInfo?.pilotWorkflowInfo?.progress_percentage) >= 0 ? (
               <Progress
-                percent={pilotInfo.pilotWorkflowInfo?.progress_percentage}
+                percent={pilotInfo?.pilotWorkflowInfo?.progress_percentage}
                 showInfo={false}
               />
             ) : null}
 
-            {!isFold ? (
-              <PilotStepBody
-                caseId={caseInfo?.id || ''}
-                pageTabInfo={pageTabInfo}
-                pilotInfo={pilotInfo}
-              />
-            ) : null}
+            {!isFold ? <PilotStepBody pilotInfo={pilotInfo} /> : null}
 
             <div className="flex flex-row justify-between items-center gap-2 w-full">
               <Button
-                id={`pilot-item-btn-download-${indexPilot}`}
+                id={`pilot-item-btn-download-${indexKey}`}
                 type="default"
                 className="flex-1 w-0"
                 disabled={isDisableBtnDownload}
@@ -243,9 +349,10 @@ function PurePilotWorkflow(props: PilotWorkflowProps) {
               </Button>
               {isShowBtnContinue ? (
                 <Button
-                  id={`pilot-item-btn-continue-${indexPilot}`}
+                  id={`pilot-item-btn-continue-${indexKey}`}
                   type="default"
                   className="flex-1 w-0"
+                  loading={isLoadingContinue}
                   onClick={handleBtnContinueClick}
                 >
                   <Play size={20} />

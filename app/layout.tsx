@@ -1,6 +1,6 @@
 'use client';
 
-import { IconLogo } from '@/components/ui/icon';
+import { LoadingSiteLogo } from '@/components/case/siteLogo';
 import GlobalManager from '@/customManager/GlobalManager';
 import { useEventManager } from '@/hooks/useEventManager';
 import useRequest from '@/hooks/useRequest';
@@ -139,15 +139,24 @@ export default function RootLayout({
           name="viewport"
           content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
         />
+        <link
+          rel="icon"
+          type="image/svg+xml"
+          media="(prefers-color-scheme: dark)"
+          href="/favicon_dark.ico"
+        />
+        <link
+          rel="icon"
+          type="image/svg+xml"
+          media="(prefers-color-scheme: light)"
+          href="/favicon.ico"
+        />
       </head>
       <body className="flex h-[100vh] w-[100vw] flex-col">
         <ThemeProvider defaultTheme="light" storageKey="legal|theme">
           {loading || (whiteListForNotNeetAuth.includes(pathname) && !user) ? (
             <div className="flex flex-col gap-2 flex-1 h-auto items-center justify-center">
-              <IconLogo
-                className="animate-spin size-10 text-primary animation-duration-[2s]"
-                size={40}
-              />
+              <LoadingSiteLogo className="size-10 text-primary" size={40} />
               <p className="after:animate-point-loading">Loading</p>
             </div>
           ) : (

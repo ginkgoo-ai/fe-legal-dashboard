@@ -16,6 +16,14 @@ class UtilsManager {
     e.preventDefault();
   };
 
+  sleep = (ms: number): Promise<void> => {
+    return new Promise(resolve => {
+      setTimeout(() => {
+        resolve();
+      }, ms);
+    });
+  };
+
   router2Params = (
     strRouter: string,
     options?: Record<string, unknown>

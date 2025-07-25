@@ -6,50 +6,59 @@ import { useEventManager } from '@/hooks/useEventManager';
 import { camelToCapitalizedWords } from '@/lib';
 import { updateProfileField } from '@/service/api';
 import { useProfileStore } from '@/store/profileStore';
+import { AnimatePresence, motion } from 'framer-motion';
 import { isArray, isBoolean, isNumber, isPlainObject, isString } from 'lodash';
 import { Loader2Icon } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 type PanelProfileVaultTabContentProps = {
-  fieldKey: string;
-  data: Record<string, any>;
   caseId: string;
-  definitionKey: string;
-  dummyDataFields?: string[];
+  caseInfo: Record<string, any>;
 };
 
 export const PanelProfileVaultTabContent = ({
-  fieldKey,
-  data,
   caseId,
-  definitionKey,
-  dummyDataFields,
+  caseInfo,
 }: PanelProfileVaultTabContentProps) => {
   const { schema } = useProfileStore();
-  const [currentSchema, setCurrentSchema] = useState<Record<string, any>>({});
+  const [properties, setProperties] = useState<any[]>([]);
 
   useEffect(() => {
-    if (schema?.jsonSchema?.definitions) {
-      const definition = schema.jsonSchema.definitions[definitionKey];
-      if (definition) {
-        setCurrentSchema({
-          ...definition,
-          definitions: schema.jsonSchema.definitions,
-        });
-      }
+    if (schema && caseInfo) {
+      const list = Object.entries(
+        (schema.jsonSchema?.properties ?? {}) as Record<string, any>
+      )
+        .map(([key, value]) => {
+          const definitionKey = (value['$ref'] ?? '').replace('#/definitions/', '');
+          const _schema = schema.jsonSchema.definitions[definitionKey];
+          return {
+            ...value,
+            value: key,
+            label: value['title'] ?? camelToCapitalizedWords(key),
+            definition: _schema
+              ? { ..._schema, definitions: schema.jsonSchema.definitions }
+              : {},
+            data: caseInfo.profileDummyData[key],
+          };
+        })
+        .sort((a, b) => a.value.localeCompare(b.value));
+      setProperties(list);
     }
-  }, [schema, definitionKey]);
+  }, [schema, caseInfo]);
 
   return (
-    <div className="w-full">
-      <ProfileSectionEditorCard
-        formKey={fieldKey}
-        formData={data}
-        definition={currentSchema}
-        caseId={caseId}
-        dummyDataFields={dummyDataFields}
-      />
+    <div className="w-full flex flex-col gap-4">
+      {properties.map(({ value, data, definition }) => (
+        <ProfileSectionEditorCard
+          key={value}
+          formKey={value}
+          formData={data}
+          definition={definition}
+          caseId={caseId}
+          dummyDataFields={caseInfo.dummyDataFields}
+        />
+      ))}
     </div>
   );
 };
@@ -69,7 +78,6 @@ const ProfileSectionEditorCard = ({
 }) => {
   const [submitting, setSubmitting] = useState(false);
   const [editMode, setEditMode] = useState(false);
-  console.log(definition);
   const [RJSFFormData, setRJSFFormData] = useState<any>(null);
 
   const { emit: emitCase } = useEventManager('ginkgoo-case', () => {});
@@ -126,20 +134,30 @@ const ProfileSectionEditorCard = ({
             </div>
             {camelToCapitalizedWords(formKey)}
           </h3>
-          {!editMode && (
-            <Button
-              variant={'secondary'}
-              size={'icon'}
-              className="p-1 hover:text-primary hover:bg-primary/5"
-              type="button"
-              onClick={handleEdit}
-            >
-              <IconEdit size={24} className="text-inherit" />
-            </Button>
-          )}
+
+          <AnimatePresence initial={false}>
+            {!editMode && (
+              <motion.div
+                key="editButton"
+                initial={{ opacity: 0, scale: 0 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0 }}
+              >
+                <Button
+                  variant={'secondary'}
+                  size={'icon'}
+                  className="p-1 hover:text-primary hover:bg-primary/5"
+                  type="button"
+                  onClick={handleEdit}
+                >
+                  <IconEdit size={24} className="text-inherit" />
+                </Button>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </CardTitle>
       </CardHeader>
-      <CardContent className="px-16">
+      <CardContent className="px-8 overflow-hidden">
         {!!definition && editMode ? (
           <RJSFEngine
             schema={definition}
@@ -212,7 +230,7 @@ const DynamicProfileSection = ({
     if (isString(field) || isBoolean(field) || isNumber(field)) {
       return (
         <div className="flex items-center gap-4 text-sm py-2 my-1 border-primary-gray/50 border-b border-dashed">
-          <div className="text-primary-gray w-fit min-w-[188px] relative">
+          <div className="text-primary-gray w-fit relative">
             {isDummyData && (
               <div className="absolute -left-8 top-0 bottom-0 my-auto justify-center items-center flex">
                 <IconIssueCheck size={20} />
@@ -232,7 +250,7 @@ const DynamicProfileSection = ({
     if (isPlainObject(field)) {
       return (
         <div className="text-sm">
-          <div className="text-primary-gray relative w-fit min-w-[188px] border-primary-gray/50 border-b border-dashed py-2 my-1">
+          <div className="text-primary-gray relative w-fit border-primary-gray/50 border-b border-dashed py-2 my-1">
             {isDummyData && (
               <div className="absolute -left-8 top-0 bottom-0 my-auto justify-center items-center flex">
                 <IconIssueCheck size={20} />
@@ -240,7 +258,7 @@ const DynamicProfileSection = ({
             )}
             {camelToCapitalizedWords(displayLabel ?? key)}
           </div>
-          <div className="flex flex-col gap-2 pl-8">
+          <div className="flex flex-col gap-2 pl-4">
             {Object.entries(field).map(([_key, value]) => (
               <DynamicProfileSection
                 key={_key}

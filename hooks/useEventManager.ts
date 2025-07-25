@@ -1,5 +1,5 @@
+import EventManager from '@/customManager/EventManager';
 import { useCallback, useEffect } from 'react';
-import EventManager from '../customManager/EventManager';
 
 /**
  * 自定义 Hook，用于订阅和管理事件

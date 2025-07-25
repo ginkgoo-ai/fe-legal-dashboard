@@ -89,6 +89,13 @@ const createAxiosInstance = (): AxiosInstance => {
       const { response } = error;
       if (response) {
         switch (response.status) {
+          case 301:
+          case 302:
+          case 303:
+          case 307:
+          case 308:
+            window.location.replace(response.headers.location);
+            break;
           case 401:
             handle401(error);
             break;
