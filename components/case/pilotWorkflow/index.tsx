@@ -41,7 +41,6 @@ function PurePilotWorkflow(props: PilotWorkflowProps) {
   } = props;
 
   const isFoldInit = useRef<boolean>(true);
-  const workflowRef = useRef<HTMLDivElement>(null);
 
   const [isFold, setFold] = useState<boolean>(true);
   const [isLoadingContinue, setLoadingContinue] = useState<boolean>(false);
@@ -107,8 +106,10 @@ function PurePilotWorkflow(props: PilotWorkflowProps) {
 
     if (isCurrentPilot) {
       setPilotInfo(pilotInfoCurrent);
-      if (isScrollIntoView) {
-        workflowRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      if (isScrollIntoView && pilotInfoCurrent?.pilotStatus === PilotStatusEnum.OPEN) {
+        window.document
+          .getElementById(`workflow-item-${indexKey}`)
+          ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
     } else {
       setPilotInfo(prev => {
@@ -279,7 +280,6 @@ function PurePilotWorkflow(props: PilotWorkflowProps) {
     <div
       id={`workflow-item-${indexKey}`}
       className="relative workflow-wrap w-full flex justify-center items-center overflow-hidden rounded-lg flex-[0_0_auto]"
-      ref={workflowRef}
     >
       <div
         className={cn(
@@ -362,6 +362,12 @@ function PurePilotWorkflow(props: PilotWorkflowProps) {
                   id={`pilot-item-btn-continue-${indexKey}`}
                   type="default"
                   className="flex-1 w-0"
+                  disabled={
+                    !(
+                      !pilotInfoCurrent ||
+                      pilotInfoCurrent?.pilotStatus === PilotStatusEnum.HOLD
+                    )
+                  }
                   loading={isLoadingContinue}
                   onClick={handleBtnContinueClick}
                 >

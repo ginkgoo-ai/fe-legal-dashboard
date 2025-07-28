@@ -122,6 +122,11 @@ function CaseDetailContent() {
         const { id: caseIdMsg } = pilotCaseInfoMsg || {};
         const { workflow_instance_id: workflowIdMsg } = pilotWorkflowInfoMsg || {};
 
+        if (!!workflowIdMsg) {
+          setModalNewWorkflowOpen(false);
+          setPilotInfoCurrent(pilotInfoMsg);
+        }
+
         if (caseIdMsg !== caseId || !pilotCaseInfoMsg) {
           break;
         }
@@ -131,8 +136,14 @@ function CaseDetailContent() {
           break;
         }
 
+        break;
+      }
+      case 'ginkgoo-background-all-pilot-query': {
+        const { pilotInfo: pilotInfoMsg } = message;
+        const { pilotWorkflowInfo: pilotWorkflowInfoMsg } = pilotInfoMsg || {};
+        const { workflow_instance_id: workflowIdMsg } = pilotWorkflowInfoMsg || {};
+
         if (!!workflowIdMsg) {
-          setModalNewWorkflowOpen(false);
           setPilotInfoCurrent(pilotInfoMsg);
         }
         break;
@@ -255,7 +266,13 @@ function CaseDetailContent() {
     await refreshCaseDetail();
     getProfileVaultSchema();
     refreshWorkflowDefinitions();
-    refreshWorkflowList();
+    refreshWorkflowList({
+      cb: () => {
+        window.postMessage({
+          type: 'ginkgoo-page-background-pilot-query',
+        });
+      },
+    });
 
     const regCaseStream = async () => {
       try {
