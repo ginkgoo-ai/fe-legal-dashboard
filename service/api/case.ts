@@ -4,6 +4,7 @@ import {
   ICaseDocumentResultType,
   ICaseItemType,
   ICasePagination,
+  ICaseProfileMissingField,
   ICaseStreamParamsType,
   ICreateCaseParamsType,
   IOcrDocumentsParamsType,
@@ -51,6 +52,8 @@ const CaseApi = {
   profileSchema: '/legalcase/cases/:caseId/profile/schema',
   fieldSchema: '/legalcase/cases/:caseId/profile/fields/:fieldPath/schema',
   emailDraft: '/legalcase/cases/:caseId/email-draft',
+  summary: '/legalcase/cases/:caseId/documents/summary',
+  missingFields: '/legalcase/cases/:caseId/profile/missing-fields',
   missingFieldsEmail: '/legalcase/cases/:caseId/profile/missing-fields-email',
   applyDummyData: '/legalcase/cases/:caseId/profile/fields/:fieldPath/apply-dummy-data',
   // workflows: '/workflows/:workflowId',
@@ -435,6 +438,8 @@ export const getFieldSchema = async (
 export const createEmailDraft = async (params: {
   caseId: string;
   emailType: string;
+  fields?: string[];
+  context?: string;
   threadId?: string;
 }): Promise<Record<string, any>> => {
   const { caseId, ...otherParams } = params || {};
@@ -455,6 +460,20 @@ export const getMissingFieldEmailTemplate = async (
   return ApiRequest.get(
     `${baseUrl}${CaseApi.missingFieldsEmail.replace(':caseId', caseId)}`
   );
+};
+
+export const getSummary = async (params: { caseId: string }): Promise<any> => {
+  const { caseId } = params || {};
+
+  return ApiRequest.get(`${baseUrl}${CaseApi.summary.replace(':caseId', caseId)}`);
+};
+
+export const getMissingFields = async (params: {
+  caseId: string;
+}): Promise<ICaseProfileMissingField[]> => {
+  const { caseId } = params || {};
+
+  return ApiRequest.get(`${baseUrl}${CaseApi.missingFields.replace(':caseId', caseId)}`);
 };
 
 export const applyDummyData = async (

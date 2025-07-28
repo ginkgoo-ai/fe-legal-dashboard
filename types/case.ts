@@ -202,7 +202,7 @@ export interface ICaseProfileMissingField {
   dummyValue: string;
   fieldPath: string;
   fieldType: string;
-  isRequired: boolean;
+  isRequired?: boolean;
   required: boolean;
   [key: string]: unknown;
 }

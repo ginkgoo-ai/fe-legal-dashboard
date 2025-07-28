@@ -21,9 +21,15 @@ import {
 import { MESSAGE } from '@/config/message';
 import GlobalManager from '@/customManager/GlobalManager';
 import UtilsManager from '@/customManager/UtilsManager';
+import { useEffectStrictMode } from '@/hooks/useEffectStrictMode';
 import { useEventManager } from '@/hooks/useEventManager';
 import { cn } from '@/lib/utils';
-import { createEmailDraft, processDocument } from '@/service/api/case';
+import {
+  createEmailDraft,
+  getMissingFields,
+  getSummary,
+  processDocument,
+} from '@/service/api/case';
 import { useExtensionsStore } from '@/store/extensionsStore';
 import { ICaseItemType } from '@/types/case';
 import { IPilotType, PilotStatusEnum } from '@/types/casePilot';
@@ -85,6 +91,7 @@ function PureActionBar(props: ActionBarProps) {
   const [isShowDropdownMenuDraftEmailChild, setShowDropdownMenuDraftEmailChild] =
     useState<boolean>(false);
   const [isLoadingInstall, setLoadingInstall] = useState<boolean>(false);
+  const [isLoadingBtnSummarize, setLoadingBtnSummarize] = useState<boolean>(false);
   const [isLoadingBtnSend, setLoadingBtnSend] = useState<boolean>(false);
 
   const [
@@ -101,7 +108,7 @@ function PureActionBar(props: ActionBarProps) {
       caseId: caseInfo?.id || '',
       message: 'Missing information',
       filename: 'Missing information',
-      fileSize: 2245148,
+      fileSize: 0,
       fileType: FileTypeEnum.MISS_INFO,
       description: null,
       receivedAt: null,
@@ -109,6 +116,9 @@ function PureActionBar(props: ActionBarProps) {
       errorDetails: null,
     },
   });
+  const [draftEmailMissInfoOption, setDraftEmailMissInfoOption] = useState<
+    Record<string, string>[]
+  >([]);
   const [draftEmailMissInfoList, setDraftEmailMissInfoList] = useState<any[]>([]);
   const [draftEmailPDF, setDraftEmailPDF] = useState<IFileItemType | null>(null);
 
@@ -131,33 +141,25 @@ function PureActionBar(props: ActionBarProps) {
     );
   }, [typeActionBar]);
 
-  const draftEmailMissInfoOption = useMemo(() => {
-    console.log('caseInfo', caseInfo);
-    return [
-      { label: 'Date of Birth', value: 'Date of Birth' },
-      { label: 'Visa Application Date', value: 'Visa Application Date' },
-      { label: 'Visa Submission Date', value: 'Visa Submission Date' },
-      { label: 'Visa Request Date', value: 'Visa Request Date' },
-      { label: 'Visa Processing Date', value: 'Visa Processing Date' },
-      { label: 'Visa Processing Date', value: 'Visa Processing Date1' },
-      { label: 'Visa Processing Date', value: 'Visa Processing Date2' },
-      { label: 'Visa Processing Date', value: 'Visa Processing Date3' },
-      { label: 'Visa Processing Date', value: 'Visa Processing Date4' },
-      { label: 'Visa Processing Date', value: 'Visa Processing Date5' },
-      { label: 'Visa Processing Date', value: 'Visa Processing Date6' },
-      { label: 'Visa Processing Date', value: 'Visa Processing Date7' },
-      { label: 'Visa Processing Date', value: 'Visa Processing Date8' },
-      { label: 'Visa Processing Date', value: 'Visa Processing Date9' },
-      { label: 'Visa Processing Date', value: 'Visa Processing Date10' },
-      { label: 'Visa Processing Date', value: 'Visa Processing Date11' },
-      { label: 'Visa Processing Date', value: 'Visa Processing Date12' },
-      { label: 'Visa Processing Date', value: 'Visa Processing Date13' },
-    ];
-  }, [caseInfo]);
-
   const { emit: emitCase } = useEventManager('ginkgoo-case', () => {});
 
-  useEffect(() => {
+  const refreshDraftEmailMissInfoOption = async () => {
+    setDraftEmailMissInfoOption([]);
+    const resMissingFields = await getMissingFields({
+      caseId: caseInfo?.id || '',
+    });
+
+    if (resMissingFields?.length > 0) {
+      setDraftEmailMissInfoOption(
+        resMissingFields.map(item => {
+          return { label: item.fieldPath, value: item.displayName };
+        })
+      );
+    }
+    console.log('refreshDraftEmailMissInfoOption', resMissingFields);
+  };
+
+  useEffectStrictMode(() => {
     setTypeCustomDropdownMenu(TypeCustomDropdownMenuEnum.NONE);
     setShowDropdownMenuDraftEmailChild(false);
     // setShowDropdownMenuDraftEmail(false);
@@ -171,6 +173,7 @@ function PureActionBar(props: ActionBarProps) {
         break;
       }
       case TypeActionBarEnum.DRAFT_EMAIL_MISS_INFO: {
+        refreshDraftEmailMissInfoOption();
         break;
       }
       case TypeActionBarEnum.DRAFT_EMAIL_PDF: {
@@ -298,7 +301,12 @@ function PureActionBar(props: ActionBarProps) {
     });
   };
 
-  const handleDraftEmailMissInfoBtnSendClick = async () => {
+  const handleDraftEmailMissInfoBtnSendClick = async (params: {
+    fileList: IFileItemType[];
+    description: string;
+  }) => {
+    const { description } = params || {};
+
     console.log(
       'handleDraftEmailMissInfoBtnSendClick draftEmailMissInfoList',
       draftEmailMissInfoList
@@ -309,14 +317,23 @@ function PureActionBar(props: ActionBarProps) {
     const resCreateEmailDrafts = await createEmailDraft({
       caseId: caseInfo?.id || '',
       emailType: 'missing_documents',
+      fields: draftEmailMissInfoList.map(item => {
+        return item.value;
+      }),
+      context: description,
     });
 
     setLoadingBtnSend(false);
 
-    console.log(
-      'handleDraftEmailMissInfoBtnSendClick resCreateEmailDrafts',
-      resCreateEmailDrafts
-    );
+    if (!!resCreateEmailDrafts?.threadId) {
+      setTypeActionBar(TypeActionBarEnum.INIT);
+      return;
+    }
+
+    messageAntd.open({
+      type: 'error',
+      content: MESSAGE.TOAST_PROBLEM,
+    });
   };
 
   const handleDraftEmailPDFBtnSendClick = async () => {
@@ -341,7 +358,22 @@ function PureActionBar(props: ActionBarProps) {
     setTypeCustomDropdownMenu(TypeCustomDropdownMenuEnum.DRAFT_EMAIL_SELECT);
   };
 
-  const handleBtnSummarizeClick = () => {};
+  const handleBtnSummarizeClick = async () => {
+    setLoadingBtnSummarize(true);
+
+    const resSummary = await getSummary({
+      caseId: caseInfo?.id || '',
+    });
+
+    setLoadingBtnSummarize(false);
+
+    if (!resSummary?.id) {
+      messageAntd.open({
+        type: 'error',
+        content: MESSAGE.TOAST_PROBLEM,
+      });
+    }
+  };
 
   const handleBtnExtensionStartClick = () => {
     if (!!extensionsInfo?.version) {
@@ -416,7 +448,11 @@ function PureActionBar(props: ActionBarProps) {
             disabled={isRunningExtension}
             onClick={handleBtnSummarizeClick}
           >
-            <IconActionBarSummarize />
+            {isLoadingBtnSummarize ? (
+              <LoaderCircle className="animate-spin" />
+            ) : (
+              <IconActionBarSummarize />
+            )}
             <span>Summarize</span>
           </Button>
 
@@ -556,7 +592,7 @@ function PureActionBar(props: ActionBarProps) {
               placeholderDescription="Give your files a brief description."
               isShowBtnUpload={false}
               isLoadingBtnSend={isLoadingBtnSend}
-              verifyList={[]}
+              verifyList={[false]}
               renderFileListBefore={() => {
                 return (
                   <div className="grid grid-cols-3 gap-2 w-full">
