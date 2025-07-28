@@ -16,11 +16,13 @@ import { PilotStepBodyNormal } from '../pilotStepBodyNormal';
 import './index.css';
 
 interface PilotStepBodyProps {
+  isCurrentPilot: boolean;
   pilotInfo: IPilotType | null;
 }
 
 function PurePilotStepBody(props: PilotStepBodyProps) {
   const {
+    isCurrentPilot,
     pilotInfo,
     // onCollapseChange,
   } = props;
@@ -162,7 +164,7 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
   }, [pilotInfo, handleBtnProceedToFormClick]);
 
   useEffect(() => {
-    if (Number(pilotInfo?.pilotWorkflowInfo?.steps?.length) > 0) {
+    if (isCurrentPilot && Number(pilotInfo?.pilotWorkflowInfo?.steps?.length) > 0) {
       const indexCurrentStep: number = Number(
         pilotInfo?.pilotWorkflowInfo?.steps?.findIndex(itemStep => {
           return itemStep.step_key === pilotInfo.pilotWorkflowInfo?.current_step_key;
@@ -198,7 +200,7 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
     }
 
     setStepListActiveKeyBody('');
-  }, [pilotInfo]);
+  }, [pilotInfo, isCurrentPilot]);
 
   return stepListItemsBody && stepListItemsBody.length > 0 ? (
     <div className="relative box-border flex flex-col w-full items-center justify-start rounded-lg border border-[#D8DFF5] p-2">

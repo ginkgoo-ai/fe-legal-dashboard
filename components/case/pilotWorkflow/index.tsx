@@ -41,6 +41,7 @@ function PurePilotWorkflow(props: PilotWorkflowProps) {
   } = props;
 
   const isFoldInit = useRef<boolean>(true);
+  const workflowRef = useRef<HTMLDivElement>(null);
 
   const [isFold, setFold] = useState<boolean>(true);
   const [isLoadingContinue, setLoadingContinue] = useState<boolean>(false);
@@ -107,9 +108,7 @@ function PurePilotWorkflow(props: PilotWorkflowProps) {
     if (isCurrentPilot) {
       setPilotInfo(pilotInfoCurrent);
       if (isScrollIntoView && pilotInfoCurrent?.pilotStatus === PilotStatusEnum.OPEN) {
-        window.document
-          .getElementById(`workflow-item-${indexKey}`)
-          ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        workflowRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
     } else {
       setPilotInfo(prev => {
@@ -170,14 +169,12 @@ function PurePilotWorkflow(props: PilotWorkflowProps) {
       if (isFoldInit.current) {
         isFoldInit.current = false;
         setFold(false);
-        window.document
-          .getElementById(`workflow-item-${indexKey}`)
-          ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        workflowRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
     } else {
       isFoldInit.current = true;
     }
-  }, [pilotInfo, isCurrentPilot, indexKey]);
+  }, [pilotInfo, isCurrentPilot]);
 
   useEffect(() => {
     if (workflowInfo?.workflow_instance_id) {
@@ -280,6 +277,7 @@ function PurePilotWorkflow(props: PilotWorkflowProps) {
     <div
       id={`workflow-item-${indexKey}`}
       className="relative workflow-wrap w-full flex justify-center items-center overflow-hidden rounded-lg flex-[0_0_auto]"
+      ref={workflowRef}
     >
       <div
         className={cn(
@@ -340,7 +338,9 @@ function PurePilotWorkflow(props: PilotWorkflowProps) {
               />
             ) : null}
 
-            {!isFold ? <PilotStepBody pilotInfo={pilotInfo} /> : null}
+            {!isFold ? (
+              <PilotStepBody isCurrentPilot={isCurrentPilot} pilotInfo={pilotInfo} />
+            ) : null}
 
             <div className="flex flex-row justify-between items-center gap-2 w-full">
               <Button
