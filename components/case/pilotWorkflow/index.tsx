@@ -16,7 +16,6 @@ import {
 } from '@/types/casePilot';
 import { Button, Card, message as messageAntd, Progress } from 'antd';
 import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
 import { produce } from 'immer';
 import { ChevronRight, Download, Play } from 'lucide-react';
 import { memo, useEffect, useMemo, useRef, useState } from 'react';
@@ -29,8 +28,6 @@ interface PilotWorkflowProps {
   indexKey: string;
   pilotInfoCurrent: IPilotType | null;
 }
-
-dayjs.extend(utc);
 
 function PurePilotWorkflow(props: PilotWorkflowProps) {
   const { pageTabInfo, caseInfo, workflowInfo, indexKey, pilotInfoCurrent } = props;

@@ -635,6 +635,7 @@ function CaseDetailContent() {
               <ActionBar
                 caseInfo={caseInfo}
                 pilotInfoCurrent={pilotInfoCurrent}
+                workflowList={workflowList}
                 onSizeChange={handleActionBarSizeChange}
                 onShowNewWorkflow={handleShowNewWorkflow}
               />

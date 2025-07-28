@@ -32,10 +32,11 @@ import {
 } from '@/service/api/case';
 import { useExtensionsStore } from '@/store/extensionsStore';
 import { ICaseItemType } from '@/types/case';
-import { IPilotType, PilotStatusEnum } from '@/types/casePilot';
+import { IPilotType, IWorkflowType, PilotStatusEnum } from '@/types/casePilot';
 import { FileStatus, FileTypeEnum, IFileItemType } from '@/types/file';
 import { DropdownMenuTrigger } from '@radix-ui/react-dropdown-menu';
 import { Checkbox as CheckboxAntd, message as messageAntd } from 'antd';
+import dayjs from 'dayjs';
 import { motion } from 'framer-motion';
 import { ChevronDown, LoaderCircle } from 'lucide-react';
 import { memo, useEffect, useMemo, useRef, useState } from 'react';
@@ -59,6 +60,7 @@ export enum TypeCustomDropdownMenuEnum {
 interface ActionBarProps {
   caseInfo: ICaseItemType | null;
   pilotInfoCurrent: IPilotType | null;
+  workflowList: IWorkflowType[];
   onSizeChange?: (size: DOMRectReadOnly) => void;
   onShowNewWorkflow: () => void;
 }
@@ -77,7 +79,8 @@ const optionDraftEmailList = [
 ];
 
 function PureActionBar(props: ActionBarProps) {
-  const { caseInfo, pilotInfoCurrent, onSizeChange, onShowNewWorkflow } = props || {};
+  const { caseInfo, pilotInfoCurrent, workflowList, onSizeChange, onShowNewWorkflow } =
+    props || {};
 
   const actionBarRef = useRef<HTMLDivElement>(null);
   const customDropdownRef = useRef<HTMLDivElement>(null);
@@ -156,7 +159,43 @@ function PureActionBar(props: ActionBarProps) {
         })
       );
     }
-    console.log('refreshDraftEmailMissInfoOption', resMissingFields);
+  };
+
+  const refreshDraftEmailPDF = async () => {
+    setDraftEmailPDF(null);
+
+    // 筛选存在 progress_file_id 字段的 workflow，并按 updated_at 排序取最新的
+    const filteredWorkflows = workflowList
+      .filter(workflow => workflow.progress_file_id)
+      .sort((a, b) => {
+        const dateA = dayjs(a.updated_at || 0);
+        const dateB = dayjs(b.updated_at || 0);
+        return dateB.valueOf() - dateA.valueOf(); // 降序排列，最新的在前
+      });
+
+    const latestWorkflow = filteredWorkflows.length > 0 ? filteredWorkflows[0] : null; // 取最新的那个，如果没有则返回 null
+
+    setDraftEmailPDF(
+      latestWorkflow
+        ? {
+            localId: uuid(),
+            status: FileStatus.COMPLETED,
+            documentFile: {
+              success: true,
+              documentId: uuid(),
+              caseId: caseInfo?.id || '',
+              message: latestWorkflow.progress_file_id || '',
+              filename: `${caseInfo?.clientName || ''}-${caseInfo?.visaType || ''}-${dayjs.utc(latestWorkflow?.updated_at).local().format('YYYYMMDDHHmmss')}.pdf`, // 'Draft Email PDF.pdf',
+              fileSize: 0,
+              fileType: 'application/pdf',
+              description: null,
+              receivedAt: null,
+              errorCode: null,
+              errorDetails: null,
+            },
+          }
+        : null
+    );
   };
 
   useEffectStrictMode(() => {
@@ -164,7 +203,7 @@ function PureActionBar(props: ActionBarProps) {
     setShowDropdownMenuDraftEmailChild(false);
     // setShowDropdownMenuDraftEmail(false);
     // setShowDropdownMenuDraftEmailMissInfo(false);
-    setDraftEmailPDF(null);
+
     setDraftEmailMissInfoList([]);
 
     switch (typeActionBar) {
@@ -177,23 +216,7 @@ function PureActionBar(props: ActionBarProps) {
         break;
       }
       case TypeActionBarEnum.DRAFT_EMAIL_PDF: {
-        setDraftEmailPDF({
-          localId: uuid(),
-          status: FileStatus.COMPLETED,
-          documentFile: {
-            success: true,
-            documentId: uuid(),
-            caseId: caseInfo?.id || '',
-            message: 'Draft Email PDF',
-            filename: 'Draft Email PDF.pdf',
-            fileSize: 2245148,
-            fileType: 'application/pdf',
-            description: null,
-            receivedAt: null,
-            errorCode: null,
-            errorDetails: null,
-          },
-        });
+        refreshDraftEmailPDF();
         break;
       }
       default: {

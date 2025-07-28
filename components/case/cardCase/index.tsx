@@ -5,7 +5,6 @@ import { IconCardEdit } from '@/components/ui/icon';
 import { ICaseItemType } from '@/types/case';
 import { Card } from 'antd';
 import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
 import { memo, MouseEventHandler } from 'react';
 import { TagStatus } from '../tagStatus';
 
@@ -14,8 +13,6 @@ interface CardCaseProps {
   onCardClick: MouseEventHandler<HTMLDivElement>;
   onCardEditClick?: MouseEventHandler<HTMLButtonElement>;
 }
-
-dayjs.extend(utc);
 
 function PureCardCase(props: CardCaseProps) {
   const { itemCase, onCardClick, onCardEditClick } = props;

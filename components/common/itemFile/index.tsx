@@ -17,7 +17,6 @@ import { FileStatus, FileTypeEnum, IFileItemType } from '@/types/file';
 import { cn } from '@/utils';
 import { Button } from 'antd';
 import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
 import { X } from 'lucide-react';
 import { memo, ReactElement, useEffect, useState } from 'react';
 
@@ -37,8 +36,6 @@ import { memo, ReactElement, useEffect, useState } from 'react';
 | **Future Timestamp**              | `Month D at HH:mm`         | `June 15 at 10:00 AM`                              |
 | **On Hover/Click**                | `YYYY-MM-DD HH:mm:ss`      | `2025-06-08 10:15:30`                              |
 */
-
-dayjs.extend(utc);
 
 export enum ItemFileModeEnum {
   ActionBarDraftEmail = 'ActionBarDraftEmail',
