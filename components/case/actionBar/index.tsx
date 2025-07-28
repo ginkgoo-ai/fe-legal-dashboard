@@ -152,7 +152,7 @@ function PureActionBar(props: ActionBarProps) {
     if (resMissingFields?.length > 0) {
       setDraftEmailMissInfoOption(
         resMissingFields.map(item => {
-          return { label: item.fieldPath, value: item.displayName };
+          return { label: item.displayName, value: item.fieldPath };
         })
       );
     }
