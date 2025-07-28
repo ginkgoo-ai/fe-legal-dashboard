@@ -261,6 +261,13 @@ export interface ICaseDocumentIssueItem {
   documentName: string;
   documentType: string;
   description: string;
+  status: ICaseDocumentIssueStatus;
+}
+
+export enum ICaseDocumentIssueStatus {
+  VALID = 'VALID',
+  HAS_CRITICAL_ISSUES = 'HAS_CRITICAL_ISSUES',
+  HAS_WARNINGS = 'HAS_WARNINGS',
 }
 
 export interface ICaseDocumentIssue {

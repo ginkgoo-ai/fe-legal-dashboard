@@ -2,6 +2,7 @@ import { useEventManager } from '@/hooks/useEventManager';
 import { getHistoryConversation } from '@/service/api';
 import { ICaseConversationItem, ICaseMessageType, ICasePagination } from '@/types/case';
 import { ICaseDocumentType } from '@/types/file';
+import { cn } from '@/utils';
 import { Loader2 } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
@@ -10,13 +11,15 @@ import { CaseGrapher } from '../caseGrapher';
 type MainGrapherGroundProps = {
   caseId: string;
   paddingBottom?: number;
-  emitMessageAction?: (message: any) => void;
+  activeMessage: ICaseConversationItem | null;
+  emitMessageAction: (message: any) => void;
 } & React.HTMLAttributes<HTMLDivElement>;
 
 export const MainGrapherGround = ({
   caseId,
   paddingBottom = 0,
   emitMessageAction,
+  activeMessage,
   ...props
 }: MainGrapherGroundProps) => {
   const [messages, setMessages] = useState<ICaseConversationItem[]>([]);
@@ -60,12 +63,6 @@ export const MainGrapherGround = ({
         break;
     }
   });
-
-  const handleMessageAction = (event: any) => {
-    if (emitMessageAction) {
-      emitMessageAction(event);
-    }
-  };
 
   const addMessage = (message: ICaseConversationItem) => {
     setMessages(prev =>
@@ -216,9 +213,18 @@ export const MainGrapherGround = ({
               '--- There are no more messages ---'
             )}
           </div>
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-4 px-1">
             {messages.map(con => (
-              <CaseGrapher key={con.id} data={con} onActionEmit={handleMessageAction} />
+              <CaseGrapher
+                key={con.id}
+                data={con}
+                className={cn({
+                  'border-primary/30 outline-primary/30': activeMessage?.id === con.id,
+                })}
+                onActionEmit={$event => {
+                  emitMessageAction($event);
+                }}
+              />
             ))}
           </div>
           <div ref={bottomLineRef}></div>

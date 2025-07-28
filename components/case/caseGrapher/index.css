@@ -1,17 +1,40 @@
 .conversation-message {
   background-color: var(--background);
-  .message-label {
-    background-color: var(--panel-background);
-  }
   &.warning {
     background-color: #fff4de;
     color: #e4570c;
-    .message-label {
-      background-color: #e4570c;
-      color: white;
-    }
   }
   &.warning:hover {
     background-color: #f6ebd5;
+  }
+
+  &.error {
+    background-color: #fff4de;
+    color: #e4570c;
+  }
+  &.error:hover {
+    background-color: #f6ebd5;
+  }
+
+  &.success {
+    background-color: #defce9;
+    color: #219653;
+  }
+
+  &.success:hover {
+    background-color: #c9e6d4;
+  }
+}
+
+.message-label {
+  background-color: var(--panel-background);
+  &.warning,
+  &.error {
+    background-color: #e4570c;
+    color: white;
+  }
+  &.success {
+    background-color: #219653;
+    color: white;
   }
 }

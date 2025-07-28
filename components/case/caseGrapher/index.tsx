@@ -1,15 +1,16 @@
 import { FileBlock } from '@/components/common/itemFile';
+import { IconMarkCircle, IconQuestionCircle } from '@/components/ui/icon';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
-  ICaseConversationAction,
   ICaseConversationItem,
   ICaseDocumentIssue,
   ICaseDocumentIssueItem,
+  ICaseDocumentIssueStatus,
   ICaseMessageType,
 } from '@/types/case';
 import { cn } from '@/utils';
 import { isArray } from 'lodash';
-import { ChevronRight, MessageCircleQuestionIcon } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import { HTMLAttributes, memo, useRef } from 'react';
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -23,10 +24,13 @@ const CaseActionLogWrapper = ({
   ...props
 }: {
   children: React.ReactNode;
-  type: 'server' | 'client';
+  type: ICaseMessageType;
 } & HTMLAttributes<HTMLDivElement>) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const isServerType = type === 'server';
+  const isServerType = [
+    ICaseMessageType.ASSISTANT,
+    ICaseMessageType.CLIENT_WAITING_SERVER,
+  ].includes(type);
 
   return (
     <div
@@ -34,7 +38,7 @@ const CaseActionLogWrapper = ({
       className={cn(
         'relative w-full rounded-lg py-4 px-4 transition-[min-height] flex-none',
         isServerType
-          ? ' border bg-panel-background'
+          ? ' border bg-panel-background outline outline-transparent'
           : 'bg-[#EFEFEF] dark:bg-primary-gray self-end max-w-[95%]',
         className
       )}
@@ -47,7 +51,7 @@ const CaseActionLogWrapper = ({
 
 const ServerLoadingLogger = () => {
   return (
-    <CaseActionLogWrapper type="server">
+    <>
       <div className="mb-2">
         <SiteLogo size={24} className="text-primary-dark" />
       </div>
@@ -56,75 +60,69 @@ const ServerLoadingLogger = () => {
         <Skeleton className="w-full h-6" />
         <Skeleton className="w-full h-6" />
       </div>
-    </CaseActionLogWrapper>
+    </>
   );
 };
 
-const ServerCaseLogger = (
-  props: ICaseConversationItem & {
-    onActionEmit?: (params: {
-      message: ICaseConversationItem;
-      action: ICaseConversationAction;
-    }) => void;
-  }
-) => {
-  const onActionClick = (
-    message: ICaseConversationItem,
-    action: ICaseConversationAction
-  ) => {
-    props.onActionEmit?.({ message, action });
-  };
+const ServerCaseLogger = (props: {
+  message: ICaseConversationItem;
+  onActionEmit?: (params: {
+    threadId: string;
+    documentIssues: ICaseDocumentIssueItem;
+    message: ICaseConversationItem;
+  }) => void;
+}) => {
+  const { message } = props;
 
   return (
-    <CaseActionLogWrapper type="server" data-message-id={props.id}>
+    <>
       <div className="mb-2">
         <SiteLogo size={24} className="text-primary-dark" />
       </div>
       <div className="dark:text-foreground text-[#1B2559]">
-        <Markdown remarkPlugins={[remarkGfm]}>{props.title}</Markdown>
-        <Markdown remarkPlugins={[remarkGfm]}>{props.content}</Markdown>
+        <Markdown remarkPlugins={[remarkGfm]}>{message.title}</Markdown>
+        <Markdown remarkPlugins={[remarkGfm]}>{message.content}</Markdown>
       </div>
-      {props.documentIssues?.length > 0 && (
+      {message.documentIssues?.length > 0 && (
         <>
           <div className="h-[1px] w-full border-t my-4"></div>
           <div className="w-full flex flex-col gap-2">
-            {props.documentIssues.map(documentIssues => {
+            {message.documentIssues.map(documentIssues => {
               const { issues, threadId } = documentIssues;
               return issues.map(issue => {
-                return issue.actions.map((action, index) => {
-                  return (
-                    <CaseLoggerAction
-                      action={action}
-                      issue={issue}
-                      documentIssues={documentIssues}
-                      key={`${threadId}_${issue.id}_${index}`}
-                      onClick={() => onActionClick(props, action)}
-                    />
-                  );
-                });
+                return (
+                  <CaseLoggerAction
+                    issue={issue}
+                    documentIssues={documentIssues}
+                    key={`${threadId}_${issue.id}`}
+                    onClick={() =>
+                      props.onActionEmit?.({
+                        threadId: threadId,
+                        documentIssues,
+                        message,
+                      })
+                    }
+                  />
+                );
               });
             })}
           </div>
         </>
       )}
-    </CaseActionLogWrapper>
+    </>
   );
 };
 
-const ClientCaseLogger = (props: ICaseConversationItem) => {
-  const { metadata } = props;
+const ClientCaseLogger = (props: { message: ICaseConversationItem }) => {
+  const { metadata, content } = props.message;
   const list: any[] = isArray(metadata?.attachments)
     ? metadata?.attachments
     : isArray(metadata?.attachments?.files)
       ? metadata?.attachments?.files
       : [];
   return (
-    <CaseActionLogWrapper type="client" className="w-fit" data-message-id={props.id}>
-      {props.content && (
-        <div className="mb-4 text-[#1B2559]">
-          <Markdown remarkPlugins={[remarkGfm]}>{props.content}</Markdown>
-        </div>
-      )}
+    <>
+      {content && <div className="mb-4 text-[#1B2559] break-all">{content}</div>}
       <div className="w-full overflow-y-auto">
         <div className="flex items-center gap-4">
           {list.map((attachment, index) => (
@@ -132,19 +130,42 @@ const ClientCaseLogger = (props: ICaseConversationItem) => {
           ))}
         </div>
       </div>
-    </CaseActionLogWrapper>
+    </>
   );
 };
 
+const DocumentIssuesStyles = {
+  [ICaseDocumentIssueStatus.VALID]: 'success',
+  [ICaseDocumentIssueStatus.HAS_CRITICAL_ISSUES]: 'error',
+  [ICaseDocumentIssueStatus.HAS_WARNINGS]: 'warning',
+};
+
+const ActionIcons = {
+  [ICaseDocumentIssueStatus.VALID]: <IconMarkCircle />,
+  [ICaseDocumentIssueStatus.HAS_CRITICAL_ISSUES]: <IconQuestionCircle />,
+  [ICaseDocumentIssueStatus.HAS_WARNINGS]: <IconQuestionCircle />,
+};
+
+export const DocumentIssusLabel = (status: ICaseDocumentIssueStatus) => (
+  <div
+    className={cn(
+      'min-w-[113px] message-label w-fit px-2 rounded h-7 flex items-center justify-center gap-1 text-sm !font-normal',
+      DocumentIssuesStyles[status]
+    )}
+  >
+    {ActionIcons[status] ?? <IconQuestionCircle />}
+    Critical
+  </div>
+);
+
 const CaseLoggerAction = (
   props: {
-    action: ICaseConversationAction;
     issue: ICaseDocumentIssue;
     documentIssues: ICaseDocumentIssueItem;
   } & HTMLAttributes<HTMLDivElement>
 ) => {
-  const { style } = props.action;
   const { onClick, documentIssues } = props;
+  const style = DocumentIssuesStyles[documentIssues.status];
   return (
     <div
       className={cn(
@@ -153,10 +174,7 @@ const CaseLoggerAction = (
       )}
       onClick={onClick}
     >
-      <div className="min-w-[113px] message-label w-fit px-2 rounded h-full flex items-center justify-center gap-1">
-        <MessageCircleQuestionIcon size={16} />
-        Critical
-      </div>
+      {DocumentIssusLabel(documentIssues.status)}
       <div className="line-clamp-1">
         {documentIssues.documentName}: {documentIssues.description}
       </div>
@@ -168,22 +186,46 @@ const CaseLoggerAction = (
 
 const PureCaseGrapher = ({
   data,
+  className,
   onActionEmit,
 }: {
   data: ICaseConversationItem;
+  active?: boolean;
+  className?: string;
   onActionEmit: (params: {
+    threadId: string;
+    documentIssues: ICaseDocumentIssueItem;
     message: ICaseConversationItem;
-    action: ICaseConversationAction;
   }) => void;
 }) => {
-  const { messageType } = data;
-  if (messageType === ICaseMessageType.ASSISTANT) {
-    return <ServerCaseLogger {...data} onActionEmit={onActionEmit} />;
-  }
-  if (messageType === ICaseMessageType.CLIENT_WAITING_SERVER) {
-    return <ServerLoadingLogger />;
-  }
-  return <ClientCaseLogger {...data} />;
+  const { messageType, id } = data;
+  const grapherRender = (type: ICaseMessageType) => {
+    switch (type) {
+      case ICaseMessageType.ASSISTANT:
+        return <ServerCaseLogger message={data} onActionEmit={onActionEmit} />;
+      case ICaseMessageType.CLIENT_WAITING_SERVER:
+        return <ServerLoadingLogger />;
+      case ICaseMessageType.USER:
+        return <ClientCaseLogger message={data} />;
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <CaseActionLogWrapper
+      type={messageType}
+      data-message-id={id}
+      className={cn(
+        {
+          'w-fit': messageType === ICaseMessageType.USER,
+        },
+        className
+      )}
+    >
+      {grapherRender(messageType)}
+    </CaseActionLogWrapper>
+  );
 };
 
 export const CaseGrapher = memo(PureCaseGrapher);
