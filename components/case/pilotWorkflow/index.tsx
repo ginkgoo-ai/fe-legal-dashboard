@@ -27,12 +27,21 @@ interface PilotWorkflowProps {
   workflowInfo: IWorkflowType;
   indexKey: string;
   pilotInfoCurrent: IPilotType | null;
+  isScrollIntoView?: boolean;
 }
 
 function PurePilotWorkflow(props: PilotWorkflowProps) {
-  const { pageTabInfo, caseInfo, workflowInfo, indexKey, pilotInfoCurrent } = props;
+  const {
+    pageTabInfo,
+    caseInfo,
+    workflowInfo,
+    indexKey,
+    pilotInfoCurrent,
+    isScrollIntoView,
+  } = props;
 
   const isFoldInit = useRef<boolean>(true);
+  const workflowRef = useRef<HTMLDivElement>(null);
 
   const [isFold, setFold] = useState<boolean>(true);
   const [isLoadingContinue, setLoadingContinue] = useState<boolean>(false);
@@ -98,6 +107,9 @@ function PurePilotWorkflow(props: PilotWorkflowProps) {
 
     if (isCurrentPilot) {
       setPilotInfo(pilotInfoCurrent);
+      if (isScrollIntoView) {
+        workflowRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
     } else {
       setPilotInfo(prev => {
         if (prev) {
@@ -128,7 +140,7 @@ function PurePilotWorkflow(props: PilotWorkflowProps) {
         }
       });
     }
-  }, [isCurrentPilot, caseInfo, workflowInfo, pilotInfoCurrent]);
+  }, [isCurrentPilot, isScrollIntoView, caseInfo, workflowInfo, pilotInfoCurrent]);
 
   useEffect(() => {
     const getIsInterrupt = () => {
@@ -267,6 +279,7 @@ function PurePilotWorkflow(props: PilotWorkflowProps) {
     <div
       id={`workflow-item-${indexKey}`}
       className="relative workflow-wrap w-full flex justify-center items-center overflow-hidden rounded-lg flex-[0_0_auto]"
+      ref={workflowRef}
     >
       <div
         className={cn(
