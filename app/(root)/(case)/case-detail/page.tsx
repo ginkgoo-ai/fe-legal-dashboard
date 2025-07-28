@@ -22,6 +22,7 @@ import { useEventManager } from '@/hooks/useEventManager';
 import { useStateCallback } from '@/hooks/useStateCallback';
 import { cn, parseCaseInfo } from '@/lib/utils';
 import {
+  autoFillings,
   caseStream,
   getProfileSchema,
   getWorkflowDefinitions,
@@ -67,6 +68,7 @@ function CaseDetailContent() {
 
   const cancelRef = useRef<null | (() => void)>(null);
   const lastActionBarHeight = useRef<number | null>(null);
+  const pilotInfoCurrentWorkflowId = useRef<string | null>(null);
 
   const [breadcrumbItems, setBreadcrumbItems] = useState<ItemType[]>([
     breadcrumbItemsCasePortal,
@@ -131,9 +133,19 @@ function CaseDetailContent() {
           break;
         }
 
-        if (pilotStatusMsg === PilotStatusEnum.OPEN) {
-          refreshWorkflowList();
-          break;
+        if (
+          pilotStatusMsg === PilotStatusEnum.OPEN &&
+          pilotInfoCurrentWorkflowId.current !== workflowIdMsg
+        ) {
+          pilotInfoCurrentWorkflowId.current = workflowIdMsg;
+          refreshWorkflowList({
+            cb: () => {
+              autoFillings({
+                caseId: caseId || '',
+                workflowId: workflowIdMsg,
+              });
+            },
+          });
         }
 
         break;

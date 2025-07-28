@@ -55,6 +55,7 @@ const CaseApi = {
   summary: '/legalcase/cases/:caseId/documents/summary',
   missingFields: '/legalcase/cases/:caseId/profile/missing-fields',
   missingFieldsEmail: '/legalcase/cases/:caseId/profile/missing-fields-email',
+  autoFillings: '/legalcase/cases/:caseId/auto-fillings',
   applyDummyData: '/legalcase/cases/:caseId/profile/fields/:fieldPath/apply-dummy-data',
   // workflows: '/workflows/:workflowId',
   // workflowsStep: '/workflows/:workflowId/steps/:stepKey',
@@ -474,6 +475,18 @@ export const getMissingFields = async (params: {
   const { caseId } = params || {};
 
   return ApiRequest.get(`${baseUrl}${CaseApi.missingFields.replace(':caseId', caseId)}`);
+};
+
+export const autoFillings = async (params: {
+  caseId: string;
+  workflowId: string;
+}): Promise<Record<string, any>> => {
+  const { caseId, ...otherParams } = params || {};
+
+  return ApiRequest.post(
+    `${baseUrl}${CaseApi.autoFillings.replace(':caseId', caseId)}`,
+    otherParams
+  );
 };
 
 export const applyDummyData = async (
