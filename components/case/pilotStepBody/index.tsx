@@ -213,6 +213,7 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
       />
       {pilotInfo?.pilotTabInfo?.id ? (
         <Alert
+          style={{ width: '100%' }}
           message={<div className="text-[#075985] text-base">Manual Input Required</div>}
           icon={<IconInfo size={16} className="mt-1 mr-2" />}
           description={
