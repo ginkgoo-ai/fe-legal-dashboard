@@ -17,27 +17,24 @@ import { ThreadGrapher } from '../caseGrapher/threadGrapher';
 import { ThreadGrapherActions } from './threadGrapherActions';
 
 type ThreadGrapherGroundProps = {
-  message: ICaseConversationItem;
-  threadId: string;
-  documentIssues: ICaseDocumentIssueItem;
+  data: {
+    message: ICaseConversationItem;
+    threadId: string;
+    documentIssues: ICaseDocumentIssueItem;
+    [key: string]: any;
+  };
   caseId: string;
   onCloseEmit: () => void;
 };
 
 export const ThreadGrapherGround = ({
-  message,
-  threadId,
-  documentIssues,
+  data: { message, threadId, documentIssues, ...restData },
   caseId,
   onCloseEmit,
 }: ThreadGrapherGroundProps) => {
   const [messages, setMessages] = useState<ICaseConversationItem[]>([]);
   const [pageInfo, setPageInfo] = useState<ICasePagination | null>(null);
-  const [isLoadingBtnSend, setLoadingBtnSend] = useState<boolean>(false);
-  const [
-    initFileListForActionUploadForReferenceFile,
-    setInitFileListForActionUploadForReferenceFile,
-  ] = useState<File[]>([]);
+
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const bottomLineRef = useRef<HTMLDivElement>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
@@ -153,6 +150,11 @@ export const ThreadGrapherGround = ({
       shouldAdjust: true,
     };
     setFetching(true);
+    if (message.conversationType === ICaseConversationType.AUTO_FILLING) {
+      loadAutoFillingMessages();
+      return;
+    }
+
     try {
       const { messages: newMessages, pagination } = await fetchMessages({
         page: (pageInfo?.page ?? -1) + 1,
@@ -166,6 +168,25 @@ export const ThreadGrapherGround = ({
     } finally {
       setFetching(false);
     }
+  };
+
+  const loadAutoFillingMessages = () => {
+    setMessages([
+      {
+        id: uuidv4(),
+        content:
+          'The automated data population process for the visa application has been paused. A data field was encountered that requires human review and input to ensure complete accuracy. Please access the case file to complete the flagged sections.',
+        conversationType: ICaseConversationType.AUTO_FILLING,
+        messageType: ICaseMessageType.ASSISTANT,
+        metadata: {
+          pilotInfo: restData.pilotInfo,
+        } as Record<string, any>,
+      } as ICaseConversationItem,
+    ]);
+    setPageInfo({
+      hasNext: false,
+    } as ICasePagination);
+    setFetching(false);
   };
 
   useEffect(() => {
@@ -227,7 +248,10 @@ export const ThreadGrapherGround = ({
       <div className="border-b p-4 relative">
         <div className="min-h-9 flex flex-col">
           <div className="flex items-center flex-1 font-semibold text-base gap-2">
-            {ActionLabel(message.conversationType, documentIssues?.status)}
+            {ActionLabel(message.conversationType, {
+              status: documentIssues?.status,
+              message,
+            })}
             {message.title}
           </div>
         </div>

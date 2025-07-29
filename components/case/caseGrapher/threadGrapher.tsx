@@ -1,4 +1,5 @@
 import { CopyButton } from '@/components/common/copyButton';
+import { Button } from '@/components/ui/button';
 import {
   ICaseConversationItem,
   ICaseConversationType,
@@ -6,6 +7,7 @@ import {
   ICaseMessageType,
 } from '@/types/case';
 import { cn } from '@/utils';
+import { ExternalLink } from 'lucide-react';
 import { memo } from 'react';
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -23,12 +25,38 @@ const ThreadServerCaseLogger = (props: {
   const { message } = props;
 
   const renderAction = (msg: ICaseConversationItem) => {
-    const { conversationType, documentIssues, threadId } = msg;
+    const { conversationType, documentIssues, metadata } = msg;
+    const { pilotInfo } = metadata ?? {};
     if (conversationType === ICaseConversationType.AUTO_FILLING) {
       return (
         <>
-          <div className="h-[1px] w-full border-t my-4"></div>
-          TODO: AUTO_FILLING
+          <div className="w-full flex justify-end items-center">
+            <Button
+              variant="outline"
+              disabled={!pilotInfo?.pilotTabInfo?.id}
+              onClick={() => {
+                if (!!pilotInfo?.pilotTabInfo?.id) {
+                  const messageJump = {
+                    type: 'ginkgoo-page-background-tab-update',
+                    tabId: pilotInfo?.pilotTabInfo?.id,
+                    updateProperties: { active: true },
+                  };
+                  window.postMessage(messageJump, window.location.origin);
+
+                  const messageOpenSidepanel = {
+                    type: 'ginkgoo-page-background-sidepanel-open',
+                    options: {
+                      tabId: pilotInfo?.pilotTabInfo?.id,
+                    },
+                  };
+                  window.postMessage(messageOpenSidepanel, window.location.origin);
+                }
+              }}
+            >
+              <ExternalLink size={16} />
+              Proceed to Government Portal
+            </Button>
+          </div>
         </>
       );
     }

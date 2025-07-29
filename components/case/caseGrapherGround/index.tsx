@@ -12,11 +12,12 @@ import { ThreadGrapherGround } from './threadGrapherGround';
 
 type CaseGrapherGroundProps = {
   caseInfo: ICaseItemType;
+  workflowOptions?: Record<string, any>;
   bottomPadding?: number;
 } & HTMLAttributes<HTMLDivElement>;
 
 export const CaseGrapherGround = (props: CaseGrapherGroundProps) => {
-  const { caseInfo, bottomPadding } = props;
+  const { caseInfo, bottomPadding, workflowOptions } = props;
 
   // 右侧面板状态
   const [sizeRightPanel, setSizeRightPanel] = useState<string | number>('0%');
@@ -28,6 +29,7 @@ export const CaseGrapherGround = (props: CaseGrapherGroundProps) => {
     threadId: string;
     documentIssues: ICaseDocumentIssueItem;
     message: ICaseConversationItem;
+    [key: string]: any;
   } | null>(null);
 
   // 处理右侧面板显示/隐藏
@@ -65,6 +67,7 @@ export const CaseGrapherGround = (props: CaseGrapherGroundProps) => {
                 caseId={caseInfo.id}
                 activeMessage={currentConversation?.message ?? null}
                 paddingBottom={bottomPadding}
+                workflowOptions={workflowOptions}
                 emitMessageAction={$event => {
                   setCurrentConversation(null);
                   setTimeout(() => {
@@ -87,7 +90,7 @@ export const CaseGrapherGround = (props: CaseGrapherGroundProps) => {
             >
               {currentConversation && (
                 <ThreadGrapherGround
-                  {...currentConversation}
+                  data={currentConversation}
                   caseId={caseInfo.id}
                   onCloseEmit={() => setCurrentConversation(null)}
                 />

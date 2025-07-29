@@ -649,18 +649,16 @@ function CaseDetailContent() {
               'transition-all duration-200': isTransition,
             })}
           >
-            <CaseGrapherGround caseInfo={caseInfo!} bottomPadding={pbSummary}>
-              {/* Test */}
-              {/* {workflowInfoForTest ? (
-                <PilotWorkflow
-                  pageTabInfo={pageTabInfo}
-                  caseInfo={caseInfo}
-                  workflowInfo={workflowInfoForTest}
-                  indexKey={`panel-summary-workflow-${0}`}
-                  pilotInfoCurrent={pilotInfoCurrent}
-                />
-              ) : null} */}
-
+            <CaseGrapherGround
+              caseInfo={caseInfo!}
+              bottomPadding={pbSummary}
+              workflowOptions={{
+                workflowList,
+                pageTabInfo,
+                pilotInfoCurrent,
+                caseInfo,
+              }}
+            >
               <ActionBar
                 caseInfo={caseInfo}
                 pilotInfoCurrent={pilotInfoCurrent}

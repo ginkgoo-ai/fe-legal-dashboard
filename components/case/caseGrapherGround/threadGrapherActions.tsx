@@ -27,7 +27,7 @@ export const ThreadGrapherActions = ({ message, caseId }: ThreadGrapherActionsPr
       threadId: message.threadId,
     });
 
-    const { cancel } = await conversationMessageStream(
+    await conversationMessageStream(
       {
         caseId,
         payload: {

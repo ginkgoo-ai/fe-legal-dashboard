@@ -11,6 +11,7 @@ type MainGrapherGroundProps = {
   caseId: string;
   paddingBottom?: number;
   activeMessage: ICaseConversationItem | null;
+  workflowOptions?: Record<string, any>;
   emitMessageAction: (message: any) => void;
 } & React.HTMLAttributes<HTMLDivElement>;
 
@@ -19,6 +20,7 @@ export const MainGrapherGround = ({
   paddingBottom = 0,
   emitMessageAction,
   activeMessage,
+  workflowOptions,
 }: MainGrapherGroundProps) => {
   const [messages, setMessages] = useState<ICaseConversationItem[]>([]);
   const [pageInfo, setPageInfo] = useState<ICasePagination | null>(null);
@@ -183,6 +185,7 @@ export const MainGrapherGround = ({
                 className={cn({
                   'border-primary/30 outline-primary/30': activeMessage?.id === con.id,
                 })}
+                workflowOptions={workflowOptions}
                 onActionEmit={$event => {
                   emitMessageAction($event);
                 }}

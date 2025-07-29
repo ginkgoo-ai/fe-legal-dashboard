@@ -844,7 +844,7 @@ function PureActionBar(props: ActionBarProps) {
   return (
     <div
       ref={actionBarRef}
-      className="absolute bottom-10 left-[50%] -translate-x-1/2 flex flex-col items-center gap-3 w-full"
+      className="absolute bottom-10 left-[50%] -translate-x-1/2 flex flex-col items-center gap-3 w-full pointer-events-none"
     >
       {/* Custom DropdownMenu for DraftEmail Select */}
       {typeCustomDropdownMenu === TypeCustomDropdownMenuEnum.DRAFT_EMAIL_SELECT
@@ -880,7 +880,7 @@ function PureActionBar(props: ActionBarProps) {
       {/* Base */}
       <div
         className={cn(
-          'action-bar-content bg-background box-border rounded-[12px] border border-solid border-[rgba(225, 225, 226, 1)] transition-all',
+          'action-bar-content bg-background box-border rounded-[12px] border border-solid border-[rgba(225, 225, 226, 1)] transition-all pointer-events-auto',
           customStyle
         )}
       >
