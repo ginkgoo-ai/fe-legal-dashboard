@@ -1,9 +1,11 @@
 import {
   ICaseConversationItem,
   ICaseConversationStats,
+  ICaseConversationStreamParams,
   ICaseDocumentResultType,
   ICaseItemType,
   ICasePagination,
+  ICaseProfileMissingField,
   ICaseStreamParamsType,
   ICreateCaseParamsType,
   IOcrDocumentsParamsType,
@@ -50,8 +52,14 @@ const CaseApi = {
   profileField: '/legalcase/cases/:caseId/profile/fields/:fieldPath',
   profileSchema: '/legalcase/cases/:caseId/profile/schema',
   fieldSchema: '/legalcase/cases/:caseId/profile/fields/:fieldPath/schema',
+  emailDraft: '/legalcase/cases/:caseId/email-draft',
+  summary: '/legalcase/cases/:caseId/documents/summary',
+  missingFields: '/legalcase/cases/:caseId/profile/missing-fields',
   missingFieldsEmail: '/legalcase/cases/:caseId/profile/missing-fields-email',
+  autoFillings: '/legalcase/cases/:caseId/auto-fillings',
   applyDummyData: '/legalcase/cases/:caseId/profile/fields/:fieldPath/apply-dummy-data',
+  conversationMessagesStream: '/legalcase/cases/:caseId/conversation/messages/stream',
+  ignoreIssue: '/legalcase/cases/:caseId/validation-issues/ignore',
   // workflows: '/workflows/:workflowId',
   // workflowsStep: '/workflows/:workflowId/steps/:stepKey',
 };
@@ -431,6 +439,21 @@ export const getFieldSchema = async (
   );
 };
 
+export const createEmailDraft = async (params: {
+  caseId: string;
+  emailType: string;
+  fields?: string[];
+  context?: string;
+  threadId?: string;
+}): Promise<Record<string, any>> => {
+  const { caseId, ...otherParams } = params || {};
+
+  return ApiRequest.post(
+    `${baseUrl}${CaseApi.emailDraft.replace(':caseId', caseId)}`,
+    otherParams
+  );
+};
+
 export const getMissingFieldEmailTemplate = async (
   caseId: string
 ): Promise<{
@@ -440,6 +463,32 @@ export const getMissingFieldEmailTemplate = async (
 }> => {
   return ApiRequest.get(
     `${baseUrl}${CaseApi.missingFieldsEmail.replace(':caseId', caseId)}`
+  );
+};
+
+export const getSummary = async (params: { caseId: string }): Promise<any> => {
+  const { caseId } = params || {};
+
+  return ApiRequest.get(`${baseUrl}${CaseApi.summary.replace(':caseId', caseId)}`);
+};
+
+export const getMissingFields = async (params: {
+  caseId: string;
+}): Promise<ICaseProfileMissingField[]> => {
+  const { caseId } = params || {};
+
+  return ApiRequest.get(`${baseUrl}${CaseApi.missingFields.replace(':caseId', caseId)}`);
+};
+
+export const autoFillings = async (params: {
+  caseId: string;
+  workflowId: string;
+}): Promise<Record<string, any>> => {
+  const { caseId, ...otherParams } = params || {};
+
+  return ApiRequest.post(
+    `${baseUrl}${CaseApi.autoFillings.replace(':caseId', caseId)}`,
+    otherParams
   );
 };
 
@@ -472,5 +521,109 @@ export const getHistoryConversation = async (
     {
       ...queries,
     }
+  );
+};
+
+export const conversationMessageStream = async (
+  params: ICaseConversationStreamParams,
+  onRequest?: (controller: AbortController) => void,
+  onProgress?: (text: string) => void
+): Promise<{ cancel: () => void; request: Promise<null> }> => {
+  const { caseId } = params;
+  const controller = new AbortController();
+  const request = new Promise<null>((resolve, reject) => {
+    fetch(`${baseUrl}${CaseApi.conversationMessagesStream}`.replace(':caseId', caseId), {
+      method: 'POST',
+      signal: controller.signal,
+      credentials: 'include',
+      headers: {
+        Accept: 'text/event-stream',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(params.payload),
+    })
+      .then(response => {
+        if (response.status === 403) {
+          window.location.replace('/403');
+          return;
+        }
+
+        const reader = response.body?.getReader();
+        const decoder = new TextDecoder();
+
+        let buffer = '';
+        const push = () => {
+          reader
+            ?.read()
+            .then(({ done, value }) => {
+              if (done) {
+                if (buffer.trim()) {
+                  try {
+                    const lastMessage = buffer.trim();
+                    if (lastMessage.startsWith('data:')) {
+                      onProgress?.(lastMessage.slice(5).trim());
+                    }
+                  } catch (e) {
+                    console.error('解析最终数据失败:', e, '原始数据:', buffer);
+                  }
+                }
+                resolve(null);
+                return;
+              }
+
+              const chunk = decoder.decode(value, { stream: true });
+              buffer += chunk;
+
+              const messages = buffer.split('\n\n');
+
+              buffer = messages.pop() || '';
+
+              for (const message of messages) {
+                if (!message.trim()) continue;
+
+                const data = message.replace(/^data:\s*/gm, '').trim();
+                if (data) {
+                  try {
+                    onProgress?.(data);
+                  } catch (e) {
+                    console.error('解析数据失败:', e, '原始数据:', data);
+                  }
+                }
+              }
+
+              push();
+            })
+            .catch(error => {
+              if (error.name === 'AbortError') {
+                resolve({} as any);
+              } else {
+                reject(error);
+              }
+            });
+        };
+
+        push();
+      })
+      .catch(error => {
+        console.error('conversationMessageStream', error);
+        resolve(null);
+      });
+  });
+
+  onRequest?.(controller);
+
+  return {
+    cancel: () => controller.abort(),
+    request,
+  };
+};
+
+export const IgnoreIssues = async (
+  caseId: string,
+  params: { issueIds: string[]; reason?: string }
+) => {
+  return ApiRequest.post<{ success: boolean }>(
+    `${baseUrl}${CaseApi.ignoreIssue.replace(':caseId', caseId)}`,
+    params
   );
 };

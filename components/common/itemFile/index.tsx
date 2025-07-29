@@ -17,7 +17,6 @@ import { FileStatus, FileTypeEnum, IFileItemType } from '@/types/file';
 import { cn } from '@/utils';
 import { Button } from 'antd';
 import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
 import { X } from 'lucide-react';
 import { memo, ReactElement, useEffect, useState } from 'react';
 
@@ -37,8 +36,6 @@ import { memo, ReactElement, useEffect, useState } from 'react';
 | **Future Timestamp**              | `Month D at HH:mm`         | `June 15 at 10:00 AM`                              |
 | **On Hover/Click**                | `YYYY-MM-DD HH:mm:ss`      | `2025-06-08 10:15:30`                              |
 */
-
-dayjs.extend(utc);
 
 export enum ItemFileModeEnum {
   ActionBarDraftEmail = 'ActionBarDraftEmail',
@@ -393,13 +390,12 @@ function PureItemFile(props: ItemFileProps) {
 
 function PureFileBlock(
   props: {
-    file: { filename: string; fileType?: FileTypeEnum };
+    file: { name: string; type?: FileTypeEnum };
   } & React.HTMLAttributes<HTMLDivElement>
 ) {
   const { file } = props;
-  const extension = file.filename?.split('.')[1];
-  const fileType =
-    file.fileType ?? ((extension && extMap[extension]) || FileTypeEnum.UNKNOW);
+  const extension = file.name?.split('.')[1];
+  const fileType = file.type ?? ((extension && extMap[extension]) || FileTypeEnum.UNKNOW);
   return (
     <div
       className={cn(
@@ -410,10 +406,10 @@ function PureFileBlock(
       <div>{getFileTypeMap({ size: 24, type: fileType })}</div>
       <Tooltip delayDuration={1500}>
         <TooltipTrigger>
-          <div className="max-w-80 truncate">{file.filename}</div>
+          <div className="max-w-80 truncate">{file.name}</div>
         </TooltipTrigger>
         <TooltipContent className="max-w-80">
-          <p className="mb-0">{file.filename}</p>
+          <p className="mb-0">{file.type}</p>
         </TooltipContent>
       </Tooltip>
     </div>

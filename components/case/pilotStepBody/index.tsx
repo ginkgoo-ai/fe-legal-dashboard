@@ -9,18 +9,20 @@ import {
 import { cn } from '@/lib/utils';
 import { IPilotType, IWorkflowStepType, PilotStatusEnum } from '@/types/casePilot';
 import type { CollapseProps } from 'antd';
-import { Alert, Button, Collapse, Spin } from 'antd';
+import { Alert, Button, Collapse, Spin, Tooltip } from 'antd';
 import { Check } from 'lucide-react';
 import { memo, useCallback, useEffect, useState } from 'react';
 import { PilotStepBodyNormal } from '../pilotStepBodyNormal';
 import './index.css';
 
 interface PilotStepBodyProps {
+  isCurrentPilot: boolean;
   pilotInfo: IPilotType | null;
 }
 
 function PurePilotStepBody(props: PilotStepBodyProps) {
   const {
+    isCurrentPilot,
     pilotInfo,
     // onCollapseChange,
   } = props;
@@ -116,12 +118,50 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
                 </>
               )}
             </div>
-            <div className="flex w-0 flex-1 items-center justify-start gap-3">
+            <div className="flex flex-row flex-1 items-center justify-between gap-3">
               <div className="truncate">{itemStep.name}</div>
-              {itemStep.step_key === 'Declaration' ? (
-                <div className="mt-0.5 flex h-full flex-[0_0_auto] items-center justify-center text-xs text-[#FF55CB]">
-                  Confirm Declaration
-                </div>
+              {Number(itemStep.data?.current_interrupt_questions?.length) > 0 &&
+              pilotInfo?.pilotStatus === PilotStatusEnum.HOLD &&
+              itemStep.step_key === pilotInfo.pilotWorkflowInfo?.current_step_key ? (
+                <Tooltip
+                  mouseEnterDelay={1}
+                  title={() => {
+                    return (
+                      <div className="flex flex-col gap-1">
+                        {itemStep.data?.current_interrupt_questions?.map(
+                          itemInterruptQuestions => {
+                            return (
+                              <>
+                                <div className="break-all text-xs">
+                                  <span className="mr-1 font-bold">question:</span>
+                                  <span className="">
+                                    {itemInterruptQuestions.question_text}
+                                  </span>
+                                </div>
+                                <div className="break-all text-xs">
+                                  <span className="mr-1 font-bold">confidence:</span>
+                                  <span className="">
+                                    {itemInterruptQuestions.confidence}
+                                  </span>
+                                </div>
+                                <div className="break-all text-xs">
+                                  <span className="mr-1 font-bold">reasoning:</span>
+                                  <span className="">
+                                    {itemInterruptQuestions.reasoning}
+                                  </span>
+                                </div>
+                              </>
+                            );
+                          }
+                        )}
+                      </div>
+                    );
+                  }}
+                >
+                  <div>
+                    <IconInfo size={18} />
+                  </div>
+                </Tooltip>
               ) : null}
             </div>
           </div>
@@ -162,7 +202,7 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
   }, [pilotInfo, handleBtnProceedToFormClick]);
 
   useEffect(() => {
-    if (Number(pilotInfo?.pilotWorkflowInfo?.steps?.length) > 0) {
+    if (isCurrentPilot && Number(pilotInfo?.pilotWorkflowInfo?.steps?.length) > 0) {
       const indexCurrentStep: number = Number(
         pilotInfo?.pilotWorkflowInfo?.steps?.findIndex(itemStep => {
           return itemStep.step_key === pilotInfo.pilotWorkflowInfo?.current_step_key;
@@ -198,7 +238,7 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
     }
 
     setStepListActiveKeyBody('');
-  }, [pilotInfo]);
+  }, [pilotInfo, isCurrentPilot]);
 
   return stepListItemsBody && stepListItemsBody.length > 0 ? (
     <div className="relative box-border flex flex-col w-full items-center justify-start rounded-lg border border-[#D8DFF5] p-2">
@@ -211,6 +251,7 @@ function PurePilotStepBody(props: PilotStepBodyProps) {
       />
       {pilotInfo?.pilotTabInfo?.id ? (
         <Alert
+          style={{ width: '100%' }}
           message={<div className="text-[#075985] text-base">Manual Input Required</div>}
           icon={<IconInfo size={16} className="mt-1 mr-2" />}
           description={

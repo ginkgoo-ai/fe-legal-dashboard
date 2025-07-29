@@ -202,7 +202,7 @@ export interface ICaseProfileMissingField {
   dummyValue: string;
   fieldPath: string;
   fieldType: string;
-  isRequired: boolean;
+  isRequired?: boolean;
   required: boolean;
   [key: string]: unknown;
 }
@@ -247,6 +247,15 @@ export interface ICaseConversationItem {
   title: string;
   updatedAt: string;
   documentIssues: ICaseDocumentIssueItem[];
+  conversationType: ICaseConversationType;
+}
+
+export enum ICaseConversationType {
+  SUMMARY = 'SUMMARY',
+  EMAIL = 'EMAIL',
+  GENERAL = 'GENERAL',
+  AUTO_FILLING = 'AUTO_FILLING',
+  ISSUE = 'ISSUE',
 }
 
 export enum ICaseMessageType {
@@ -261,12 +270,21 @@ export interface ICaseDocumentIssueItem {
   documentName: string;
   documentType: string;
   description: string;
+  status: ICaseDocumentIssueStatus;
+  actions: ICaseConversationAction[];
+}
+
+export enum ICaseDocumentIssueStatus {
+  VALID = 'VALID',
+  HAS_CRITICAL_ISSUES = 'HAS_CRITICAL_ISSUES',
+  HAS_WARNINGS = 'HAS_WARNINGS',
 }
 
 export interface ICaseDocumentIssue {
   actions: ICaseConversationAction[];
   context: string;
   id: string;
+  message: string;
 }
 
 export interface ICaseConversationAction {
@@ -286,4 +304,9 @@ export interface ICaseConversationStats {
   totalMessages: number;
   unreadMessages: number;
   userMessages: number;
+}
+
+export interface ICaseConversationStreamParams {
+  caseId: string;
+  payload: { threadId: string; [key: string]: any };
 }

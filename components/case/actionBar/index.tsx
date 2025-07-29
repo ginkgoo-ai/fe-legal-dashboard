@@ -21,15 +21,22 @@ import {
 import { MESSAGE } from '@/config/message';
 import GlobalManager from '@/customManager/GlobalManager';
 import UtilsManager from '@/customManager/UtilsManager';
+import { useEffectStrictMode } from '@/hooks/useEffectStrictMode';
 import { useEventManager } from '@/hooks/useEventManager';
 import { cn } from '@/lib/utils';
-import { processDocument } from '@/service/api/case';
+import {
+  createEmailDraft,
+  getMissingFields,
+  getSummary,
+  processDocument,
+} from '@/service/api/case';
 import { useExtensionsStore } from '@/store/extensionsStore';
 import { ICaseItemType } from '@/types/case';
-import { IPilotType, PilotStatusEnum } from '@/types/casePilot';
+import { IPilotType, IWorkflowType, PilotStatusEnum } from '@/types/casePilot';
 import { FileStatus, FileTypeEnum, IFileItemType } from '@/types/file';
 import { DropdownMenuTrigger } from '@radix-ui/react-dropdown-menu';
 import { Checkbox as CheckboxAntd, message as messageAntd } from 'antd';
+import dayjs from 'dayjs';
 import { motion } from 'framer-motion';
 import { ChevronDown, LoaderCircle } from 'lucide-react';
 import { memo, useEffect, useMemo, useRef, useState } from 'react';
@@ -53,6 +60,7 @@ export enum TypeCustomDropdownMenuEnum {
 interface ActionBarProps {
   caseInfo: ICaseItemType | null;
   pilotInfoCurrent: IPilotType | null;
+  workflowList: IWorkflowType[];
   onSizeChange?: (size: DOMRectReadOnly) => void;
   onShowNewWorkflow: () => void;
 }
@@ -71,7 +79,8 @@ const optionDraftEmailList = [
 ];
 
 function PureActionBar(props: ActionBarProps) {
-  const { caseInfo, pilotInfoCurrent, onSizeChange, onShowNewWorkflow } = props || {};
+  const { caseInfo, pilotInfoCurrent, workflowList, onSizeChange, onShowNewWorkflow } =
+    props || {};
 
   const actionBarRef = useRef<HTMLDivElement>(null);
   const customDropdownRef = useRef<HTMLDivElement>(null);
@@ -85,6 +94,7 @@ function PureActionBar(props: ActionBarProps) {
   const [isShowDropdownMenuDraftEmailChild, setShowDropdownMenuDraftEmailChild] =
     useState<boolean>(false);
   const [isLoadingInstall, setLoadingInstall] = useState<boolean>(false);
+  const [isLoadingBtnSummarize, setLoadingBtnSummarize] = useState<boolean>(false);
   const [isLoadingBtnSend, setLoadingBtnSend] = useState<boolean>(false);
 
   const [
@@ -101,7 +111,7 @@ function PureActionBar(props: ActionBarProps) {
       caseId: caseInfo?.id || '',
       message: 'Missing information',
       filename: 'Missing information',
-      fileSize: 2245148,
+      fileSize: 0,
       fileType: FileTypeEnum.MISS_INFO,
       description: null,
       receivedAt: null,
@@ -109,6 +119,9 @@ function PureActionBar(props: ActionBarProps) {
       errorDetails: null,
     },
   });
+  const [draftEmailMissInfoOption, setDraftEmailMissInfoOption] = useState<
+    Record<string, string>[]
+  >([]);
   const [draftEmailMissInfoList, setDraftEmailMissInfoList] = useState<any[]>([]);
   const [draftEmailPDF, setDraftEmailPDF] = useState<IFileItemType | null>(null);
 
@@ -131,38 +144,81 @@ function PureActionBar(props: ActionBarProps) {
     );
   }, [typeActionBar]);
 
-  const draftEmailMissInfoOption = useMemo(() => {
-    console.log('caseInfo', caseInfo);
-    return [
-      { label: 'Date of Birth', value: 'Date of Birth' },
-      { label: 'Visa Application Date', value: 'Visa Application Date' },
-      { label: 'Visa Submission Date', value: 'Visa Submission Date' },
-      { label: 'Visa Request Date', value: 'Visa Request Date' },
-      { label: 'Visa Processing Date', value: 'Visa Processing Date' },
-      { label: 'Visa Processing Date', value: 'Visa Processing Date1' },
-      { label: 'Visa Processing Date', value: 'Visa Processing Date2' },
-      { label: 'Visa Processing Date', value: 'Visa Processing Date3' },
-      { label: 'Visa Processing Date', value: 'Visa Processing Date4' },
-      { label: 'Visa Processing Date', value: 'Visa Processing Date5' },
-      { label: 'Visa Processing Date', value: 'Visa Processing Date6' },
-      { label: 'Visa Processing Date', value: 'Visa Processing Date7' },
-      { label: 'Visa Processing Date', value: 'Visa Processing Date8' },
-      { label: 'Visa Processing Date', value: 'Visa Processing Date9' },
-      { label: 'Visa Processing Date', value: 'Visa Processing Date10' },
-      { label: 'Visa Processing Date', value: 'Visa Processing Date11' },
-      { label: 'Visa Processing Date', value: 'Visa Processing Date12' },
-      { label: 'Visa Processing Date', value: 'Visa Processing Date13' },
-    ];
-  }, [caseInfo]);
-
   const { emit: emitCase } = useEventManager('ginkgoo-case', () => {});
 
-  useEffect(() => {
+  useEventManager('ginkgoo-thread', $event => {
+    const { type } = $event;
+    switch (type) {
+      case 'event: uploadDocuments':
+        (
+          document.querySelector(
+            'input#action-bar-add-reference-upload-file'
+          ) as HTMLInputElement
+        )?.click();
+        break;
+      default:
+        break;
+    }
+  });
+
+  const refreshDraftEmailMissInfoOption = async () => {
+    setDraftEmailMissInfoOption([]);
+    const resMissingFields = await getMissingFields({
+      caseId: caseInfo?.id || '',
+    });
+
+    if (resMissingFields?.length > 0) {
+      setDraftEmailMissInfoOption(
+        resMissingFields.map(item => {
+          return { label: item.displayName, value: item.fieldPath };
+        })
+      );
+    }
+  };
+
+  const refreshDraftEmailPDF = async () => {
+    setDraftEmailPDF(null);
+
+    // 筛选存在 progress_file_id 字段的 workflow，并按 updated_at 排序取最新的
+    const filteredWorkflows = workflowList
+      .filter(workflow => workflow.progress_file_id)
+      .sort((a, b) => {
+        const dateA = dayjs(a.updated_at || 0);
+        const dateB = dayjs(b.updated_at || 0);
+        return dateB.valueOf() - dateA.valueOf(); // 降序排列，最新的在前
+      });
+
+    const latestWorkflow = filteredWorkflows.length > 0 ? filteredWorkflows[0] : null; // 取最新的那个，如果没有则返回 null
+
+    setDraftEmailPDF(
+      latestWorkflow
+        ? {
+            localId: uuid(),
+            status: FileStatus.COMPLETED,
+            documentFile: {
+              success: true,
+              documentId: uuid(),
+              caseId: caseInfo?.id || '',
+              message: latestWorkflow.progress_file_id || '',
+              filename: `${caseInfo?.clientName || ''}-${caseInfo?.visaType || ''}-${dayjs.utc(latestWorkflow?.updated_at).local().format('YYYYMMDDHHmmss')}.pdf`, // 'Draft Email PDF.pdf',
+              fileSize: 0,
+              fileType: 'application/pdf',
+              description: null,
+              receivedAt: null,
+              errorCode: null,
+              errorDetails: null,
+            },
+          }
+        : null
+    );
+  };
+
+  useEffectStrictMode(() => {
     setTypeCustomDropdownMenu(TypeCustomDropdownMenuEnum.NONE);
     setShowDropdownMenuDraftEmailChild(false);
     // setShowDropdownMenuDraftEmail(false);
     // setShowDropdownMenuDraftEmailMissInfo(false);
-    setDraftEmailPDF(null);
+
     setDraftEmailMissInfoList([]);
 
     switch (typeActionBar) {
@@ -171,26 +227,11 @@ function PureActionBar(props: ActionBarProps) {
         break;
       }
       case TypeActionBarEnum.DRAFT_EMAIL_MISS_INFO: {
+        refreshDraftEmailMissInfoOption();
         break;
       }
       case TypeActionBarEnum.DRAFT_EMAIL_PDF: {
-        setDraftEmailPDF({
-          localId: uuid(),
-          status: FileStatus.COMPLETED,
-          documentFile: {
-            success: true,
-            documentId: uuid(),
-            caseId: caseInfo?.id || '',
-            message: 'Draft Email PDF',
-            filename: 'Draft Email PDF.pdf',
-            fileSize: 2245148,
-            fileType: 'application/pdf',
-            description: null,
-            receivedAt: null,
-            errorCode: null,
-            errorDetails: null,
-          },
-        });
+        refreshDraftEmailPDF();
         break;
       }
       default: {
@@ -298,11 +339,79 @@ function PureActionBar(props: ActionBarProps) {
     });
   };
 
+  const handleDraftEmailMissInfoBtnSendClick = async (params: {
+    fileList: IFileItemType[];
+    description: string;
+  }) => {
+    const { description } = params || {};
+
+    console.log(
+      'handleDraftEmailMissInfoBtnSendClick draftEmailMissInfoList',
+      draftEmailMissInfoList
+    );
+
+    setLoadingBtnSend(true);
+
+    const resCreateEmailDrafts = await createEmailDraft({
+      caseId: caseInfo?.id || '',
+      emailType: 'missing_documents',
+      fields: draftEmailMissInfoList.map(item => {
+        return item.value;
+      }),
+      context: description,
+    });
+
+    setLoadingBtnSend(false);
+
+    if (!!resCreateEmailDrafts?.threadId) {
+      setTypeActionBar(TypeActionBarEnum.INIT);
+      return;
+    }
+
+    messageAntd.open({
+      type: 'error',
+      content: MESSAGE.TOAST_PROBLEM,
+    });
+  };
+
+  const handleDraftEmailPDFBtnSendClick = async () => {
+    console.log('handleDraftEmailPDFBtnSendClick draftEmailPDF', draftEmailPDF);
+
+    setLoadingBtnSend(true);
+
+    const resCreateEmailDrafts = await createEmailDraft({
+      caseId: caseInfo?.id || '',
+      emailType: 'pdf', // TODO:
+    });
+
+    setLoadingBtnSend(false);
+
+    console.log(
+      'handleDraftEmailPDFBtnSendClick resCreateEmailDrafts',
+      resCreateEmailDrafts
+    );
+  };
+
   const handleBtnDraftEmailClick = () => {
     setTypeCustomDropdownMenu(TypeCustomDropdownMenuEnum.DRAFT_EMAIL_SELECT);
   };
 
-  const handleBtnSummarizeClick = () => {};
+  const handleBtnSummarizeClick = async () => {
+    setLoadingBtnSummarize(true);
+
+    const resSummary = await getSummary({
+      caseId: caseInfo?.id || '',
+    });
+
+    setLoadingBtnSummarize(false);
+
+    if (!resSummary?.id) {
+      messageAntd.open({
+        type: 'error',
+        content: MESSAGE.TOAST_PROBLEM,
+      });
+    }
+  };
 
   const handleBtnExtensionStartClick = () => {
     if (!!extensionsInfo?.version) {
@@ -341,6 +450,7 @@ function PureActionBar(props: ActionBarProps) {
             disabled={isRunningExtension}
           >
             <FileUploadSimple
+              id="action-bar-add-reference-upload-file"
               accept="application/pdf,image/jpeg,image/png,image/gif,image/webp,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/plain"
               maxSize={50}
               onChange={handleFileChange}
@@ -377,7 +487,11 @@ function PureActionBar(props: ActionBarProps) {
             disabled={isRunningExtension}
             onClick={handleBtnSummarizeClick}
           >
-            <IconActionBarSummarize />
+            {isLoadingBtnSummarize ? (
+              <LoaderCircle className="animate-spin" />
+            ) : (
+              <IconActionBarSummarize />
+            )}
             <span>Summarize</span>
           </Button>
 
@@ -494,9 +608,7 @@ function PureActionBar(props: ActionBarProps) {
                 );
               }}
               renderFooter={renderActionbarDraftEmailFooter}
-              onBtnSendClick={() => {
-                console.log('renderActionbarDraftEmailMissInfo onBtnSendClick');
-              }}
+              onBtnSendClick={handleDraftEmailMissInfoBtnSendClick}
             />
           );
         }}
@@ -519,7 +631,7 @@ function PureActionBar(props: ActionBarProps) {
               placeholderDescription="Give your files a brief description."
               isShowBtnUpload={false}
               isLoadingBtnSend={isLoadingBtnSend}
-              verifyList={[]}
+              verifyList={[false]}
               renderFileListBefore={() => {
                 return (
                   <div className="grid grid-cols-3 gap-2 w-full">
@@ -533,9 +645,7 @@ function PureActionBar(props: ActionBarProps) {
                 );
               }}
               renderFooter={renderActionbarDraftEmailFooter}
-              onBtnSendClick={() => {
-                console.log('renderActionbarDraftEmailPDF onBtnSendClick');
-              }}
+              onBtnSendClick={handleDraftEmailPDFBtnSendClick}
             />
           );
         }}
@@ -750,7 +860,7 @@ function PureActionBar(props: ActionBarProps) {
   return (
     <div
       ref={actionBarRef}
-      className="absolute bottom-10 left-[50%] -translate-x-1/2 flex flex-col items-center gap-3 w-full"
+      className="absolute bottom-10 left-[50%] -translate-x-1/2 flex flex-col items-center gap-3 w-full pointer-events-none"
     >
       {/* Custom DropdownMenu for DraftEmail Select */}
       {typeCustomDropdownMenu === TypeCustomDropdownMenuEnum.DRAFT_EMAIL_SELECT
@@ -786,7 +896,7 @@ function PureActionBar(props: ActionBarProps) {
       {/* Base */}
       <div
         className={cn(
-          'action-bar-content bg-background box-border rounded-[12px] border border-solid border-[rgba(225, 225, 226, 1)] transition-all',
+          'action-bar-content bg-background box-border rounded-[12px] border border-solid border-[rgba(225, 225, 226, 1)] transition-all pointer-events-auto',
           customStyle
         )}
       >

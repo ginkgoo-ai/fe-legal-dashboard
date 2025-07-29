@@ -1,23 +1,24 @@
-import { Button } from '@/components/ui/button';
+import { useEventManager } from '@/hooks/useEventManager';
 import {
-  ICaseConversationAction,
   ICaseConversationItem,
+  ICaseDocumentIssueItem,
   ICaseItemType,
 } from '@/types/case';
 import { cn } from '@/utils';
 import { Splitter } from 'antd';
-import { X } from 'lucide-react';
 import { HTMLAttributes, useEffect, useState } from 'react';
 import { PanelProfileVaultDashboard } from '../panelProfileVaultDashboard';
 import { MainGrapherGround } from './mainGrapherGround';
+import { ThreadGrapherGround } from './threadGrapherGround';
 
 type CaseGrapherGroundProps = {
   caseInfo: ICaseItemType;
+  workflowOptions?: Record<string, any>;
   bottomPadding?: number;
 } & HTMLAttributes<HTMLDivElement>;
 
 export const CaseGrapherGround = (props: CaseGrapherGroundProps) => {
-  const { caseInfo, bottomPadding } = props;
+  const { caseInfo, bottomPadding, workflowOptions } = props;
 
   // 右侧面板状态
   const [sizeRightPanel, setSizeRightPanel] = useState<string | number>('0%');
@@ -26,17 +27,25 @@ export const CaseGrapherGround = (props: CaseGrapherGroundProps) => {
 
   // 当前选中的对话
   const [currentConversation, setCurrentConversation] = useState<{
+    threadId: string;
+    documentIssues: ICaseDocumentIssueItem;
     message: ICaseConversationItem;
-    action: ICaseConversationAction;
+    [key: string]: any;
   } | null>(null);
 
-  // 处理消息操作
-  const handleMessageAction = (params: {
-    message: ICaseConversationItem;
-    action: ICaseConversationAction;
-  }) => {
-    setCurrentConversation(params);
-  };
+  useEventManager('ginkgoo-thread', $event => {
+    const { type } = $event;
+    switch (type) {
+      case 'event: uploadDocuments':
+        setCurrentConversation(null);
+        break;
+      case 'event: ignoreIssues':
+        setCurrentConversation(null);
+        break;
+      default:
+        break;
+    }
+  });
 
   // 处理右侧面板显示/隐藏
   useEffect(() => {
@@ -71,8 +80,15 @@ export const CaseGrapherGround = (props: CaseGrapherGroundProps) => {
             {caseInfo?.id && (
               <MainGrapherGround
                 caseId={caseInfo.id}
+                activeMessage={currentConversation?.message ?? null}
                 paddingBottom={bottomPadding}
-                emitMessageAction={handleMessageAction}
+                workflowOptions={workflowOptions}
+                emitMessageAction={$event => {
+                  setCurrentConversation(null);
+                  setTimeout(() => {
+                    setCurrentConversation($event);
+                  }, 200);
+                }}
               />
             )}
             {props.children}
@@ -87,50 +103,17 @@ export const CaseGrapherGround = (props: CaseGrapherGroundProps) => {
                 'bg-panel-background relative rounded-2xl flex-col flex border transition-all duration-200'
               )}
             >
-              <SecondaryGrapherContainer
-                title={() => (
-                  <div className="flex items-center flex-1 font-semibold text-base">
-                    {currentConversation.message.title}
-                  </div>
-                )}
-                onCloseEmit={() => setCurrentConversation(null)}
-              >
-                <div className="whitespace-pre-wrap text-sm leading-relaxed">
-                  {currentConversation.message.content}
-                </div>
-              </SecondaryGrapherContainer>
+              {currentConversation && (
+                <ThreadGrapherGround
+                  data={currentConversation}
+                  caseId={caseInfo.id}
+                  onCloseEmit={() => setCurrentConversation(null)}
+                />
+              )}
             </Splitter.Panel>
           )}
         </Splitter>
       </div>
-    </div>
-  );
-};
-
-// 右侧面板容器组件
-const SecondaryGrapherContainer = ({
-  title,
-  onCloseEmit,
-  children,
-}: {
-  title: () => React.ReactNode;
-  onCloseEmit: () => void;
-  children: React.ReactNode;
-}) => {
-  return (
-    <div className="rounded-2xl w-full h-full">
-      <div className="border-b p-4 relative">
-        <div className="min-h-9 flex flex-col">{title()}</div>
-        <Button
-          onClick={onCloseEmit}
-          variant={'ghost'}
-          size={'icon'}
-          className="absolute top-4 right-4"
-        >
-          <X />
-        </Button>
-      </div>
-      <div className="p-4 h-[calc(100%-73px)] overflow-auto">{children}</div>
     </div>
   );
 };

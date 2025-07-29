@@ -77,6 +77,7 @@ function PureModalNewWorkflow(props: ModalNewWorkflowProps) {
         options: {
           tabId: pageTabInfo?.id,
         },
+        isReload: true,
       },
       window.location.origin
     );
