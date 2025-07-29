@@ -866,7 +866,7 @@ function PureActionBar(props: ActionBarProps) {
       {typeCustomDropdownMenu === TypeCustomDropdownMenuEnum.DRAFT_EMAIL_SELECT
         ? renderCustomDropdownMenuSelect({
             customClassName: cn(
-              'bg-background box-border rounded-[12px] border border-solid border-[rgba(225, 225, 226, 1)] gap-0.5 p-1 w-full flex flex-col',
+              'bg-background box-border rounded-[12px] border border-solid border-[rgba(225, 225, 226, 1)] gap-0.5 p-1 w-full flex flex-col pointer-events-auto',
               customStyle
             ),
           })
@@ -876,7 +876,7 @@ function PureActionBar(props: ActionBarProps) {
       {typeCustomDropdownMenu === TypeCustomDropdownMenuEnum.DRAFT_EMAIL_MISS_INFO
         ? renderCustomDropdownMenuDraftEmailMissInfo({
             customClassName: cn(
-              'bg-background box-border rounded-[12px] border border-solid border-[rgba(225, 225, 226, 1)] gap-0.5 p-1 w-full flex flex-col',
+              'bg-background box-border rounded-[12px] border border-solid border-[rgba(225, 225, 226, 1)] gap-0.5 p-1 w-full flex flex-col pointer-events-auto',
               'absolute bottom-0 left-[50%] z-30 -translate-x-1/2 action-bar-content',
               customStyle
             ),
@@ -887,7 +887,7 @@ function PureActionBar(props: ActionBarProps) {
       {typeCustomDropdownMenu === TypeCustomDropdownMenuEnum.INSTALL_EXTENSION
         ? renderCustomDropdownMenuInstallExtension({
             customClassName: cn(
-              'bg-background box-border rounded-[12px] border border-solid border-[rgba(225, 225, 226, 1)] gap-0 p-0 w-full flex flex-col',
+              'bg-background box-border rounded-[12px] border border-solid border-[rgba(225, 225, 226, 1)] gap-0 p-0 w-full flex flex-col pointer-events-auto',
               customStyle
             ),
           })
