@@ -114,7 +114,7 @@ function CaseDetailContent() {
       }
       case 'ginkgoo-background-all-pilot-update':
       case 'ginkgoo-background-all-pilot-done': {
-        console.log('ginkgoo-background-all-pilot-update', message);
+        // console.log('ginkgoo-background-all-pilot-update', message);
         const { pilotInfo: pilotInfoMsg } = message;
         const {
           pilotStatus: pilotStatusMsg,
