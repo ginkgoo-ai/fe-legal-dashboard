@@ -524,7 +524,7 @@ export const getHistoryConversation = async (
   );
 };
 
-export const conversationMessageStream = (
+export const conversationMessageStream = async (
   params: ICaseConversationStreamParams,
   onRequest?: (controller: AbortController) => void,
   onProgress?: (text: string) => void
