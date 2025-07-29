@@ -24,6 +24,9 @@ interface InputMultimodalProps {
   isLoadingBtnSend: boolean;
   verifyList: (string | boolean)[]; // 'fileList' | 'description' | 自定义校验结果 通过为true ，未通过为false
   initFileListForActionUpload?: File[];
+  initDescription?: string;
+  minHeight?: string;
+  maxHeight?: string;
   renderFileListBefore?: () => React.ReactNode;
   renderFooter?: () => React.ReactNode;
   onBtnSendClick?: (params: { fileList: IFileItemType[]; description: string }) => void;
@@ -38,6 +41,9 @@ function PureInputMultimodal(props: InputMultimodalProps) {
     isLoadingBtnSend,
     verifyList = [],
     initFileListForActionUpload,
+    initDescription = '',
+    minHeight = '40px',
+    maxHeight = '200px',
     renderFileListBefore,
     renderFooter,
     onBtnSendClick,
@@ -71,6 +77,10 @@ function PureInputMultimodal(props: InputMultimodalProps) {
       handleFileChange(initFileListForActionUpload as File[]);
     }
   }, [initFileListForActionUpload]);
+
+  useEffectStrictMode(() => {
+    setDescription(initDescription);
+  }, [initDescription]);
 
   const actionUploadFileOnly = async (file: IFileItemType) => {
     const resUploadDocument = await uploadDocumentOnlyUpload({
@@ -209,12 +219,15 @@ function PureInputMultimodal(props: InputMultimodalProps) {
         <textarea
           ref={textareaRef}
           name={`input-multimodal-input-${name}`}
-          className="box-border pl-1 pr-3 rounded border-none resize-none outline-none min-h-[40px] max-h-[200px] w-full transition-all"
+          className="overflow-auto box-border pl-1 pr-3 rounded border-none resize-none outline-none w-full transition-all"
+          style={{
+            minHeight,
+            maxHeight,
+          }}
           placeholder={placeholderDescription}
           value={description}
           onChange={handleDescriptionChange}
           rows={1}
-          style={{ overflow: 'auto' }}
         />
       </div>
 
