@@ -22,6 +22,7 @@ import { useEventManager } from '@/hooks/useEventManager';
 import { useStateCallback } from '@/hooks/useStateCallback';
 import { cn, parseCaseInfo } from '@/lib/utils';
 import {
+  autoFillings,
   caseStream,
   getProfileSchema,
   getWorkflowDefinitions,
@@ -67,6 +68,7 @@ function CaseDetailContent() {
 
   const cancelRef = useRef<null | (() => void)>(null);
   const lastActionBarHeight = useRef<number | null>(null);
+  const pilotInfoCurrentWorkflowId = useRef<string | null>(null);
 
   const [breadcrumbItems, setBreadcrumbItems] = useState<ItemType[]>([
     breadcrumbItemsCasePortal,
@@ -112,7 +114,7 @@ function CaseDetailContent() {
       }
       case 'ginkgoo-background-all-pilot-update':
       case 'ginkgoo-background-all-pilot-done': {
-        console.log('ginkgoo-background-all-pilot-update', message);
+        // console.log('ginkgoo-background-all-pilot-update', message);
         const { pilotInfo: pilotInfoMsg } = message;
         const {
           pilotStatus: pilotStatusMsg,
@@ -122,17 +124,38 @@ function CaseDetailContent() {
         const { id: caseIdMsg } = pilotCaseInfoMsg || {};
         const { workflow_instance_id: workflowIdMsg } = pilotWorkflowInfoMsg || {};
 
+        if (!!workflowIdMsg) {
+          setModalNewWorkflowOpen(false);
+          setPilotInfoCurrent(pilotInfoMsg);
+        }
+
         if (caseIdMsg !== caseId || !pilotCaseInfoMsg) {
           break;
         }
 
-        if (pilotStatusMsg === PilotStatusEnum.OPEN) {
-          refreshWorkflowList();
-          break;
+        if (
+          pilotStatusMsg === PilotStatusEnum.OPEN &&
+          pilotInfoCurrentWorkflowId.current !== workflowIdMsg
+        ) {
+          pilotInfoCurrentWorkflowId.current = workflowIdMsg;
+          refreshWorkflowList({
+            cb: () => {
+              autoFillings({
+                caseId: caseId || '',
+                workflowId: workflowIdMsg,
+              });
+            },
+          });
         }
 
+        break;
+      }
+      case 'ginkgoo-background-all-pilot-query': {
+        const { pilotInfo: pilotInfoMsg } = message;
+        const { pilotWorkflowInfo: pilotWorkflowInfoMsg } = pilotInfoMsg || {};
+        const { workflow_instance_id: workflowIdMsg } = pilotWorkflowInfoMsg || {};
+
         if (!!workflowIdMsg) {
-          setModalNewWorkflowOpen(false);
           setPilotInfoCurrent(pilotInfoMsg);
         }
         break;
@@ -255,7 +278,13 @@ function CaseDetailContent() {
     await refreshCaseDetail();
     getProfileVaultSchema();
     refreshWorkflowDefinitions();
-    refreshWorkflowList();
+    refreshWorkflowList({
+      cb: () => {
+        window.postMessage({
+          type: 'ginkgoo-page-background-pilot-query',
+        });
+      },
+    });
 
     const regCaseStream = async () => {
       try {
@@ -635,6 +664,7 @@ function CaseDetailContent() {
               <ActionBar
                 caseInfo={caseInfo}
                 pilotInfoCurrent={pilotInfoCurrent}
+                workflowList={workflowList}
                 onSizeChange={handleActionBarSizeChange}
                 onShowNewWorkflow={handleShowNewWorkflow}
               />

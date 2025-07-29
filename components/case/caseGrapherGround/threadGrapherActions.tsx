@@ -12,10 +12,11 @@ type ThreadGrapherActionsProps = {
 export const ThreadGrapherActions = ({ message, caseId }: ThreadGrapherActionsProps) => {
   const { conversationType } = message;
   const [isLoadingBtnSend, setLoadingBtnSend] = useState(false);
-
+  const [description, setDescription] = useState('');
   const { emit: emitThread } = useEventManager('ginkgoo-thread', () => {});
 
   const handleReferenceBtnSendClick = async ($event: { description: string }) => {
+    setDescription($event.description);
     setLoadingBtnSend(true);
 
     emitThread({
@@ -60,6 +61,7 @@ export const ThreadGrapherActions = ({ message, caseId }: ThreadGrapherActionsPr
 
         parseAndEmitEvent(resType);
         setLoadingBtnSend(false);
+        setDescription('');
       }
     );
   };
@@ -69,11 +71,13 @@ export const ThreadGrapherActions = ({ message, caseId }: ThreadGrapherActionsPr
         <InputMultimodal
           caseId={caseId}
           name="emailDraft"
+          initDescription={description}
           placeholderDescription="Ask Ginkgoo."
           isShowBtnUpload={false}
           isLoadingBtnSend={isLoadingBtnSend}
           verifyList={['description']}
           onBtnSendClick={handleReferenceBtnSendClick}
+          maxHeight="40px"
         />
       </div>
     );
