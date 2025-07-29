@@ -4,9 +4,9 @@ class GlobalManager {
 
   siteName = 'Xeni';
   siteDescription = 'Xeni.Legal';
-  versionExtension = '0.2.5';
+  versionExtension = '0.2.6';
   urlInstallExtension =
-    'https://github.com/ginkgoo-ai/fe-chrome-extensions/releases/download/v0.2.5/xeni-pilot_20250729094451.zip';
+    'https://github.com/ginkgoo-ai/fe-chrome-extensions/releases/download/v0.2.6/xeni-pilot_20250729100700.zip';
 
   static getInstance() {
     if (!this.instance) {
