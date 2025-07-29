@@ -247,6 +247,14 @@ export interface ICaseConversationItem {
   title: string;
   updatedAt: string;
   documentIssues: ICaseDocumentIssueItem[];
+  conversationType: ICaseConversationType;
+}
+
+export enum ICaseConversationType {
+  SUMMARY = 'SUMMARY',
+  EMAIL = 'EMAIL',
+  GENERAL = 'GENERAL',
+  AUTO_FILLING = 'AUTO_FILLING',
 }
 
 export enum ICaseMessageType {
@@ -293,4 +301,9 @@ export interface ICaseConversationStats {
   totalMessages: number;
   unreadMessages: number;
   userMessages: number;
+}
+
+export interface ICaseConversationStreamParams {
+  caseId: string;
+  payload: { threadId: string; [key: string]: any };
 }

@@ -1,7 +1,6 @@
 import { useEventManager } from '@/hooks/useEventManager';
 import { getHistoryConversation } from '@/service/api';
 import { ICaseConversationItem, ICaseMessageType, ICasePagination } from '@/types/case';
-import { ICaseDocumentType } from '@/types/file';
 import { cn } from '@/utils';
 import { Loader2 } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -20,7 +19,6 @@ export const MainGrapherGround = ({
   paddingBottom = 0,
   emitMessageAction,
   activeMessage,
-  ...props
 }: MainGrapherGroundProps) => {
   const [messages, setMessages] = useState<ICaseConversationItem[]>([]);
   const [pageInfo, setPageInfo] = useState<ICasePagination | null>(null);
@@ -51,48 +49,12 @@ export const MainGrapherGround = ({
     }
   });
 
-  useEventManager('ginkgoo-case', async message => {
-    const { type: typeMsg } = message || {};
-
-    switch (typeMsg) {
-      case 'update-case-reference-change':
-        addClientMessage(message);
-        setTimeout(() => {
-          bottomLineRef.current?.scrollIntoView();
-        }, 200);
-        break;
-    }
-  });
-
   const addMessage = (message: ICaseConversationItem) => {
     setMessages(prev =>
       [...prev, { ...message, id: message.id ?? uuidv4() }].filter(
         item => item.messageType !== ICaseMessageType.CLIENT_WAITING_SERVER
       )
     );
-  };
-
-  const addClientMessage = (message: {
-    acceptedDocuments: ICaseDocumentType[];
-    description: string;
-    type: string;
-  }) => {
-    const { acceptedDocuments, description, type } = message;
-    if (type !== 'update-case-reference-change') {
-      return;
-    }
-    const newMessage = {
-      id: uuidv4(),
-      messageType: 'USER',
-      content: description,
-      metadata: {
-        attachments: acceptedDocuments,
-      },
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    } as unknown as ICaseConversationItem;
-    setMessages(prev => [...prev, newMessage]);
-    addLoadingMessage();
   };
 
   const addLoadingMessage = () => {

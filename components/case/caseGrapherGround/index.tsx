@@ -8,7 +8,7 @@ import { Splitter } from 'antd';
 import { HTMLAttributes, useEffect, useState } from 'react';
 import { PanelProfileVaultDashboard } from '../panelProfileVaultDashboard';
 import { MainGrapherGround } from './mainGrapherGround';
-import { SecondaryGrapherGround } from './secondaryGrapherGround';
+import { ThreadGrapherGround } from './threadGrapherGround';
 
 type CaseGrapherGroundProps = {
   caseInfo: ICaseItemType;
@@ -65,7 +65,12 @@ export const CaseGrapherGround = (props: CaseGrapherGroundProps) => {
                 caseId={caseInfo.id}
                 activeMessage={currentConversation?.message ?? null}
                 paddingBottom={bottomPadding}
-                emitMessageAction={setCurrentConversation}
+                emitMessageAction={$event => {
+                  setCurrentConversation(null);
+                  setTimeout(() => {
+                    setCurrentConversation($event);
+                  }, 200);
+                }}
               />
             )}
             {props.children}
@@ -81,7 +86,7 @@ export const CaseGrapherGround = (props: CaseGrapherGroundProps) => {
               )}
             >
               {currentConversation && (
-                <SecondaryGrapherGround
+                <ThreadGrapherGround
                   {...currentConversation}
                   caseId={caseInfo.id}
                   onCloseEmit={() => setCurrentConversation(null)}

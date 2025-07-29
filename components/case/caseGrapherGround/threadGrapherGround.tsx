@@ -1,18 +1,22 @@
 import { Button } from '@/components/ui/button';
+import { useEventManager } from '@/hooks/useEventManager';
 import { getHistoryConversation } from '@/service/api';
 import {
   ICaseConversationItem,
+  ICaseConversationType,
   ICaseDocumentIssueItem,
   ICaseMessageType,
   ICasePagination,
 } from '@/types/case';
+import { cn } from '@/utils';
 import { Loader2, X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { CaseGrapher, DocumentIssusLabel } from '../caseGrapher';
-import { InputMultimodal } from '../inputMultimodal';
+import { ActionLabel } from '../caseGrapher';
+import { ThreadGrapher } from '../caseGrapher/threadGrapher';
+import { ThreadGrapherActions } from './threadGrapherActions';
 
-type SecondaryGrapherGroundProps = {
+type ThreadGrapherGroundProps = {
   message: ICaseConversationItem;
   threadId: string;
   documentIssues: ICaseDocumentIssueItem;
@@ -20,16 +24,16 @@ type SecondaryGrapherGroundProps = {
   onCloseEmit: () => void;
 };
 
-export const SecondaryGrapherGround = ({
+export const ThreadGrapherGround = ({
   message,
   threadId,
   documentIssues,
   caseId,
   onCloseEmit,
-}: SecondaryGrapherGroundProps) => {
+}: ThreadGrapherGroundProps) => {
   const [messages, setMessages] = useState<ICaseConversationItem[]>([]);
   const [pageInfo, setPageInfo] = useState<ICasePagination | null>(null);
-  const [isLoadingBtnSend, setIsLoadingBtnSend] = useState<boolean>(false);
+  const [isLoadingBtnSend, setLoadingBtnSend] = useState<boolean>(false);
   const [
     initFileListForActionUploadForReferenceFile,
     setInitFileListForActionUploadForReferenceFile,
@@ -43,15 +47,77 @@ export const SecondaryGrapherGround = ({
     prevScrollTop: 0,
     shouldAdjust: false,
   });
-  const addMessage = (message: ICaseConversationItem) => {
-    setMessages(prev =>
-      [...prev, { ...message, id: message.id ?? uuidv4() }].filter(
-        item => item.messageType !== ICaseMessageType.CLIENT_WAITING_SERVER
-      )
-    );
+
+  const genClientMessage = useCallback((content: string) => {
+    const msg = {
+      id: uuidv4(),
+      messageType: ICaseMessageType.USER,
+      content,
+      createdAt: new Date().toISOString(),
+    } as ICaseConversationItem;
+    setMessages(prev => [...prev, msg]);
+  }, []);
+
+  const updateChunkMessage = useCallback(
+    (content: string) => {
+      const msg = messages.find(item => item.id === 'CHUNKING');
+      if (msg) {
+        msg.content = msg.content + content;
+        setMessages(prev => [...prev.filter(m => m.id !== 'CHUNKING'), msg]);
+      }
+    },
+    [messages]
+  );
+
+  const completeChunkMessage = useCallback(() => {
+    const msg = messages.find(item => item.id === 'CHUNKING');
+    if (msg) {
+      msg.id = uuidv4();
+    }
+  }, [messages]);
+
+  useEventManager(
+    'ginkgoo-thread',
+    $event => {
+      const { type, data, threadId: tThreadId } = $event;
+      if (threadId !== tThreadId) {
+        return;
+      }
+      switch (type) {
+        case 'event: send':
+          genClientMessage(data.content);
+          break;
+        case 'event: ai_response_chunk':
+          updateChunkMessage(data.content);
+          break;
+        case 'event: analysis_start':
+          genTempMessage('');
+          break;
+        case 'event: email_draft_completed':
+          completeChunkMessage();
+          break;
+        default:
+          return;
+      }
+      scrollToBottom();
+    },
+    [messages]
+  );
+
+  const scrollToBottom = () => {
+    setTimeout(() => {
+      bottomLineRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, 200);
   };
 
-  const handleReferenceBtnSendClick = () => {};
+  const genTempMessage = (content: string) => {
+    const message = {
+      id: 'CHUNKING',
+      content,
+      messageType: ICaseMessageType.ASSISTANT,
+    } as ICaseConversationItem;
+    setMessages(prev => [...prev, message]);
+  };
 
   const fetchMessages = useCallback(
     async ({ page, size }: { page: number; size: number }) => {
@@ -155,7 +221,7 @@ export const SecondaryGrapherGround = ({
       <div className="border-b p-4 relative">
         <div className="min-h-9 flex flex-col">
           <div className="flex items-center flex-1 font-semibold text-base gap-2">
-            {DocumentIssusLabel(documentIssues.status)}
+            {ActionLabel(message.conversationType, documentIssues?.status)}
             {message.title}
           </div>
         </div>
@@ -168,13 +234,17 @@ export const SecondaryGrapherGround = ({
           <X />
         </Button>
       </div>
-      <div className="p-4 h-[calc(100%-73px)] overflow-auto relative">
+      <div className="p-4 h-[calc(100%_-_73px)] overflow-auto relative">
         <div
-          className="h-[calc(100%_-_135px)] overflow-auto overscroll-contain"
+          className={cn('overflow-auto overscroll-contain', {
+            'h-[calc(100%_-_135px)]':
+              message.conversationType === ICaseConversationType.EMAIL,
+            'h-full': message.conversationType !== ICaseConversationType.EMAIL,
+          })}
           ref={scrollContainerRef}
         >
           <div
-            className="w-full items-center flex justify-center mb-4 text-primary-gray text-sm"
+            className="w-full items-center flex justify-center mb-4 text-primary-gray text-xs"
             ref={sentinelRef}
           >
             {fetching ? (
@@ -189,23 +259,12 @@ export const SecondaryGrapherGround = ({
           </div>
           <div className="flex flex-col gap-4">
             {messages.map(con => (
-              <CaseGrapher key={con.id} data={con} onActionEmit={() => {}} />
+              <ThreadGrapher key={con.id} data={con} onActionEmit={() => {}} />
             ))}
           </div>
           <div ref={bottomLineRef}></div>
         </div>
-        <div className="border rounded-xl p-2 w-full">
-          <InputMultimodal
-            caseId={caseId}
-            name="add-reference"
-            placeholderDescription="Give your files a brief description."
-            isShowBtnUpload
-            isLoadingBtnSend={isLoadingBtnSend}
-            verifyList={['fileList']}
-            initFileListForActionUpload={initFileListForActionUploadForReferenceFile}
-            onBtnSendClick={handleReferenceBtnSendClick}
-          />
-        </div>
+        <ThreadGrapherActions message={message} caseId={caseId} />
       </div>
     </div>
   );

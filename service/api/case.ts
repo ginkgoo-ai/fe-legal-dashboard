@@ -1,6 +1,7 @@
 import {
   ICaseConversationItem,
   ICaseConversationStats,
+  ICaseConversationStreamParams,
   ICaseDocumentResultType,
   ICaseItemType,
   ICasePagination,
@@ -56,6 +57,7 @@ const CaseApi = {
   missingFields: '/legalcase/cases/:caseId/profile/missing-fields',
   missingFieldsEmail: '/legalcase/cases/:caseId/profile/missing-fields-email',
   applyDummyData: '/legalcase/cases/:caseId/profile/fields/:fieldPath/apply-dummy-data',
+  conversationMessagesStream: '/legalcase/cases/:caseId/conversation/messages/stream',
   // workflows: '/workflows/:workflowId',
   // workflowsStep: '/workflows/:workflowId/steps/:stepKey',
 };
@@ -506,4 +508,98 @@ export const getHistoryConversation = async (
       ...queries,
     }
   );
+};
+
+export const conversationMessageStream = (
+  params: ICaseConversationStreamParams,
+  onRequest?: (controller: AbortController) => void,
+  onProgress?: (text: string) => void
+): Promise<{ cancel: () => void; request: Promise<null> }> => {
+  const { caseId } = params;
+  const controller = new AbortController();
+  const request = new Promise<null>((resolve, reject) => {
+    fetch(`${baseUrl}${CaseApi.conversationMessagesStream}`.replace(':caseId', caseId), {
+      method: 'POST',
+      signal: controller.signal,
+      credentials: 'include',
+      headers: {
+        Accept: 'text/event-stream',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(params.payload),
+    })
+      .then(response => {
+        if (response.status === 403) {
+          window.location.replace('/403');
+          return;
+        }
+
+        const reader = response.body?.getReader();
+        const decoder = new TextDecoder();
+
+        let buffer = '';
+        const push = () => {
+          reader
+            ?.read()
+            .then(({ done, value }) => {
+              if (done) {
+                if (buffer.trim()) {
+                  try {
+                    const lastMessage = buffer.trim();
+                    if (lastMessage.startsWith('data:')) {
+                      onProgress?.(lastMessage.slice(5).trim());
+                    }
+                  } catch (e) {
+                    console.error('解析最终数据失败:', e, '原始数据:', buffer);
+                  }
+                }
+                resolve(null);
+                return;
+              }
+
+              const chunk = decoder.decode(value, { stream: true });
+              buffer += chunk;
+
+              const messages = buffer.split('\n\n');
+
+              buffer = messages.pop() || '';
+
+              for (const message of messages) {
+                if (!message.trim()) continue;
+
+                const data = message.replace(/^data:\s*/gm, '').trim();
+                if (data) {
+                  try {
+                    onProgress?.(data);
+                  } catch (e) {
+                    console.error('解析数据失败:', e, '原始数据:', data);
+                  }
+                }
+              }
+
+              push();
+            })
+            .catch(error => {
+              if (error.name === 'AbortError') {
+                resolve({} as any);
+              } else {
+                reject(error);
+              }
+            });
+        };
+
+        push();
+      })
+      .catch(error => {
+        console.error('conversationMessageStream', error);
+        resolve(null);
+      });
+  });
+
+  onRequest?.(controller);
+
+  return {
+    cancel: () => controller.abort(),
+    request,
+  };
 };
