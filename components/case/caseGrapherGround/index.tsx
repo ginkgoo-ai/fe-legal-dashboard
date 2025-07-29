@@ -1,3 +1,4 @@
+import { useEventManager } from '@/hooks/useEventManager';
 import {
   ICaseConversationItem,
   ICaseDocumentIssueItem,
@@ -31,6 +32,20 @@ export const CaseGrapherGround = (props: CaseGrapherGroundProps) => {
     message: ICaseConversationItem;
     [key: string]: any;
   } | null>(null);
+
+  useEventManager('ginkgoo-thread', $event => {
+    const { type } = $event;
+    switch (type) {
+      case 'event: uploadDocuments':
+        setCurrentConversation(null);
+        break;
+      case 'event: ignoreIssues':
+        setCurrentConversation(null);
+        break;
+      default:
+        break;
+    }
+  });
 
   // 处理右侧面板显示/隐藏
   useEffect(() => {

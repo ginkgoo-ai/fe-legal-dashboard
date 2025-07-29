@@ -289,7 +289,12 @@ export const ThreadGrapherGround = ({
           </div>
           <div className="flex flex-col gap-4">
             {messages.map(con => (
-              <ThreadGrapher key={con.id} data={con} onActionEmit={() => {}} />
+              <ThreadGrapher
+                key={con.id}
+                caseId={caseId}
+                data={con}
+                onActionEmit={() => {}}
+              />
             ))}
           </div>
           <div ref={bottomLineRef}></div>

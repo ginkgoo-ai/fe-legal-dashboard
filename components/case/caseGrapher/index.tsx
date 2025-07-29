@@ -154,7 +154,7 @@ const ServerCaseLogger = (props: {
                       key={`${threadId}_${issue.id}`}
                       onClick={() =>
                         props.onActionEmit?.({
-                          threadId: threadId,
+                          threadId: item.threadId,
                           documentIssues: item,
                           message,
                         })

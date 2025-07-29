@@ -255,6 +255,7 @@ export enum ICaseConversationType {
   EMAIL = 'EMAIL',
   GENERAL = 'GENERAL',
   AUTO_FILLING = 'AUTO_FILLING',
+  ISSUE = 'ISSUE',
 }
 
 export enum ICaseMessageType {
@@ -270,6 +271,7 @@ export interface ICaseDocumentIssueItem {
   documentType: string;
   description: string;
   status: ICaseDocumentIssueStatus;
+  actions: ICaseConversationAction[];
 }
 
 export enum ICaseDocumentIssueStatus {
@@ -282,6 +284,7 @@ export interface ICaseDocumentIssue {
   actions: ICaseConversationAction[];
   context: string;
   id: string;
+  message: string;
 }
 
 export interface ICaseConversationAction {

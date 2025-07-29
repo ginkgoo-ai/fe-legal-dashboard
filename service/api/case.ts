@@ -59,6 +59,7 @@ const CaseApi = {
   autoFillings: '/legalcase/cases/:caseId/auto-fillings',
   applyDummyData: '/legalcase/cases/:caseId/profile/fields/:fieldPath/apply-dummy-data',
   conversationMessagesStream: '/legalcase/cases/:caseId/conversation/messages/stream',
+  ignoreIssue: '/legalcase/cases/:caseId/validation-issues/ignore',
   // workflows: '/workflows/:workflowId',
   // workflowsStep: '/workflows/:workflowId/steps/:stepKey',
 };
@@ -615,4 +616,14 @@ export const conversationMessageStream = (
     cancel: () => controller.abort(),
     request,
   };
+};
+
+export const IgnoreIssues = async (
+  caseId: string,
+  params: { issueIds: string[]; reason?: string }
+) => {
+  return ApiRequest.post<{ success: boolean }>(
+    `${baseUrl}${CaseApi.ignoreIssue.replace(':caseId', caseId)}`,
+    params
+  );
 };

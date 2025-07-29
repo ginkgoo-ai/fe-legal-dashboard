@@ -146,6 +146,21 @@ function PureActionBar(props: ActionBarProps) {
 
   const { emit: emitCase } = useEventManager('ginkgoo-case', () => {});
 
+  useEventManager('ginkgoo-thread', $event => {
+    const { type } = $event;
+    switch (type) {
+      case 'event: uploadDocuments':
+        (
+          document.querySelector(
+            'input#action-bar-add-reference-upload-file'
+          ) as HTMLInputElement
+        )?.click();
+        break;
+      default:
+        break;
+    }
+  });
+
   const refreshDraftEmailMissInfoOption = async () => {
     setDraftEmailMissInfoOption([]);
     const resMissingFields = await getMissingFields({
@@ -435,6 +450,7 @@ function PureActionBar(props: ActionBarProps) {
             disabled={isRunningExtension}
           >
             <FileUploadSimple
+              id="action-bar-add-reference-upload-file"
               accept="application/pdf,image/jpeg,image/png,image/gif,image/webp,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/plain"
               maxSize={50}
               onChange={handleFileChange}
