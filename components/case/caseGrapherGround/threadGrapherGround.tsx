@@ -69,12 +69,17 @@ export const ThreadGrapherGround = ({
     [messages]
   );
 
-  const completeChunkMessage = useCallback(() => {
-    const msg = messages.find(item => item.id === 'CHUNKING');
-    if (msg) {
-      msg.id = uuidv4();
-    }
-  }, [messages]);
+  const completeChunkMessage = () => {
+    setMessages(prev =>
+      prev.map(item => {
+        if (item.id === 'CHUNKING') {
+          item.id = uuidv4();
+          item.conversationType = ICaseConversationType.EMAIL;
+        }
+        return item;
+      })
+    );
+  };
 
   useEventManager(
     'ginkgoo-thread',
@@ -115,6 +120,7 @@ export const ThreadGrapherGround = ({
       id: 'CHUNKING',
       content,
       messageType: ICaseMessageType.ASSISTANT,
+      conversationType: ICaseConversationType.GENERAL,
     } as ICaseConversationItem;
     setMessages(prev => [...prev, message]);
   };
