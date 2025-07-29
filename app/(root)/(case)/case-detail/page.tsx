@@ -134,16 +134,19 @@ function CaseDetailContent() {
         }
 
         if (
-          pilotStatusMsg === PilotStatusEnum.OPEN &&
+          (pilotStatusMsg === PilotStatusEnum.OPEN_NEW ||
+            pilotStatusMsg === PilotStatusEnum.OPEN_OLD) &&
           pilotInfoCurrentWorkflowId.current !== workflowIdMsg
         ) {
           pilotInfoCurrentWorkflowId.current = workflowIdMsg;
           refreshWorkflowList({
             cb: () => {
-              autoFillings({
-                caseId: caseId || '',
-                workflowId: workflowIdMsg,
-              });
+              if (pilotStatusMsg === PilotStatusEnum.OPEN_NEW) {
+                autoFillings({
+                  caseId: caseId || '',
+                  workflowId: workflowIdMsg,
+                });
+              }
             },
           });
         }

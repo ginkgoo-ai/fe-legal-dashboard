@@ -2,7 +2,8 @@ import { ICaseItemType } from './case';
 
 export enum PilotStatusEnum {
   INIT = 'INIT',
-  OPEN = 'OPEN',
+  OPEN_NEW = 'OPEN_NEW',
+  OPEN_OLD = 'OPEN_OLD',
   START = 'START',
   QUERY_TAB = 'QUERY_TAB',
   QUERY_WORKFLOW = 'QUERY_WORKFLOW',
@@ -138,8 +139,25 @@ export interface IWorkflowStepDataFormDataType {
   };
 }
 
+export interface IWorkflowStepDataCurrentInterruptQuestionsType {
+  question_id: string;
+  question_text: string;
+  field_name: string;
+  field_type: string;
+  field_selector: string;
+  required: boolean;
+  confidence: number;
+  reasoning: string;
+  needs_intervention: boolean;
+  options: any[];
+  grouped_fields: any[];
+  extracted_at: string;
+  answer_options: any[];
+}
+
 export interface IWorkflowStepDataType {
   actions: unknown[];
+  current_interrupt_questions: IWorkflowStepDataCurrentInterruptQuestionsType[];
   form_data: IWorkflowStepDataFormDataType[];
   metadata: unknown;
   questions: unknown[];
