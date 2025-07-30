@@ -1,9 +1,10 @@
+import { UseConversationScroll } from '@/hooks/useConversationScroll';
 import { useEventManager } from '@/hooks/useEventManager';
 import { getHistoryConversation } from '@/service/api';
-import { ICaseConversationItem, ICaseMessageType, ICasePagination } from '@/types/case';
+import { ICaseConversationItem, ICaseMessageType } from '@/types/case';
 import { cn } from '@/utils';
 import { Loader2 } from 'lucide-react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { CaseGrapher } from '../caseGrapher';
 
@@ -22,16 +23,33 @@ export const MainGrapherGround = ({
   activeMessage,
   workflowOptions,
 }: MainGrapherGroundProps) => {
-  const [messages, setMessages] = useState<ICaseConversationItem[]>([]);
-  const [pageInfo, setPageInfo] = useState<ICasePagination | null>(null);
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const bottomLineRef = useRef<HTMLDivElement>(null);
-  const sentinelRef = useRef<HTMLDivElement>(null);
-  const [fetching, setFetching] = useState<boolean>(false);
-  const scrollState = useRef({
-    prevScrollHeight: 0,
-    prevScrollTop: 0,
-    shouldAdjust: false,
+  const fetchMessages = useCallback(
+    async ({ page, size }: { page: number; size: number }) => {
+      if (!caseId) {
+        throw new Error('Case ID is required');
+      }
+
+      const response = await getHistoryConversation(caseId, {
+        page,
+        size,
+      });
+      return response;
+    },
+    [caseId]
+  );
+
+  const {
+    messages,
+    setMessages,
+    scrollContainerRef,
+    bottomLineRef,
+    sentinelRef,
+    fetching,
+    pageInfo,
+    scrollToBottom,
+    refreshMessages,
+  } = UseConversationScroll<ICaseConversationItem>(fetchMessages, {
+    pageOptions: { size: 50 },
   });
 
   // 监听实时消息
@@ -42,11 +60,12 @@ export const MainGrapherGround = ({
       case 'event:conversationMessage':
         if (data) {
           addMessage(data);
-          // 新消息到达时滚动到底部
-          setTimeout(() => {
-            bottomLineRef.current?.scrollIntoView();
-          }, 200);
+          scrollToBottom({ behavior: 'smooth' });
         }
+        break;
+      case 'event:ocrProcessingStarted':
+        addLoadingMessage();
+        scrollToBottom({ behavior: 'smooth' });
         break;
     }
   });
@@ -57,6 +76,7 @@ export const MainGrapherGround = ({
     switch (type) {
       case 'event: ignoreIssues':
         refreshMessages();
+        scrollToBottom();
         break;
     }
   });
@@ -79,111 +99,6 @@ export const MainGrapherGround = ({
     } as unknown as ICaseConversationItem;
     setMessages(prev => [...prev, loadingMessage]);
   };
-
-  const fetchMessages = useCallback(
-    async ({ page, size }: { page: number; size: number }) => {
-      if (!caseId) {
-        throw new Error('Case ID is required');
-      }
-
-      const response = await getHistoryConversation(caseId, {
-        page,
-        size,
-      });
-      return response;
-    },
-    [caseId]
-  );
-
-  const loadMoreMessages = async () => {
-    if (fetching) {
-      return;
-    }
-    const list = scrollContainerRef.current;
-    if (!list) return;
-    scrollState.current = {
-      prevScrollHeight: list.scrollHeight,
-      prevScrollTop: list.scrollTop,
-      shouldAdjust: true,
-    };
-    setFetching(true);
-    try {
-      const { messages: newMessages, pagination } = await fetchMessages({
-        page: (pageInfo?.page ?? -1) + 1,
-        size: pageInfo?.size ?? 50,
-      });
-      setMessages(prev => [...newMessages, ...prev]);
-      setPageInfo(pagination);
-    } catch (error) {
-      console.error('Error loading more messages:', error);
-      setFetching(false);
-    } finally {
-      setFetching(false);
-    }
-  };
-
-  const refreshMessages = async () => {
-    if (fetching) {
-      return;
-    }
-    setFetching(true);
-    try {
-      const { messages: newMessages, pagination } = await fetchMessages({
-        page: 0,
-        size: pageInfo?.size ?? 50,
-      });
-      setMessages(newMessages);
-      setPageInfo(pagination);
-    } catch (error) {
-      console.error('Error refreshing messages:', error);
-      setFetching(false);
-    } finally {
-      setFetching(false);
-    }
-  };
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (!entry.isIntersecting) {
-          return;
-        }
-        if (!pageInfo) {
-          loadMoreMessages();
-        }
-        if (!fetching && pageInfo?.hasNext) {
-          loadMoreMessages();
-        }
-      },
-      {
-        root: scrollContainerRef.current,
-        threshold: 1.0,
-      }
-    );
-
-    if (sentinelRef?.current) {
-      observer.observe(sentinelRef.current);
-    }
-
-    return () => {
-      observer.disconnect();
-    };
-  }, [fetching, pageInfo, sentinelRef]);
-
-  useEffect(() => {
-    const list = scrollContainerRef.current;
-    if (!list || !scrollState.current.shouldAdjust) return;
-
-    // 3. 计算并补偿滚动位置
-    const { prevScrollHeight, prevScrollTop } = scrollState.current;
-    const scrollHeightDiff = list.scrollHeight - prevScrollHeight;
-
-    // 应用滚动位置补偿
-    list.scrollTop = prevScrollTop + scrollHeightDiff;
-
-    // 重置状态
-    scrollState.current.shouldAdjust = false;
-  }, [messages]);
 
   return (
     <div className="h-full">
