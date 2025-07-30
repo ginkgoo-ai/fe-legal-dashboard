@@ -166,13 +166,13 @@ export const ThreadGrapherGround = ({
   return (
     <div className="rounded-2xl w-full h-full">
       <div className="border-b p-4 relative">
-        <div className="min-h-9 flex flex-col">
-          <div className="flex items-center flex-1 font-semibold text-base gap-2">
+        <div className="min-h-9 flex items-center">
+          <div className="flex items-center font-semibold text-base gap-2 w-[calc(100%_-_40px)] truncate">
             {ActionLabel(message.conversationType, {
               status: documentIssues?.status,
               message,
             })}
-            {message.title}
+            <h2 className="truncate">{message.content}</h2>
           </div>
         </div>
         <Button
