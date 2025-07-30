@@ -51,6 +51,16 @@ export const MainGrapherGround = ({
     }
   });
 
+  useEventManager('ginkgoo-thread', message => {
+    const { type } = message;
+
+    switch (type) {
+      case 'event: ignoreIssues':
+        refreshMessages();
+        break;
+    }
+  });
+
   const addMessage = (message: ICaseConversationItem) => {
     setMessages(prev =>
       [...prev, { ...message, id: message.id ?? uuidv4() }].filter(
@@ -106,6 +116,26 @@ export const MainGrapherGround = ({
       setPageInfo(pagination);
     } catch (error) {
       console.error('Error loading more messages:', error);
+      setFetching(false);
+    } finally {
+      setFetching(false);
+    }
+  };
+
+  const refreshMessages = async () => {
+    if (fetching) {
+      return;
+    }
+    setFetching(true);
+    try {
+      const { messages: newMessages, pagination } = await fetchMessages({
+        page: 0,
+        size: pageInfo?.size ?? 50,
+      });
+      setMessages(newMessages);
+      setPageInfo(pagination);
+    } catch (error) {
+      console.error('Error refreshing messages:', error);
       setFetching(false);
     } finally {
       setFetching(false);
