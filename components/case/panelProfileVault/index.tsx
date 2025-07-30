@@ -3,16 +3,14 @@
 import { PanelContainer } from '@/components/case/panelContainer';
 import { PanelProfileVaultOverview } from '@/components/case/panelProfileVaultOverview';
 import { Badge } from '@/components/ui/badge';
-import { Button, buttonVariants } from '@/components/ui/button';
+import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
-import { getMissingFieldEmailTemplate } from '@/service/api';
 import { ICaseItemType } from '@/types/case';
 import { isWindows } from '@/utils';
 import { X } from 'lucide-react';
 import Image from 'next/image';
-import { memo, useCallback, useEffect, useState } from 'react';
-import { PanelProfileVaultRtxDialog } from '../panelProfileVaultRtxDialog';
+import { memo } from 'react';
 import { PanelProfileVaultTabContent } from '../panelProfileVaultTabContent';
 
 interface PanelProfileVaultProps {
@@ -24,25 +22,6 @@ interface PanelProfileVaultProps {
 function PurePanelProfileVault(props: PanelProfileVaultProps) {
   const { caseInfo = null, isFold, oBtnCloseClick } = props;
 
-  const [missingFieldsEmail, setMissingFieldsEmail] = useState<string>('');
-
-  const getMissingFieldsEmail = useCallback(async () => {
-    try {
-      const res = await getMissingFieldEmailTemplate(caseInfo!.id);
-      if (res.htmlBody) {
-        setMissingFieldsEmail(res.htmlBody);
-      }
-    } catch (error) {
-      console.error('Error fetching missing fields email:', error);
-    }
-  }, [caseInfo, setMissingFieldsEmail]);
-
-  useEffect(() => {
-    if (caseInfo?.id) {
-      getMissingFieldsEmail();
-    }
-  }, [caseInfo, getMissingFieldsEmail]);
-
   return (
     <PanelContainer
       title="Profile vault"
@@ -50,16 +29,6 @@ function PurePanelProfileVault(props: PanelProfileVaultProps) {
       renderTitleExtend={() => {
         return (
           <div className="flex flex-row items-center gap-2.5">
-            <PanelProfileVaultRtxDialog content={missingFieldsEmail}>
-              <div
-                className={cn(
-                  buttonVariants({ variant: 'secondary', size: 'default' }),
-                  'h-9 flex-1'
-                )}
-              >
-                <span className="font-bold">Draft email</span>
-              </div>
-            </PanelProfileVaultRtxDialog>
             <Button
               type="button"
               variant="ghost"

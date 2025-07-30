@@ -208,9 +208,7 @@ export const ThreadGrapherGround = ({
               </div>
             ) : pageInfo?.hasNext ? (
               'Load more messages'
-            ) : (
-              '--- There are no more messages ---'
-            )}
+            ) : null}
           </div>
           <div className="flex flex-col gap-4">
             {messages.map(con => (
