@@ -97,7 +97,10 @@ export const MainGrapherGround = ({
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     } as unknown as ICaseConversationItem;
-    setMessages(prev => [...prev, loadingMessage]);
+    setMessages(prev => [
+      ...prev.filter(msg => msg.messageType !== ICaseMessageType.CLIENT_WAITING_SERVER),
+      loadingMessage,
+    ]);
   };
 
   return (
