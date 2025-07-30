@@ -24,6 +24,7 @@ export const CaseGrapherGround = (props: CaseGrapherGroundProps) => {
   const [sizeRightPanel, setSizeRightPanel] = useState<string | number>('0%');
   const [sizeLeftPanel, setSizeLeftPanel] = useState<string | number>('100%');
   const [pandelGap, setPanelGap] = useState('0px');
+  const [threadPanelOpen, setThreadPanelOpen] = useState(false);
 
   // 当前选中的对话
   const [currentConversation, setCurrentConversation] = useState<{
@@ -49,7 +50,7 @@ export const CaseGrapherGround = (props: CaseGrapherGroundProps) => {
 
   // 处理右侧面板显示/隐藏
   useEffect(() => {
-    if (currentConversation) {
+    if (threadPanelOpen) {
       setSizeLeftPanel('50%');
       setSizeRightPanel('50%');
       setPanelGap('12px');
@@ -58,7 +59,7 @@ export const CaseGrapherGround = (props: CaseGrapherGroundProps) => {
       setSizeRightPanel('0%');
       setPanelGap('0');
     }
-  }, [currentConversation]);
+  }, [threadPanelOpen]);
 
   return (
     <div className={cn('w-full h-full flex flex-col gap-4 pb-8', props.className)}>
@@ -84,6 +85,7 @@ export const CaseGrapherGround = (props: CaseGrapherGroundProps) => {
                 paddingBottom={bottomPadding}
                 workflowOptions={workflowOptions}
                 emitMessageAction={$event => {
+                  setThreadPanelOpen(true);
                   setCurrentConversation(null);
                   setTimeout(() => {
                     setCurrentConversation($event);
@@ -95,7 +97,7 @@ export const CaseGrapherGround = (props: CaseGrapherGroundProps) => {
           </Splitter.Panel>
 
           {/* 右侧详情面板 */}
-          {currentConversation && (
+          {threadPanelOpen && (
             <Splitter.Panel
               resizable={false}
               size={sizeRightPanel}
@@ -108,7 +110,10 @@ export const CaseGrapherGround = (props: CaseGrapherGroundProps) => {
                   data={currentConversation}
                   caseId={caseInfo.id}
                   workflowOptions={workflowOptions}
-                  onCloseEmit={() => setCurrentConversation(null)}
+                  onCloseEmit={() => {
+                    setCurrentConversation(null);
+                    setThreadPanelOpen(false);
+                  }}
                 />
               )}
             </Splitter.Panel>
