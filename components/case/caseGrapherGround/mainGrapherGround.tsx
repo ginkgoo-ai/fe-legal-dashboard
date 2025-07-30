@@ -118,9 +118,7 @@ export const MainGrapherGround = ({
               </div>
             ) : pageInfo?.hasNext ? (
               'Load more messages'
-            ) : (
-              '--- There are no more messages ---'
-            )}
+            ) : null}
           </div>
           <div className="flex flex-col gap-4 px-1">
             {messages.map(con => (
