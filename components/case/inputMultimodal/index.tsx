@@ -202,7 +202,7 @@ function PureInputMultimodal(props: InputMultimodalProps) {
       <div className="flex flex-col gap-1 bg-[#F0F0F0] dark:bg-primary-gray box-border p-3 rounded-xl">
         {renderFileListBefore?.()}
         {fileList?.length > 0 ? (
-          <div className="grid grid-cols-3 gap-2 w-full">
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(260px,1fr))] gap-2 w-full">
             {fileList.map((itemFile, indexFile) => {
               return (
                 <ItemFile
