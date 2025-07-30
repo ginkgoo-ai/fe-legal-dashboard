@@ -218,6 +218,12 @@ const ActionIcons = {
   [ICaseDocumentIssueStatus.HAS_WARNINGS]: <IconQuestionCircle />,
 };
 
+const DocumentIssuesLabel = {
+  [ICaseDocumentIssueStatus.VALID]: 'Resolved',
+  [ICaseDocumentIssueStatus.HAS_CRITICAL_ISSUES]: 'Critical',
+  [ICaseDocumentIssueStatus.HAS_WARNINGS]: 'Critical',
+};
+
 export const ActionLabel = (
   conversationType: ICaseConversationType,
   payload: {
@@ -246,7 +252,7 @@ export const ActionLabel = (
       [ICaseConversationType.SUMMARY]: {
         icon: () =>
           ActionIcons[status as ICaseDocumentIssueStatus] ?? <IconQuestionCircle />,
-        label: () => 'Critical',
+        label: () => DocumentIssuesLabel[status as ICaseDocumentIssueStatus],
         styleClass: () => DocumentIssuesStyles[status as ICaseDocumentIssueStatus],
       },
       [ICaseConversationType.AUTO_FILLING]: {

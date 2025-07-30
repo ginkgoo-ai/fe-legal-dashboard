@@ -24,12 +24,14 @@ type ThreadGrapherGroundProps = {
     [key: string]: any;
   };
   caseId: string;
+  workflowOptions?: Record<string, any>;
   onCloseEmit: () => void;
 };
 
 export const ThreadGrapherGround = ({
   data: { message, threadId, documentIssues, ...restData },
   caseId,
+  workflowOptions,
   onCloseEmit,
 }: ThreadGrapherGroundProps) => {
   const [messages, setMessages] = useState<ICaseConversationItem[]>([]);
@@ -269,7 +271,12 @@ export const ThreadGrapherGround = ({
           className={cn('overflow-auto overscroll-contain', {
             'h-[calc(100%_-_135px)]':
               message.conversationType === ICaseConversationType.EMAIL,
-            'h-full': message.conversationType !== ICaseConversationType.EMAIL,
+            'h-full': ![
+              ICaseConversationType.EMAIL,
+              ICaseConversationType.AUTO_FILLING,
+            ].includes(message.conversationType),
+            'h-[calc(100%_-_54px)]':
+              message.conversationType === ICaseConversationType.AUTO_FILLING,
           })}
           ref={scrollContainerRef}
         >
@@ -299,7 +306,11 @@ export const ThreadGrapherGround = ({
           </div>
           <div ref={bottomLineRef}></div>
         </div>
-        <ThreadGrapherActions message={message} caseId={caseId} />
+        <ThreadGrapherActions
+          message={message}
+          caseId={caseId}
+          workflowOptions={workflowOptions}
+        />
       </div>
     </div>
   );

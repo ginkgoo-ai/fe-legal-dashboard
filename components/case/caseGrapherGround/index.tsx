@@ -107,6 +107,7 @@ export const CaseGrapherGround = (props: CaseGrapherGroundProps) => {
                 <ThreadGrapherGround
                   data={currentConversation}
                   caseId={caseInfo.id}
+                  workflowOptions={workflowOptions}
                   onCloseEmit={() => setCurrentConversation(null)}
                 />
               )}
