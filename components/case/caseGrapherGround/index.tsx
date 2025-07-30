@@ -38,10 +38,10 @@ export const CaseGrapherGround = (props: CaseGrapherGroundProps) => {
     const { type } = $event;
     switch (type) {
       case 'event: uploadDocuments':
-        setCurrentConversation(null);
+        setThreadPanelOpen(false);
         break;
       case 'event: ignoreIssues':
-        setCurrentConversation(null);
+        setThreadPanelOpen(false);
         break;
       default:
         break;
@@ -58,6 +58,7 @@ export const CaseGrapherGround = (props: CaseGrapherGroundProps) => {
       setSizeLeftPanel('100%');
       setSizeRightPanel('0%');
       setPanelGap('0');
+      setCurrentConversation(null);
     }
   }, [threadPanelOpen]);
 
@@ -111,7 +112,6 @@ export const CaseGrapherGround = (props: CaseGrapherGroundProps) => {
                   caseId={caseInfo.id}
                   workflowOptions={workflowOptions}
                   onCloseEmit={() => {
-                    setCurrentConversation(null);
                     setThreadPanelOpen(false);
                   }}
                 />

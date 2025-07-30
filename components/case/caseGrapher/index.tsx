@@ -1,6 +1,5 @@
 import { FileBlock } from '@/components/common/itemFile';
 import { IconBroadcast, IconMarkCircle, IconQuestionCircle } from '@/components/ui/icon';
-import { Skeleton } from '@/components/ui/skeleton';
 import {
   ICaseConversationItem,
   ICaseConversationType,
@@ -58,10 +57,8 @@ const ServerLoadingLogger = () => {
       <div className="mb-2">
         <SiteLogo size={24} className="text-primary-dark" />
       </div>
-      <div className="flex flex-col gap-2 items-center justify-center">
-        <Skeleton className="w-full h-6" />
-        <Skeleton className="w-full h-6" />
-        <Skeleton className="w-full h-6" />
+      <div className="flex flex-col gap-2 justify-center">
+        <div className="after:animate-point-loading">Analyzing documents</div>
       </div>
     </>
   );
@@ -146,12 +143,12 @@ const ServerCaseLogger = (props: {
               <div className="h-[1px] w-full border-t my-4"></div>
               <div className="w-full flex flex-col gap-2">
                 {documentIssues.map(item => {
-                  const { issues, threadId } = item;
+                  const { issues, threadId, status } = item;
                   return issues.map(issue => (
                     <CaseLoggerAction
                       issue={issue}
                       documentIssues={item}
-                      key={`${threadId}_${issue.id}`}
+                      key={`${threadId}_${issue.id}_${status}`}
                       onClick={() =>
                         props.onActionEmit?.({
                           threadId: item.threadId,
