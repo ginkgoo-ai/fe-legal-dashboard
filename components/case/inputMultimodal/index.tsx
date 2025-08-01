@@ -42,7 +42,7 @@ function PureInputMultimodal(props: InputMultimodalProps) {
     verifyList = [],
     initFileListForActionUpload,
     initDescription = '',
-    minHeight = '40px',
+    minHeight = '50px',
     maxHeight = '200px',
     renderFileListBefore,
     renderFooter,
@@ -202,7 +202,14 @@ function PureInputMultimodal(props: InputMultimodalProps) {
       <div className="flex flex-col gap-1 bg-[#F0F0F0] dark:bg-primary-gray box-border p-3 rounded-xl">
         {renderFileListBefore?.()}
         {fileList?.length > 0 ? (
-          <div className="grid grid-cols-[repeat(auto-fit,minmax(260px,1fr))] gap-2 w-full">
+          <div
+            className={cn(
+              'grid gap-2 mb-2',
+              fileList.length >= 3
+                ? 'grid-cols-[repeat(auto-fit,minmax(300px,1fr))]'
+                : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
+            )}
+          >
             {fileList.map((itemFile, indexFile) => {
               return (
                 <ItemFile
